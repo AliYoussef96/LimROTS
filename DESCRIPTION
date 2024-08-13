@@ -1,0 +1,29 @@
+Package: LimROTS
+Title: Linear model Reproducibility Optimized Test Statistic
+Version: 0.0.0.9000
+Authors@R: 
+    person("Ali", "Youssef", , "aliali.mostafa99@gmail.com", role = c("aut", "cre"),
+           comment = c(ORCID = "YOUR-ORCID-ID"))
+Description: Perform reproducibility-optimized test statistic (ROTS) analysis considering covariates.
+License: GPL-3
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
+Depends: R (>= 4.3.1)
+LinkingTo: Rcpp
+NeedsCompilation: yes
+Imports: 
+    limma,
+    Biobase,
+    stats,
+    parallel,
+    utils,
+    methods,
+    ROTS,
+    dplyr,
+    foreach,
+    stringr,
+    doParallel,
+    Rcpp
+
+    
