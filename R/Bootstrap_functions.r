@@ -364,7 +364,7 @@ testStatistic <- function (paired, samples)
       f <- sum(sapply(samples, ncol))/prod(sapply(samples,
                                                   ncol))
       r <- vector(mode = "numeric", length = nrow(samples.all))
-      for (k in 1:length(samples)) {
+      for (k in seq_len(length(samples))) {
         r <- r + (rowMeans(samples[[k]], na.rm = TRUE) -
                     rowMeans(samples.all, na.rm = TRUE))^2
       }
@@ -372,7 +372,7 @@ testStatistic <- function (paired, samples)
       f <- 1/sum(sapply(samples, ncol) - 1) * sum(1/sapply(samples,
                                                            ncol))
       s <- vector(mode = "numeric", length = nrow(samples.all))
-      for (k in 1:length(samples)) {
+      for (k in seq_len(length(samples))) {
         s <- s + colSums(apply(samples[[k]], 1, function(x) (x -
                                                                mean(x, na.rm = TRUE))^2), na.rm = TRUE)
       }
@@ -411,7 +411,7 @@ bootstrapSamples.limRots <- function (data, B, meta.info, group.name)
       pos <- which(labels == label)
       meta.info.pos <- meta.info[row.names(meta.info) %in% colnames(data)[pos],]
       meta.info.factors <- c()
-      for (j in 1:ncol(meta.info.pos)){
+      for (j in seq_len(ncol(meta.info.pos))){
         if(is.factor(meta.info.pos[,j])){
           meta.info.factors <- c(meta.info.factors, colnames(meta.info.pos)[j])
         }
