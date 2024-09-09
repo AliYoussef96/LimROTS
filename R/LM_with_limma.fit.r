@@ -47,8 +47,6 @@ testStatistic_with_covariates_Fit <- function(data, group.name, meta.info , form
   covariates.p <- meta.info
 
 
-  covariates.p$sample.id <- NULL
-
 
   design.matrix <- model.matrix(formula(formula.str), data = covariates.p)
 

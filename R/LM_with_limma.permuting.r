@@ -45,7 +45,7 @@ testStatistic_with_covariates_permutating <- function(data, group.name, meta.inf
 
     real_SampleNames <-  str_split_fixed(i , fixed(".") , 2)[,1]
 
-    df.temp <- meta.info[meta.info$sample.id %in% real_SampleNames,]
+    df.temp <- meta.info[row.names(meta.info) %in% real_SampleNames,]
 
     df.temp$sample.id <- i
 

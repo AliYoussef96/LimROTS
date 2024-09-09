@@ -54,15 +54,46 @@
 #' @import foreach
 #' @export
 
-LimROTS <- function (data, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
+LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
                                    seed = NULL, log = TRUE, progress = FALSE,
                                    verbose = TRUE, meta.info = NULL, cluster = NULL ,
                                   group.name = NULL , formula.str = NULL, trend = TRUE, robust = TRUE,
                                   time = NULL, event = NULL, paired = FALSE)
 {
 
-  groups <- meta.info[,group.name]
-  meta.info$sample.id <- colnames(data)
+
+  if(class(data.exp) == "SummarizedExperiment"){
+    print("Data is SummarizedExperiment object")
+    print(data.exp)
+
+    if(is.null(meta.info)){
+      stop(paste0("meta.info should be a vector of colData names to be used"))
+    }else{
+      meta.info <- as.data.frame(colData(data.exp)[,meta.info])
+    }
+
+    if(!group.name %in% colnames(meta.info)){
+      stop(paste0("group.name should be a string specifying the column in `meta.info` that represents the groups or conditions for comparison."))
+    }else{
+      groups <- meta.info[,group.name]
+    }
+
+    print(paste0("Assay: " , assayNames(data.exp)[1] , " will be used"))
+    data <- assay(data.exp , assayNames(data.exp)[1])
+
+  }
+
+
+  if(any(!row.names(meta.info) %in% colnames(data))){
+    stop(paste0("rownames for meta.info should match the data colnames (samples names)"))
+  }
+
+
+  if(grepl("." , colnames(data) , fixed = T)){
+    stop(paste0("Sample names should contains no '.', please remove it if any"))
+  }
+
+  groups <- as.numeric(meta.info[,group.name])
 
   if(!is.null(meta.info)){
     if(ncol(meta.info) == 2){
@@ -112,19 +143,14 @@ LimROTS <- function (data, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
     event <- event[order(groups)]
   }
 
-  #### Added part for sorting in normal rots
 
   sort.df <- data.frame(sample.id = colnames(data), groups = meta.info[,group.name])
-
   sort.df <- sort.df[ order( sort.df$groups ), ]
   data <- data[,sort.df$sample.id]
-  groups <- sort.df$groups
-
+  groups <-  as.numeric(sort.df$groups)
 
   if(!is.null(meta.info)){
-  meta.info <- meta.info[order(meta.info[,group.name]),]
-  data <- data[, meta.info$sample.id]
-  meta.info[, group.name] <- factor(meta.info[, group.name])
+  meta.info <- meta.info[colnames(data),]
   }
 
   if (is.null(time)) {
@@ -142,6 +168,7 @@ LimROTS <- function (data, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
       }
     }
   }
+
   cl <- groups + (1 - min(groups))
 
 
@@ -175,7 +202,7 @@ LimROTS <- function (data, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
   if(!is.null(meta.info))
     {
     if (ncol(meta.info) > 2){
-    samples <- bootstrapSamples.limRots(data, 2 * B, cl, paired, meta.info, group.name )
+    samples <- bootstrapSamples.limRots(data = data, B = 2 * B, meta.info = meta.info, group.name =  group.name )
     pSamples <- samples
     }else{
       samples <- bootstrapSamples(data, 2 * B, cl, paired)
@@ -227,9 +254,6 @@ LimROTS <- function (data, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
                                 fit <- testStatistic.surv(lapply(samples.R, function(x) data[, x]), cl, event)
 
                               }else if(!is.null(meta.info)){
-
-
-                                # if(ncol(meta.info) > 2){
 
                                 fit <- testStatistic_with_covariates(paired = paired,
                                                                      data = lapply(samples.R, function(x) data[, x]),

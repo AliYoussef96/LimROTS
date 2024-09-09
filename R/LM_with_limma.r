@@ -43,7 +43,7 @@ testStatistic_with_covariates <- function(data, group.name, meta.info, formula.s
 
       real_SampleNames <-  str_split_fixed(i , fixed(".") , 2)[,1]
 
-      df.temp <- meta.info[meta.info$sample.id %in% real_SampleNames,]
+      df.temp <- meta.info[row.names(meta.info) %in% real_SampleNames,]
 
       df.temp$sample.id <- i
 

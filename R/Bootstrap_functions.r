@@ -1,5 +1,5 @@
 #' bootstrapSamples
-#' 
+#'
 #' Generates bootstrap samples for given data, optionally accounting for paired design.
 #'
 #' @param data A matrix or data frame of the data to be bootstrapped.
@@ -12,7 +12,7 @@
 #' @importFrom stats sample
 
 
-bootstrapSamples <- function (data, B, labels, paired) 
+bootstrapSamples <- function (data, B, labels, paired)
 {
   samples <- matrix(nrow = B, ncol = length(labels))
   for (i in 1:B) {
@@ -25,7 +25,7 @@ bootstrapSamples <- function (data, B, labels, paired)
     for (i in 1:B) {
       for (label in unique(labels)[-1]) {
         pos <- which(labels == label)
-        samples[i, pos] <- samples[i, which(labels == 
+        samples[i, pos] <- samples[i, which(labels ==
                                               1)] + pos[1] - 1
       }
     }
@@ -34,7 +34,7 @@ bootstrapSamples <- function (data, B, labels, paired)
 }
 
 #' permutatedSamples
-#' 
+#'
 #' Generates permuted samples for given data.
 #'
 #' @param data A matrix or data frame of the data to be permuted.
@@ -47,7 +47,7 @@ bootstrapSamples <- function (data, B, labels, paired)
 
 
 
-permutatedSamples <- function (data, B, cl) 
+permutatedSamples <- function (data, B, cl)
 {
   samples <- matrix(nrow = B, ncol = ncol(data))
   for (i in seq_len(B)) {
@@ -57,7 +57,7 @@ permutatedSamples <- function (data, B, cl)
 }
 
 #' calculateOverlaps1
-#' 
+#'
 #' Calculates overlaps using the NeedForSpeed1 function.
 #'
 #' @param D A numeric vector of observed values.
@@ -77,9 +77,9 @@ permutatedSamples <- function (data, B, cl)
 #' @importFrom stats .Call
 
 
-calculateOverlaps1 <- function (D, S, pD, pS, nrow, N, N_len, ssq, B, overlaps, overlaps.P) 
+calculateOverlaps1 <- function (D, S, pD, pS, nrow, N, N_len, ssq, B, overlaps, overlaps.P)
 {
-  overlap <- NeedForSpeed1(D, S, pD, pS, nrow, N, N_len, ssq, 
+  overlap <- NeedForSpeed1(D, S, pD, pS, nrow, N, N_len, ssq,
                            B, overlaps, overlaps.P)
   overlap
 }
@@ -87,7 +87,7 @@ calculateOverlaps1 <- function (D, S, pD, pS, nrow, N, N_len, ssq, B, overlaps, 
 
 
 #' NeedForSpeed1
-#' 
+#'
 #' Calls the C++ function for speed-optimized overlap calculations.
 #'
 #' @param D A numeric vector of observed values.
@@ -107,15 +107,15 @@ calculateOverlaps1 <- function (D, S, pD, pS, nrow, N, N_len, ssq, B, overlaps, 
 #' @importFrom stats .Call
 
 
-NeedForSpeed1 <- function (D, S, pD, pS, nrow, N, N_len, ssq, B, overlaps, overlaps_P) 
+NeedForSpeed1 <- function (D, S, pD, pS, nrow, N, N_len, ssq, B, overlaps, overlaps_P)
 {
-  .Call("ROTS_NeedForSpeed1", PACKAGE = "ROTS", D, S, pD, 
+  .Call("ROTS_NeedForSpeed1", PACKAGE = "ROTS", D, S, pD,
         pS, nrow, N, N_len, ssq, B, overlaps, overlaps_P)
 }
 
 
 #' calculateOverlaps2
-#' 
+#'
 #' Calculates overlaps using the NeedForSpeed2 function.
 #'
 #' @param D A numeric vector of observed values.
@@ -133,16 +133,16 @@ NeedForSpeed1 <- function (D, S, pD, pS, nrow, N, N_len, ssq, B, overlaps, overl
 
 
 
-calculateOverlaps2 <- function (D, pD, nrow, N, N_len, B, overlaps, overlaps.P) 
+calculateOverlaps2 <- function (D, pD, nrow, N, N_len, B, overlaps, overlaps.P)
 {
-  overlap <- NeedForSpeed2(D, pD, nrow, N, N_len, B, overlaps, 
+  overlap <- NeedForSpeed2(D, pD, nrow, N, N_len, B, overlaps,
                            overlaps.P)
   overlap
 }
 
 
 #' NeedForSpeed2
-#' 
+#'
 #' Calls the C++ function for speed-optimized overlap calculations.
 #'
 #' @param D A numeric vector of observed values.
@@ -161,15 +161,15 @@ calculateOverlaps2 <- function (D, pD, nrow, N, N_len, B, overlaps, overlaps.P)
 
 
 
-NeedForSpeed2 <- function (D, pD, nrow, N, N_len, B, overlaps, overlaps_P) 
+NeedForSpeed2 <- function (D, pD, nrow, N, N_len, B, overlaps, overlaps_P)
 {
-  .Call("ROTS_NeedForSpeed2", PACKAGE = "ROTS", D, pD, nrow, 
+  .Call("ROTS_NeedForSpeed2", PACKAGE = "ROTS", D, pD, nrow,
         N, N_len, B, overlaps, overlaps_P)
 }
 
 
 #' calculateP
-#' 
+#'
 #' Calculates p-values based on observed and permuted values.
 #'
 #' @param observed A numeric vector of observed values.
@@ -180,7 +180,7 @@ NeedForSpeed2 <- function (D, pD, nrow, N, N_len, B, overlaps, overlaps_P)
 #' @importFrom stats order sort
 
 
-calculateP <- function (observed, permuted) 
+calculateP <- function (observed, permuted)
 {
   observed_order <- order(abs(observed), decreasing = TRUE)
   observed <- sort(abs(observed), decreasing = TRUE)
@@ -196,7 +196,7 @@ calculateP <- function (observed, permuted)
 
 
 #' pvalue
-#' 
+#'
 #' Calls the C++ function to compute p-values.
 #'
 #' @param a A numeric vector of observed values.
@@ -207,14 +207,14 @@ calculateP <- function (observed, permuted)
 #' @importFrom stats .Call
 
 
-pvalue <- function (a, b) 
+pvalue <- function (a, b)
 {
   .Call("ROTS_pvalue", PACKAGE = "ROTS", a, b)
 }
 
 
 #' calculateFDR
-#' 
+#'
 #' Calculates the False Discovery Rate (FDR) based on observed and permuted values.
 #'
 #' @param observed A numeric vector of observed values.
@@ -258,7 +258,7 @@ calculateFDR <- function (observed, permuted, progress)
 
 
 #' biggerN
-#' 
+#'
 #' Computes the number of elements in x that are bigger than elements in y.
 #'
 #' @param x A numeric vector.
@@ -282,7 +282,7 @@ biggerN <- function (x, y)
 
 
 #' testStatistic.surv
-#' 
+#'
 #' Computes test statistics for survival data.
 #'
 #' @param samples A list of matrices containing expression data.
@@ -298,7 +298,7 @@ biggerN <- function (x, y)
 
 
 
-testStatistic.surv <- function (samples, time, event) 
+testStatistic.surv <- function (samples, time, event)
 {
   samples.all <- do.call("cbind", samples)
   t <- unique(time[event == 1])
@@ -308,8 +308,8 @@ testStatistic.surv <- function (samples, time, event)
     z <- which(time == k)
     d <- z[which(event[which(time == k)] == 1)]
     if (length(i) > 1) {
-      r <- r + (rowSums(as.data.frame(samples.all[, d]), 
-                        na.rm = TRUE) - length(d) * rowMeans(samples.all[, 
+      r <- r + (rowSums(as.data.frame(samples.all[, d]),
+                        na.rm = TRUE) - length(d) * rowMeans(samples.all[,
                                                                          i], na.rm = TRUE))
     }
   }
@@ -319,8 +319,8 @@ testStatistic.surv <- function (samples, time, event)
     z <- which(time == k)
     d <- z[which(event[which(time == k)] == 1)]
     if (length(i) > 1) {
-      s <- s + ((length(d)/length(i)) * rowSums((samples.all[, 
-                                                             i] - rowMeans(samples.all[, i], na.rm = TRUE))^2, 
+      s <- s + ((length(d)/length(i)) * rowSums((samples.all[,
+                                                             i] - rowMeans(samples.all[, i], na.rm = TRUE))^2,
                                                 na.rm = TRUE))
     }
   }
@@ -332,7 +332,7 @@ testStatistic.surv <- function (samples, time, event)
 
 
 #' testStatistic
-#' 
+#'
 #' Computes test statistics for given samples, optionally accounting for paired design.
 #'
 #' @param paired Logical, indicating whether the data is paired (default = FALSE).
@@ -346,7 +346,7 @@ testStatistic.surv <- function (samples, time, event)
 
 
 
-testStatistic <- function (paired, samples) 
+testStatistic <- function (paired, samples)
 {
   if (length(samples) == 2) {
     X <- samples[[1]]
@@ -368,7 +368,7 @@ testStatistic <- function (paired, samples)
       sXY <- rowSums((X - mX) * (Y - mY), na.rm = TRUE)
       n <- rowSums(!is.na(X * Y))
       d <- mY - mX
-      s <- sqrt(((sX + sY)/(n + n - 2)) * (2/n) - 2/(n * 
+      s <- sqrt(((sX + sY)/(n + n - 2)) * (2/n) - 2/(n *
                                                        n - n) * sXY)
       ind <- which(n < 2)
       d[ind] <- 0
@@ -379,19 +379,19 @@ testStatistic <- function (paired, samples)
   if (length(samples) > 2) {
     samples.all <- do.call("cbind", samples)
     if (!paired) {
-      f <- sum(sapply(samples, ncol))/prod(sapply(samples, 
+      f <- sum(sapply(samples, ncol))/prod(sapply(samples,
                                                   ncol))
       r <- vector(mode = "numeric", length = nrow(samples.all))
       for (k in 1:length(samples)) {
-        r <- r + (rowMeans(samples[[k]], na.rm = TRUE) - 
+        r <- r + (rowMeans(samples[[k]], na.rm = TRUE) -
                     rowMeans(samples.all, na.rm = TRUE))^2
       }
       d <- (f * r)^0.5
-      f <- 1/sum(sapply(samples, ncol) - 1) * sum(1/sapply(samples, 
+      f <- 1/sum(sapply(samples, ncol) - 1) * sum(1/sapply(samples,
                                                            ncol))
       s <- vector(mode = "numeric", length = nrow(samples.all))
       for (k in 1:length(samples)) {
-        s <- s + colSums(apply(samples[[k]], 1, function(x) (x - 
+        s <- s + colSums(apply(samples[[k]], 1, function(x) (x -
                                                                mean(x, na.rm = TRUE))^2), na.rm = TRUE)
       }
       s <- (f * s)^0.5
@@ -406,7 +406,7 @@ testStatistic <- function (paired, samples)
 
 
 #' bootstrapSamples.limRots
-#' 
+#'
 #' Generates bootstrap samples for limRots with covariate adjustment.
 #'
 #' @param data A matrix of the data to be bootstrapped.
@@ -423,103 +423,100 @@ testStatistic <- function (paired, samples)
 
 
 
-bootstrapSamples.limRots <- function (data, B, labels, paired, covariates, group.name) 
+bootstrapSamples.limRots <- function (data, B, meta.info, group.name)
 {
+
+  labels <- meta.info[,group.name]
+
   samples <- matrix(nrow = B, ncol = length(labels))
-  
-  
+
+
   for (i in 1:B) {
-    
+
     for (label in unique(labels)) {
-      
+
       pos <- which(labels == label)
-      
-      covariates.pos <- covariates[covariates$sample.id %in% colnames(data)[pos],]
-      
+
+      covariates.pos <- meta.info[row.names(meta.info) %in% colnames(data)[pos],]
+
       ### Get Factor covariates
       covariates.factors <- c()
       for (j in 1:ncol(covariates.pos)){
-        
+
         if(is.factor(covariates.pos[,j])){
           covariates.factors <- c(covariates.factors, colnames(covariates.pos)[j])
         }
-        
+
       }
-      
+
       covariates.factors <- covariates.factors[covariates.factors != group.name]
-      
+
       # Combine gender and batch into a single factor
-      
+
       covariates.pos$stratum <- interaction(covariates.pos[,covariates.factors])
       stratum_sizes <- table(covariates.pos$stratum)
-      
+
       # Calculate the number of samples needed from each stratum
       stratum_samples <- round(length(pos) * prop.table(stratum_sizes))
-      
+
       # Sample from each stratum
       sampled_indices <- unlist(lapply(names(stratum_samples), function(stratum) {
-        stratum_indices <- covariates.pos[which(covariates.pos$stratum ==  stratum ),]$sample.id
+
+        stratum_indices <- row.names(covariates.pos)[which(covariates.pos$stratum ==  stratum )]
+
         sample(stratum_indices, stratum_samples[stratum], replace = TRUE)
       }))
-      
-      samples[i, pos] <- sampled_indices 
-    }
-  }
-  if (paired) {
-    for (i in 1:B) {
-      for (label in unique(labels)[-1]) {
-        pos <- which(labels == label)
-        samples[i, pos] <- samples[i, which(labels == 
-                                              1)] + pos[1] - 1
-      }
+
+      samples[i, pos] <- sampled_indices
     }
   }
   return(samples)
 }
+
 
 calculateFDR.mean <- function (observed, permuted, progress = FALSE)
 {
   # Take the absolute values of observed and permuted data
   observed <- abs(observed)
   permuted <- abs(permuted)
-  
+
   # Sort the observed data in decreasing order
   ord <- order(observed, decreasing = TRUE, na.last = TRUE)
   a <- observed[ord]
-  
+
   # Initialize matrix to store FDR results for each permutation
   A <- matrix(NA, nrow = length(a), ncol = ncol(permuted))
-  
+
   # Progress bar setup
   if (progress)
     pb <- txtProgressBar(min = 0, max = ncol(A), style = 3)
-  
+
   # Calculate FDR for each permutation
   for (i in seq_len(ncol(A))) {
     a.rand <- sort(permuted[, i], decreasing = TRUE, na.last = TRUE)
     n.bigger <- biggerN(a, a.rand)
     A[ord, i] <- n.bigger / seq_along(a)
-    
+
     # Update progress bar
     if (progress)
       setTxtProgressBar(pb, i)
   }
-  
+
   # Close progress bar
   if (progress)
     close(pb)
-  
+
   # Compute FDR as the average instead of median, with optional smoothing factor
   FDR <- apply(A, 1, function(row) mean(row) )
-  
+
   # Ensure FDR values do not exceed 1
   FDR[FDR > 1] <- 1
-  
+
   # Introduce a lower bound to avoid FDR values of zero
   #FDR[FDR < epsilon] <- epsilon
-  
+
   # Reverse step-up procedure
   FDR[ord] <- rev(sapply(length(FDR):1, function(x) return(min(FDR[ord][x:length(FDR)]))))
-  
+
   return(FDR)
 }
