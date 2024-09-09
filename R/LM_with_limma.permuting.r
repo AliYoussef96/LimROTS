@@ -32,6 +32,7 @@
 #'
 #' @importFrom stats model.matrix formula
 #' @import utils
+#' @importFrom stringr str_split_fixed fixed
 #'
 
 

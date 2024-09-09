@@ -16,6 +16,7 @@ Imports:
     limma,
     parallel,
     foreach,
+    doParallel,
     stringr,
     qvalue,
     SummarizedExperiment
