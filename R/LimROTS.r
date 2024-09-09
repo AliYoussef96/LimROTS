@@ -50,12 +50,12 @@
 #'
 #' }
 #' @importFrom limma voom lmFit eBayes
+#' @importFrom stats model.matrix formula
 #' @import parallel
 #' @import foreach
 #' @import qvalue
-#' @import stats
 #' @import utils
-#'
+#' @import SummarizedExperiment
 #' @export
 
 LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,

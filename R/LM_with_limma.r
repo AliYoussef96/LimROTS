@@ -30,7 +30,7 @@
 #' \code{\link[limma]{makeContrasts}}
 #'
 #'
-#' @import stats
+#' @importFrom stats model.matrix formula
 #' @import utils
 #'
 

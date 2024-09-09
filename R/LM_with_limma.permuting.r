@@ -30,8 +30,7 @@
 #' @seealso \code{\link[limma]{lmFit}}, \code{\link[limma]{eBayes}}, \code{\link[limma]{topTable}},
 #' \code{\link[limma]{makeContrasts}}
 #'
-#' @importFrom stringr str_split_fixed fixed
-#' @import stats
+#' @importFrom stats model.matrix formula
 #' @import utils
 #'
 
