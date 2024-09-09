@@ -1,5 +1,5 @@
 #' ROTS_with_covariates2
-#' 
+#'
 #' Perform reproducibility-optimized test statistic (ROTS) analysis considering covariates.
 #'
 #' @param data A numeric matrix or `ExpressionSet` containing expression data.
@@ -32,15 +32,28 @@
 #' @importFrom stringr str_detect
 
 
-ROTS_with_covariates2 <- function (data, groups, B = 1000, K = NULL, paired = FALSE, 
-                                   seed = NULL, a1 = NULL, a2 = NULL, log = TRUE, progress = FALSE, 
-                                   verbose = TRUE, time = NULL, event = NULL, 
-                                   covariates = NULL, cluster = NULL ,
-                                   group.name = NULL , formula.str = NULL, trend = TRUE, robust = TRUE) 
+LimROTS <- function (data, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
+                                   seed = NULL, log = TRUE, progress = FALSE,
+                                   verbose = TRUE, meta.info = NULL, cluster = NULL ,
+                                  group.name = NULL , formula.str = NULL, trend = TRUE, robust = TRUE,
+                                  time = NULL, event = NULL, paired = FALSE)
 {
-  if (is(data, "ExpressionSet")) 
-    data <- Biobase::exprs(data)
-  if (!is.null(seed)) 
+
+  groups <- meta.info[,group.name]
+  meta.info$sample.id <- colnames(data)
+
+  if(!is.null(meta.info)){
+    if(ncol(meta.info) == 2){
+      print("A meta.info table is provided with only groups infomration >>> LimROTS with no covariates will be used")
+    }else{
+      print("A meta.info table is provided with covariates >>> LimROTS with covariates will be used")
+    }
+  }else{
+    print("A meta.info table is not provided >>> ROTS will be used")
+
+  }
+
+  if (!is.null(seed))
     set.seed(seed, kind = "default")
   if (!is.null(time)) {
     groups <- time
@@ -51,15 +64,15 @@ ROTS_with_covariates2 <- function (data, groups, B = 1000, K = NULL, paired = FA
   if (length(groups) != ncol(data)) {
     stop(paste("Number of samples in the data does not match the groups."))
   }
-  if (is.null(rownames(data))) 
+  if (is.null(rownames(data)))
     rownames(data) <- 1:nrow(data)
   ssq <- c((0:20)/100, (11:50)/50, (6:25)/5)
-  N <- c((1:20) * 5, (11:50) * 10, (21:40) * 25, (11:1000) * 
+  N <- c((1:20) * 5, (11:50) * 10, (21:40) * 25, (11:1000) *
            100)
   if (is.null(K)) {
     K <- floor(nrow(data)/4)
-    if (verbose) 
-      message(paste("No top list size K given, using", 
+    if (verbose)
+      message(paste("No top list size K given, using",
                     K))
   }
   K <- min(K, nrow(data))
@@ -72,29 +85,29 @@ ROTS_with_covariates2 <- function (data, groups, B = 1000, K = NULL, paired = FA
   else {
     groups.levels <- NULL
   }
-  
+
   if (!is.null(time)) {
     event <- event[order(groups)]
   }
-  
+
   #### Added part for sorting in normal rots
-  
-  sort.df <- data.frame(sample.id = colnames(data), groups = groups)
-  
+
+  sort.df <- data.frame(sample.id = colnames(data), groups = meta.info[,group.name])
+
   sort.df <- sort.df[ order( sort.df$groups ), ]
   data <- data[,sort.df$sample.id]
-  groups <- sort.df$groups 
-  
-  
-  if(!is.null(covariates)){
-  covariates <- covariates[order(covariates[,group.name]),]
-  data <- data[, covariates$sample.id]
-  covariates[, group.name] <- factor(covariates[, group.name])
+  groups <- sort.df$groups
+
+
+  if(!is.null(meta.info)){
+  meta.info <- meta.info[order(meta.info[,group.name]),]
+  data <- data[, meta.info$sample.id]
+  meta.info[, group.name] <- factor(meta.info[, group.name])
   }
-  
+
   if (is.null(time)) {
     for (i in unique(groups)) {
-      if (any(rowSums(is.na(data[, which(groups == i)])) >= 
+      if (any(rowSums(is.na(data[, which(groups == i)])) >=
               length(which(groups == i)) - 1)) {
         if (is.null(groups.levels)) {
           target <- i
@@ -102,156 +115,156 @@ ROTS_with_covariates2 <- function (data, groups, B = 1000, K = NULL, paired = FA
         else {
           target <- groups.levels[i]
         }
-        stop(paste("The data matrix of group", target, 
+        stop(paste("The data matrix of group", target,
                    "contains rows with less than two non-missing values, please remove these rows."))
       }
     }
   }
   cl <- groups + (1 - min(groups))
 
-  
+
   if (paired) {
     for (i in unique(cl)[-1]) {
-      if (length(which(cl == 1)) != length(which(cl == 
-                                                 i))) 
+      if (length(which(cl == 1)) != length(which(cl ==
+                                                 i)))
         stop("Uneven number of samples for paired test.")
     }
   }
   if (length(unique(cl)) == 2 && is.null(time)) {
     if (log) {
-      logfc <- rowMeans(data[, which(cl == 1)], na.rm = TRUE) - 
+      logfc <- rowMeans(data[, which(cl == 1)], na.rm = TRUE) -
         rowMeans(data[, which(cl == 2)], na.rm = TRUE)
     }
     else {
-      logfc <- rowMeans(log2(data[, which(cl == 1)] + 
-                               1), na.rm = TRUE) - rowMeans(log2(data[, which(cl == 
+      logfc <- rowMeans(log2(data[, which(cl == 1)] +
+                               1), na.rm = TRUE) - rowMeans(log2(data[, which(cl ==
                                                                                 2)] + 1), na.rm = TRUE)
     }
   }
   else {
     logfc <- rep(NA, nrow(data))
   }
-  if (verbose) 
+  if (verbose)
     message("Bootstrapping samples")
-  
-  
-  
-  
-  if(!is.null(covariates))
+
+
+
+
+  if(!is.null(meta.info))
     {
-    if (ncol(covariates) > 2){
-    samples <- bootstrapSamples.limRots(data, 2 * B, cl, paired, covariates, group.name )
+    if (ncol(meta.info) > 2){
+    samples <- bootstrapSamples.limRots(data, 2 * B, cl, paired, meta.info, group.name )
     pSamples <- samples
     }else{
       samples <- bootstrapSamples(data, 2 * B, cl, paired)
       pSamples <- samples
-      
+
     }
-    
+
   }else{
     samples <- bootstrapSamples(data, 2 * B, cl, paired)
     pSamples <- permutatedSamples(data, nrow(samples), cl)
-    
+
   }
-  
-  
-  
-  
+
+
+
+
   D <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
   S <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
   pD <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
   pS <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
-  
+
   pb <- txtProgressBar(min = 0, max = 100, style = 3)
-  
+
   registerDoParallel(cluster)
   clusterExport(cluster, varlist = c( "pb", "samples" , "pSamples" , "D", "data",
                                      "S" , "pD" , "pS", "time", "formula.str", "group.name" ,
-                                     "cl", "event", "covariates", "testStatistic",
-                                     "testStatistic_with_covariates" , "testStatistic.surv", 
+                                     "cl", "event", "meta.info", "testStatistic",
+                                     "testStatistic_with_covariates" , "testStatistic.surv",
                                      "testStatistic_with_covariates_permutating",
                                      "a1" , "a2", "trend", "robust" )  ,envir = environment())
-  
-  
-  
+
+
+
   if (progress) {
     setTxtProgressBar(pb, 50)
   }
   results_list <- foreach(i = seq_len(nrow(samples)), .combine = "c",
                           .packages = c("utils", "dplyr" , "stringr")) %dopar% {
-                            
+
                             samples.R <- split(samples[i, ], cl)
                             pSamples.R <- split(pSamples[i, ], cl)
-                            
+
                             # Initialize placeholders for results
                             d_result <- s_result <- pd_result <- ps_result <- NULL
-                            
+
                             # Compute D and S if conditions are met
                             if (is.null(a1) | is.null(a2)) {
                               if (!is.null(time)) {
                                 fit <- testStatistic.surv(lapply(samples.R, function(x) data[, x]), cl, event)
-                                
-                              }else if(!is.null(covariates)){
-                                
-                                
-                                # if(ncol(covariates) > 2){
-                                 
-                                fit <- testStatistic_with_covariates(paired = paired, 
+
+                              }else if(!is.null(meta.info)){
+
+
+                                # if(ncol(meta.info) > 2){
+
+                                fit <- testStatistic_with_covariates(paired = paired,
                                                                      data = lapply(samples.R, function(x) data[, x]),
-                                                                     group.name = group.name, covariates = covariates, 
+                                                                     group.name = group.name, meta.info = meta.info,
                                                                      formula.str = formula.str,
                                                                      trend=trend, robust=robust)
 
                               }else{
-                                
-                                fit <- testStatistic(paired, lapply(samples.R, 
+
+                                fit <- testStatistic(paired, lapply(samples.R,
                                                                               function(x) data[, x]))
                               }
                               d_result <- fit$d
                               s_result <- fit$s
-                              
+
                               df1 <- data.frame(d_result = d_result , s_result = s_result)
                             }
-                            
+
                             # Compute pD and pS
                             if (!is.null(time)) {
                               pFit <- testStatistic.surv(lapply(pSamples.R, function(x) data[, x]), cl, event)
-                            }else if(!is.null(covariates)){
-                              
-                              pFit <- testStatistic_with_covariates_permutating(paired = paired, 
+                            }else if(!is.null(meta.info)){
+
+                              pFit <- testStatistic_with_covariates_permutating(paired = paired,
                                                                     data = lapply(pSamples.R, function(x) data[, x]),
-                                                                    group.name = group.name, 
-                                                                    covariates = covariates, 
+                                                                    group.name = group.name,
+                                                                    meta.info = meta.info,
                                                                     formula.str = formula.str,
                                                                     trend=trend, robust=robust)
                             }else{
-                              
-                              pFit <- testStatistic(paired, lapply(pSamples.R, 
+
+                              pFit <- testStatistic(paired, lapply(pSamples.R,
                                                                    function(x) data[, x]))
                             }
                             pd_result <- pFit$d
                             ps_result <- pFit$s
-                            
+
                             df2 <- data.frame(pd_result = pd_result , ps_result = ps_result)
-                            
-                            
+
+
                             # Return results for this iteration as a data frame
                             list(ds = df1, pdps = df2)
                           }
 
   stopCluster(cluster)
-  
+
     if (progress) {
     setTxtProgressBar(pb, 80)
   }
-  
-  
+
+
   j <-  0
   q <-  0
   # Populate matrices D, S, pD, pS from results
   for (i in seq_along(results_list)) {
-  
-    
+
+
     if (names(results_list)[i] == "ds"){
       j <- j + 1
       D[, j] <- results_list[[i]]$d_result
@@ -264,18 +277,18 @@ ROTS_with_covariates2 <- function (data, groups, B = 1000, K = NULL, paired = FA
 
   }
 
-  
+
   if (progress) {
     setTxtProgressBar(pb, 100)
   }
-  
 
-  if (progress) 
+
+  if (progress)
     close(pb)
   rm(samples, pSamples)
   gc()
   if (is.null(a1) | is.null(a2)) {
-    if (verbose) 
+    if (verbose)
       message("Optimizing parameters")
     reprotable <- matrix(nrow = length(ssq) + 1, ncol = length(N))
     colnames(reprotable) <- N
@@ -286,45 +299,45 @@ ROTS_with_covariates2 <- function (data, groups, B = 1000, K = NULL, paired = FA
     reprotable.sd <- matrix(nrow = length(ssq) + 1, ncol = length(N))
     colnames(reprotable.sd) <- N
     row.names(reprotable.sd) <- c(ssq, "slr")
-    if (progress) 
-      pb <- txtProgressBar(min = 0, max = length(ssq), 
+    if (progress)
+      pb <- txtProgressBar(min = 0, max = length(ssq),
                            style = 3)
     for (i in 1:length(ssq)) {
       overlaps <- matrix(0, nrow = B, ncol = length(N))
       overlaps.P <- matrix(0, nrow = B, ncol = length(N))
-      cResults = calculateOverlaps1(D, S, pD, pS, nrow(D), 
-                                    as.integer(N), length(N), ssq[i], as.integer(B), 
+      cResults = calculateOverlaps1(D, S, pD, pS, nrow(D),
+                                    as.integer(N), length(N), ssq[i], as.integer(B),
                                     overlaps, overlaps.P)
       reprotable[i, ] <- colMeans(cResults[["overlaps"]])
       reprotable.P[i, ] <- colMeans(cResults[["overlaps_P"]])
-      reprotable.sd[i, ] <- sqrt(rowSums((t(cResults[["overlaps"]]) - 
-                                            reprotable[i, ])^2)/(nrow(cResults[["overlaps"]]) - 
+      reprotable.sd[i, ] <- sqrt(rowSums((t(cResults[["overlaps"]]) -
+                                            reprotable[i, ])^2)/(nrow(cResults[["overlaps"]]) -
                                                                    1))
-      if (progress) 
+      if (progress)
         setTxtProgressBar(pb, i)
     }
-    if (progress) 
+    if (progress)
       close(pb)
     i <- length(ssq) + 1
     overlaps <- matrix(0, nrow = B, ncol = length(N))
     overlaps.P <- matrix(0, nrow = B, ncol = length(N))
-    cResults = calculateOverlaps2(D, pD, nrow(D), as.integer(N), 
+    cResults = calculateOverlaps2(D, pD, nrow(D), as.integer(N),
                                   length(N), as.integer(B), overlaps, overlaps.P)
     rm(D, S)
     gc()
     reprotable[i, ] <- colMeans(cResults[["overlaps"]])
     reprotable.P[i, ] <- colMeans(cResults[["overlaps_P"]])
-    reprotable.sd[i, ] <- sqrt(rowSums((t(cResults[["overlaps"]]) - 
-                                          reprotable[i, ])^2)/(nrow(cResults[["overlaps"]]) - 
+    reprotable.sd[i, ] <- sqrt(rowSums((t(cResults[["overlaps"]]) -
+                                          reprotable[i, ])^2)/(nrow(cResults[["overlaps"]]) -
                                                                  1))
     rm(overlaps, overlaps.P, cResults)
     gc()
     ztable <- (reprotable - reprotable.P)/reprotable.sd
     rm(reprotable.P, reprotable.sd)
     gc()
-    sel <- which(ztable == max(ztable[is.finite(ztable)]), 
+    sel <- which(ztable == max(ztable[is.finite(ztable)]),
                  arr.ind = TRUE)
-    if (length(sel) > 2) 
+    if (length(sel) > 2)
       sel <- sel[1, ]
     if (sel[1] < nrow(reprotable)) {
       a1 <- as.numeric(row.names(reprotable)[sel[1]])
@@ -340,66 +353,67 @@ ROTS_with_covariates2 <- function (data, groups, B = 1000, K = NULL, paired = FA
     rm(reprotable)
     gc()
     if (!is.null(time)) {
-      fit <- testStatistic.surv(lapply(split(1:length(cl), 
+      fit <- testStatistic.surv(lapply(split(1:length(cl),
                                              cl), function(x) data[, x]), cl, event)
-    }else if(!is.null(covariates)){
-      fit <- testStatistic_with_covariates_Fit(paired = paired, data = lapply(split(1:length(cl), 
+    }else if(!is.null(meta.info)){
+      fit <- testStatistic_with_covariates_Fit(paired = paired, data = lapply(split(1:length(cl),
                                                                                 cl), function(x) data[, x]),
-                                           group.name = group.name , covariates = covariates , 
+                                           group.name = group.name , covariates = meta.info ,
                                            formula.str = formula.str,
                                            trend=trend, robust=robust)
     }else{
-      fit <- testStatistic(paired, lapply(split(1:length(cl), 
+      fit <- testStatistic(paired, lapply(split(1:length(cl),
                                                 cl), function(x) data[, x]))
     }
     d <- fit$d/(a1 + a2 * fit$s)
     pD <- pD/(a1 + a2 * pS)
     rm(pS)
     gc()
-    if (verbose) 
+    if (verbose)
       message("Calculating p-values")
     p <- calculateP(d, pD)
-    if (verbose) 
+    if (verbose)
       message("Calculating FDR")
     FDR <- calculateFDR(d, pD, progress)
     corrected.logfc <- fit$corrected.logfc
     rm(pD)
     gc()
-    
+
     q_values <- qvalue(p)
     BH.pvalue <- p.adjust(p, method = "BH")
+
     ROTS.output <- list(data = data, B = B, d = d, logfc = logfc,
-                        pvalue = p, FDR = FDR, a1 = a1, a2 = a2, k = k, 
+                        pvalue = p, FDR = FDR, a1 = a1, a2 = a2, k = k,
                         R = R, Z = Z, ztable = ztable, cl = cl , corrected.logfc = corrected.logfc,
                         q_values = q_values , BH.pvalue = BH.pvalue)
   }
   else {
     if (!is.null(time)) {
-      fit <- testStatistic.surv(lapply(split(1:length(cl), 
+      fit <- testStatistic.surv(lapply(split(1:length(cl),
                                              cl), function(x) data[, x]), cl, event)
-    }else if(!is.null(covariates)){
-      fit <- testStatistic_with_covariates_Fit(paired = paired, data = lapply(split(1:length(cl), 
+    }else if(!is.null(meta.info)){
+      fit <- testStatistic_with_covariates_Fit(paired = paired, data = lapply(split(1:length(cl),
                                                                                     cl), function(x) data[, x]),
-                                               group.name = group.name , covariates = covariates , 
+                                               group.name = group.name , covariates = meta.info ,
                                                formula.str = formula.str,
                                                trend=trend, robust=robust)
     }else{
-      fit <- testStatistic(paired, lapply(split(1:length(cl), 
+      fit <- testStatistic(paired, lapply(split(1:length(cl),
                                                 cl), function(x) data[, x]))
     }
-    
+
     d <- fit$d/(a1 + a2 * fit$s)
-    if (verbose) 
+    if (verbose)
       message("Calculating p-values")
     p <- calculateP(d, pD/(a1 + a2 * pS))
-    if (verbose) 
+    if (verbose)
       message("Calculating FDR")
     FDR <- calculateFDR(d, pD/(a1 + a2 * pS), progress)
     corrected.logfc <- fit$corrected.logfc
     q_values <- qvalue(p)
     BH.pvalue <- p.adjust(p, method = "BH")
-    ROTS.output <- list(data = data, B = B, d = d, logfc = logfc , 
-                        pvalue = p, FDR = FDR, a1 = a1, a2 = a2, k = NULL, 
+    ROTS.output <- list(data = data, B = B, d = d, logfc = logfc ,
+                        pvalue = p, FDR = FDR, a1 = a1, a2 = a2, k = NULL,
                         R = NULL, Z = NULL, cl = cl , corrected.logfc = corrected.logfc,
                         q_values = q_values , BH.pvalue = BH.pvalue)
   }
