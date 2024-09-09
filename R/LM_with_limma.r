@@ -29,6 +29,10 @@
 #' @seealso \code{\link[limma]{lmFit}}, \code{\link[limma]{eBayes}}, \code{\link[limma]{topTable}},
 #' \code{\link[limma]{makeContrasts}}
 #'
+#'
+#' @import stats
+#' @import utils
+#'
 
 
 testStatistic_with_covariates <- function(data, group.name, meta.info, formula.str ,

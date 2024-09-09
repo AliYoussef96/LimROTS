@@ -34,6 +34,10 @@
 #' @seealso \code{\link[limma]{lmFit}}, \code{\link[limma]{eBayes}}, \code{\link[limma]{topTable}},
 #' \code{\link[limma]{makeContrasts}}
 #'
+#'
+#' @import stats
+#' @import utils
+#'
 
 
 testStatistic_with_covariates_Fit <- function(data, group.name, meta.info , formula.str,
@@ -44,11 +48,8 @@ testStatistic_with_covariates_Fit <- function(data, group.name, meta.info , form
   combined_data <- cbind(data[[1]], data[[2]])
 
 
-  covariates.p <- meta.info
 
-
-
-  design.matrix <- model.matrix(formula(formula.str), data = covariates.p)
+  design.matrix <- model.matrix(formula(formula.str), data = meta.info)
 
   colnames(design.matrix) <- make.names(colnames(design.matrix) )
 
@@ -75,7 +76,7 @@ testStatistic_with_covariates_Fit <- function(data, group.name, meta.info , form
 
   return(list(d = d_values, s = s_values , corrected.logfc = corrected.logfc))
 
-  }else if(length(data) > 2 & ncol(covariates.p) == 1){
+  }else if(length(data) > 2 & ncol(meta.info) == 1){
 
     pairwise_contrasts <- combn(colnames(design.matrix), 2, function(x) paste(x[1], "-", x[2]))
 

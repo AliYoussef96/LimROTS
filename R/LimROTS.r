@@ -3,8 +3,8 @@
 #' The `LimROTS` function performs robust ranking of differential expression statistics for omics data,
 #' incorporating covariates from metadata and optionally integrating survival analysis, paired data, and more.
 #'
-#' @param data A matrix where rows represent features (e.g., genes, proteins), and columns represent samples.
-#'             The values should be either log-transformed or raw counts based on the argument `log`.
+#' @param data.exp A matrix where rows represent features (e.g., genes, proteins), and columns represent samples.
+#'             The values should be log-transformed `log`, or a SummarizedExperiment object.
 #' @param B An integer specifying the number of bootstrap iterations. Default is 1000.
 #' @param K An optional integer representing the top list size for ranking. If not specified, it is set to one-fourth of the number of features.
 #' @param a1 Optional numeric value used in the optimization process.
@@ -52,6 +52,10 @@
 #' @importFrom limma voom lmFit eBayes
 #' @import parallel
 #' @import foreach
+#' @import qvalue
+#' @import stats
+#' @import utils
+#'
 #' @export
 
 LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
@@ -62,7 +66,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
 {
 
 
-  if(class(data.exp) == "SummarizedExperiment"){
+  if(inherits(data.exp, "SummarizedExperiment")){
     print("Data is SummarizedExperiment object")
     print(data.exp)
 
@@ -257,8 +261,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
 
                               }else if(!is.null(meta.info)){
 
-                                fit <- testStatistic_with_covariates(paired = paired,
-                                                                     data = lapply(samples.R, function(x) data[, x]),
+                                fit <- testStatistic_with_covariates(data = lapply(samples.R, function(x) data[, x]),
                                                                      group.name = group.name, meta.info = meta.info,
                                                                      formula.str = formula.str,
                                                                      trend=trend, robust=robust)
@@ -279,8 +282,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
                               pFit <- testStatistic.surv(lapply(pSamples.R, function(x) data[, x]), cl, event)
                             }else if(!is.null(meta.info)){
 
-                              pFit <- testStatistic_with_covariates_permutating(paired = paired,
-                                                                    data = lapply(pSamples.R, function(x) data[, x]),
+                              pFit <- testStatistic_with_covariates_permutating(data = lapply(pSamples.R, function(x) data[, x]),
                                                                     group.name = group.name,
                                                                     meta.info = meta.info,
                                                                     formula.str = formula.str,
@@ -404,7 +406,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
       fit <- testStatistic.surv(lapply(split(1:length(cl),
                                              cl), function(x) data[, x]), cl, event)
     }else if(!is.null(meta.info)){
-      fit <- testStatistic_with_covariates_Fit(paired = paired, data = lapply(split(1:length(cl),
+      fit <- testStatistic_with_covariates_Fit(data = lapply(split(1:length(cl),
                                                                                 cl), function(x) data[, x]),
                                            group.name = group.name , covariates = meta.info ,
                                            formula.str = formula.str,
@@ -440,7 +442,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
       fit <- testStatistic.surv(lapply(split(1:length(cl),
                                              cl), function(x) data[, x]), cl, event)
     }else if(!is.null(meta.info)){
-      fit <- testStatistic_with_covariates_Fit(paired = paired, data = lapply(split(1:length(cl),
+      fit <- testStatistic_with_covariates_Fit(data = lapply(split(1:length(cl),
                                                                                     cl), function(x) data[, x]),
                                                group.name = group.name , covariates = meta.info ,
                                                formula.str = formula.str,

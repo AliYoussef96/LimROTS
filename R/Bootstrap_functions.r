@@ -9,7 +9,6 @@
 #'
 #' @return A matrix of bootstrap samples.
 #' @export
-#' @importFrom stats sample
 
 
 bootstrapSamples <- function (data, B, labels, paired)
@@ -43,7 +42,6 @@ bootstrapSamples <- function (data, B, labels, paired)
 #'
 #' @return A matrix of permuted samples.
 #' @export
-#' @importFrom stats sample
 
 
 
@@ -74,7 +72,6 @@ permutatedSamples <- function (data, B, cl)
 #'
 #' @return A numeric vector of calculated overlaps.
 #' @export
-#' @importFrom stats .Call
 
 
 calculateOverlaps1 <- function (D, S, pD, pS, nrow, N, N_len, ssq, B, overlaps, overlaps.P)
@@ -104,7 +101,6 @@ calculateOverlaps1 <- function (D, S, pD, pS, nrow, N, N_len, ssq, B, overlaps, 
 #'
 #' @return A numeric vector of calculated overlaps.
 #' @export
-#' @importFrom stats .Call
 
 
 NeedForSpeed1 <- function (D, S, pD, pS, nrow, N, N_len, ssq, B, overlaps, overlaps_P)
@@ -129,7 +125,6 @@ NeedForSpeed1 <- function (D, S, pD, pS, nrow, N, N_len, ssq, B, overlaps, overl
 #'
 #' @return A numeric vector of calculated overlaps.
 #' @export
-#' @importFrom stats .Call
 
 
 
@@ -156,7 +151,6 @@ calculateOverlaps2 <- function (D, pD, nrow, N, N_len, B, overlaps, overlaps.P)
 #'
 #' @return A numeric vector of calculated overlaps.
 #' @export
-#' @importFrom stats .Call
 
 
 
@@ -177,7 +171,6 @@ NeedForSpeed2 <- function (D, pD, nrow, N, N_len, B, overlaps, overlaps_P)
 #'
 #' @return A numeric vector of p-values.
 #' @export
-#' @importFrom stats order sort
 
 
 calculateP <- function (observed, permuted)
@@ -204,7 +197,6 @@ calculateP <- function (observed, permuted)
 #'
 #' @return A numeric vector of p-values.
 #' @export
-#' @importFrom stats .Call
 
 
 pvalue <- function (a, b)
@@ -223,7 +215,6 @@ pvalue <- function (a, b)
 #'
 #' @return A numeric vector of FDR values.
 #' @export
-#' @importFrom stats order apply
 
 
 calculateFDR <- function (observed, permuted, progress)
@@ -266,7 +257,6 @@ calculateFDR <- function (observed, permuted, progress)
 #'
 #' @return A numeric vector of counts.
 #' @export
-#' @importFrom stats sort match
 
 
 biggerN <- function (x, y)
@@ -293,7 +283,6 @@ biggerN <- function (x, y)
 #'   \item{d}{A numeric vector of test statistics.}
 #'   \item{s}{A numeric vector of standard errors.}
 #' @export
-#' @importFrom stats unique rowMeans rowSums
 
 
 
@@ -342,7 +331,6 @@ testStatistic.surv <- function (samples, time, event)
 #'   \item{d}{A numeric vector of test statistics.}
 #'   \item{s}{A numeric vector of standard errors.}
 #' @export
-#' @importFrom stats rowMeans rowSums
 
 
 
@@ -411,14 +399,11 @@ testStatistic <- function (paired, samples)
 #'
 #' @param data A matrix of the data to be bootstrapped.
 #' @param B Number of bootstrap samples to generate.
-#' @param labels A vector of labels indicating group membership for each sample.
-#' @param paired Logical, indicating whether the data is paired (default = FALSE).
-#' @param covariates Data frame containing covariates (Confounding Variables).
-#' @param group.name Column name in covariates indicating group labels (optional).
+#' @param meta.info Data frame containing meta.info (Confounding Variables).
+#' @param group.name Column name in meta.info indicating group labels (optional).
 #'
 #' @return A matrix of bootstrap samples.
 #' @export
-#' @importFrom stats sample interaction prop.table
 
 
 
@@ -437,24 +422,24 @@ bootstrapSamples.limRots <- function (data, B, meta.info, group.name)
 
       pos <- which(labels == label)
 
-      covariates.pos <- meta.info[row.names(meta.info) %in% colnames(data)[pos],]
+      meta.info.pos <- meta.info[row.names(meta.info) %in% colnames(data)[pos],]
 
-      ### Get Factor covariates
-      covariates.factors <- c()
-      for (j in 1:ncol(covariates.pos)){
+      ### Get Factor meta.info
+      meta.info.factors <- c()
+      for (j in 1:ncol(meta.info.pos)){
 
-        if(is.factor(covariates.pos[,j])){
-          covariates.factors <- c(covariates.factors, colnames(covariates.pos)[j])
+        if(is.factor(meta.info.pos[,j])){
+          meta.info.factors <- c(meta.info.factors, colnames(meta.info.pos)[j])
         }
 
       }
 
-      covariates.factors <- covariates.factors[covariates.factors != group.name]
+      meta.info.factors <- meta.info.factors[meta.info.factors != group.name]
 
       # Combine gender and batch into a single factor
 
-      covariates.pos$stratum <- interaction(covariates.pos[,covariates.factors])
-      stratum_sizes <- table(covariates.pos$stratum)
+      meta.info.pos$stratum <- interaction(meta.info.pos[,meta.info.factors])
+      stratum_sizes <- table(meta.info.pos$stratum)
 
       # Calculate the number of samples needed from each stratum
       stratum_samples <- round(length(pos) * prop.table(stratum_sizes))
@@ -462,7 +447,7 @@ bootstrapSamples.limRots <- function (data, B, meta.info, group.name)
       # Sample from each stratum
       sampled_indices <- unlist(lapply(names(stratum_samples), function(stratum) {
 
-        stratum_indices <- row.names(covariates.pos)[which(covariates.pos$stratum ==  stratum )]
+        stratum_indices <- row.names(meta.info.pos)[which(meta.info.pos$stratum ==  stratum )]
 
         sample(stratum_indices, stratum_samples[stratum], replace = TRUE)
       }))

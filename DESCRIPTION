@@ -5,25 +5,19 @@ Authors@R:
     person("Ali", "Youssef", , "aliali.mostafa99@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "YOUR-ORCID-ID"))
 Description: Perform reproducibility-optimized test statistic (ROTS) analysis considering covariates.
-License: GPL-3
+License: GPL (>= 2)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
-Depends: R (>= 4.3.1)
+Depends: R (>= 4.3.0)
 LinkingTo: Rcpp
 NeedsCompilation: yes
 Imports: 
     limma,
-    Biobase,
-    stats,
     parallel,
-    utils,
-    methods,
-    ROTS,
-    dplyr,
     foreach,
     stringr,
-    doParallel,
-    Rcpp
+    qvalue,
+    SummarizedExperiment
 
     
