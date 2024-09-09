@@ -2,15 +2,14 @@
 #' 
 #' Perform reproducibility-optimized test statistic (ROTS) analysis considering covariates.
 #'
-#' @param data A numeric data matrix or an ExpressionSet instance, in which rows correspond to genes and columns correspond to samples.
+#' @param data A numeric matrix or `ExpressionSet` containing expression data.
 #' @param groups A vector indicating group labels for each sample.
-#' @param B An integer specifying the number of bootstrap and permutation resamplings (default 1000).
-#' @param K An integer indicating the largest top list size considered. If no value is given, 1/4 of the features are used.
+#' @param B Number of bootstrap samples (default = 1000).
+#' @param K Number of top-ranked genes to consider (optional).
 #' @param paired Logical, indicating whether the data is paired (default = FALSE).
 #' @param seed Random seed for reproducibility (optional).
-#' @param a1 ROTS parameters (Non-negative parameters.) (optional).
-#' @param a2 ROTS parameters (Non-negative parameters.) (optional).
-#' @param log A logical (deafult TRUE) indicating whether input data is log2 scaled. This information is only used to calculate log fold change.
+#' @param a1, a2 ROTS parameters (optional).
+#' @param log Logical, whether to log-transform data (default = TRUE).
 #' @param progress Logical, display progress bar (default = FALSE).
 #' @param verbose Logical, display additional messages (default = TRUE).
 #' @param time Survival time data (optional).
@@ -25,24 +24,19 @@
 #' @return A list containing the ROTS analysis results.
 #' @export
 #' @import Biobase
-#' @import ROTS
-#' @import methods
-#' @import stats
-#' @import utils
+#' @import qvalue
 #' @importFrom foreach foreach %dopar%
-#' @importFrom parallel stopCluster clusterExport
+#' @importFrom doParallel registerDoParallel stopCluster clusterExport
+#' @importFrom utils txtProgressBar setTxtProgressBar close
 #' @importFrom dplyr %>%
 #' @importFrom stringr str_detect
-#' @importFrom doParallel registerDoParallel
-
-
 
 
 ROTS_with_covariates2 <- function (data, groups, B = 1000, K = NULL, paired = FALSE, 
                                    seed = NULL, a1 = NULL, a2 = NULL, log = TRUE, progress = FALSE, 
                                    verbose = TRUE, time = NULL, event = NULL, 
                                    covariates = NULL, cluster = NULL ,
-                                   group.name = NULL , formula.str = NULL, trend=TRUE, robust=TRUE) 
+                                   group.name = NULL , formula.str = NULL, trend = TRUE, robust = TRUE) 
 {
   if (is(data, "ExpressionSet")) 
     data <- Biobase::exprs(data)
@@ -143,13 +137,23 @@ ROTS_with_covariates2 <- function (data, groups, B = 1000, K = NULL, paired = FA
   
   
   
-  if(!is.null(covariates)){
+  if(!is.null(covariates))
+    {
+    if (ncol(covariates) > 2){
     samples <- bootstrapSamples.limRots(data, 2 * B, cl, paired, covariates, group.name )
+    pSamples <- samples
+    }else{
+      samples <- bootstrapSamples(data, 2 * B, cl, paired)
+      pSamples <- samples
+      
+    }
+    
   }else{
     samples <- bootstrapSamples(data, 2 * B, cl, paired)
+    pSamples <- permutatedSamples(data, nrow(samples), cl)
+    
   }
   
-  pSamples <- permutatedSamples(data, nrow(samples), cl)
   
   
   
@@ -189,11 +193,15 @@ ROTS_with_covariates2 <- function (data, groups, B = 1000, K = NULL, paired = FA
                                 
                               }else if(!is.null(covariates)){
                                 
+                                
+                                # if(ncol(covariates) > 2){
+                                 
                                 fit <- testStatistic_with_covariates(paired = paired, 
                                                                      data = lapply(samples.R, function(x) data[, x]),
                                                                      group.name = group.name, covariates = covariates, 
                                                                      formula.str = formula.str,
-                                                                     trend=TRUE, robust=TRUE)
+                                                                     trend=trend, robust=robust)
+
                               }else{
                                 
                                 fit <- testStatistic(paired, lapply(samples.R, 
@@ -215,7 +223,7 @@ ROTS_with_covariates2 <- function (data, groups, B = 1000, K = NULL, paired = FA
                                                                     group.name = group.name, 
                                                                     covariates = covariates, 
                                                                     formula.str = formula.str,
-                                                                    trend=TRUE, robust=TRUE)
+                                                                    trend=trend, robust=robust)
                             }else{
                               
                               pFit <- testStatistic(paired, lapply(pSamples.R, 
@@ -335,11 +343,11 @@ ROTS_with_covariates2 <- function (data, groups, B = 1000, K = NULL, paired = FA
       fit <- testStatistic.surv(lapply(split(1:length(cl), 
                                              cl), function(x) data[, x]), cl, event)
     }else if(!is.null(covariates)){
-      fit <- testStatistic_with_covariates_permutating(paired = paired, data = lapply(split(1:length(cl), 
+      fit <- testStatistic_with_covariates_Fit(paired = paired, data = lapply(split(1:length(cl), 
                                                                                 cl), function(x) data[, x]),
                                            group.name = group.name , covariates = covariates , 
                                            formula.str = formula.str,
-                                           trend=TRUE, robust=TRUE)
+                                           trend=trend, robust=robust)
     }else{
       fit <- testStatistic(paired, lapply(split(1:length(cl), 
                                                 cl), function(x) data[, x]))
@@ -357,22 +365,29 @@ ROTS_with_covariates2 <- function (data, groups, B = 1000, K = NULL, paired = FA
     corrected.logfc <- fit$corrected.logfc
     rm(pD)
     gc()
+    
+    q_values <- qvalue(p)
+    BH.pvalue <- p.adjust(p, method = "BH")
     ROTS.output <- list(data = data, B = B, d = d, logfc = logfc,
                         pvalue = p, FDR = FDR, a1 = a1, a2 = a2, k = k, 
-                        R = R, Z = Z, ztable = ztable, cl = cl , corrected.logfc = corrected.logfc)
+                        R = R, Z = Z, ztable = ztable, cl = cl , corrected.logfc = corrected.logfc,
+                        q_values = q_values , BH.pvalue = BH.pvalue)
   }
   else {
     if (!is.null(time)) {
       fit <- testStatistic.surv(lapply(split(1:length(cl), 
                                              cl), function(x) data[, x]), cl, event)
+    }else if(!is.null(covariates)){
+      fit <- testStatistic_with_covariates_Fit(paired = paired, data = lapply(split(1:length(cl), 
+                                                                                    cl), function(x) data[, x]),
+                                               group.name = group.name , covariates = covariates , 
+                                               formula.str = formula.str,
+                                               trend=trend, robust=robust)
+    }else{
+      fit <- testStatistic(paired, lapply(split(1:length(cl), 
+                                                cl), function(x) data[, x]))
     }
-    else {
-      fit <- testStatistic_with_covariates_permutating(paired = paired, data = lapply(split(1:length(cl), 
-                                                                                cl), function(x) data[, x]),
-                                           group.name = group.name , covariates = covariates, 
-                                           formula.str = formula.str,
-                                           trend=TRUE, robust=TRUE)
-    }
+    
     d <- fit$d/(a1 + a2 * fit$s)
     if (verbose) 
       message("Calculating p-values")
@@ -381,9 +396,12 @@ ROTS_with_covariates2 <- function (data, groups, B = 1000, K = NULL, paired = FA
       message("Calculating FDR")
     FDR <- calculateFDR(d, pD/(a1 + a2 * pS), progress)
     corrected.logfc <- fit$corrected.logfc
+    q_values <- qvalue(p)
+    BH.pvalue <- p.adjust(p, method = "BH")
     ROTS.output <- list(data = data, B = B, d = d, logfc = logfc , 
                         pvalue = p, FDR = FDR, a1 = a1, a2 = a2, k = NULL, 
-                        R = NULL, Z = NULL, cl = cl , corrected.logfc = corrected.logfc)
+                        R = NULL, Z = NULL, cl = cl , corrected.logfc = corrected.logfc,
+                        q_values = q_values , BH.pvalue = BH.pvalue)
   }
   class(ROTS.output) <- "ROTS"
   return(ROTS.output)

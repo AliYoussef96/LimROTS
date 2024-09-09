@@ -15,13 +15,12 @@
 #'   \item{s}{A numeric vector of standard errors.}
 #' @export
 #' @importFrom limma lmFit makeContrasts contrasts.fit eBayes topTable
-#' @importFrom stringr str_split_fixed
-#' @importFrom stringr fixed
+#' @importFrom utils str_split_fixed
 #' @importFrom stats formula model.matrix
 
 
 testStatistic_with_covariates <- function(paired, data, group.name, covariates, formula.str ,
-                                          trend=TRUE, robust=TRUE) {
+                                          trend, robust) {
   # Combine the two data sets
   combined_data <- cbind(data[[1]], data[[2]])
   
@@ -59,7 +58,7 @@ testStatistic_with_covariates <- function(paired, data, group.name, covariates, 
     
     fit2 <- limma::contrasts.fit(fit, cont_matrix)
     
-    fit.ebayes <- limma::eBayes(fit2, trend=TRUE, robust=TRUE)
+    fit.ebayes <- limma::eBayes(fit2, trend=trend, robust=robust)
     
 
     d_values <- limma::topTable(fit.ebayes, coef="groups1-groups2" , number = "Inf" , sort.by = 'none')

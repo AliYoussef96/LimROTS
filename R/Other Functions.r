@@ -9,6 +9,7 @@
 #'
 #' @return A matrix of bootstrap samples.
 #' @export
+#' @importFrom stats sample
 
 
 bootstrapSamples <- function (data, B, labels, paired) 
@@ -42,6 +43,7 @@ bootstrapSamples <- function (data, B, labels, paired)
 #'
 #' @return A matrix of permuted samples.
 #' @export
+#' @importFrom stats sample
 
 
 
@@ -72,6 +74,7 @@ permutatedSamples <- function (data, B, cl)
 #'
 #' @return A numeric vector of calculated overlaps.
 #' @export
+#' @importFrom stats .Call
 
 
 calculateOverlaps1 <- function (D, S, pD, pS, nrow, N, N_len, ssq, B, overlaps, overlaps.P) 
@@ -82,6 +85,33 @@ calculateOverlaps1 <- function (D, S, pD, pS, nrow, N, N_len, ssq, B, overlaps, 
 }
 
 
+
+#' NeedForSpeed1
+#' 
+#' Calls the C++ function for speed-optimized overlap calculations.
+#'
+#' @param D A numeric vector of observed values.
+#' @param S A numeric vector of observed values.
+#' @param pD A numeric vector of permuted values.
+#' @param pS A numeric vector of permuted values.
+#' @param nrow Number of rows in the data.
+#' @param N Number of permutations.
+#' @param N_len Length of permutations.
+#' @param ssq Numeric, a variance-related parameter.
+#' @param B Number of bootstrap samples.
+#' @param overlaps A numeric vector of overlaps.
+#' @param overlaps_P A numeric vector of permuted overlaps.
+#'
+#' @return A numeric vector of calculated overlaps.
+#' @export
+#' @importFrom stats .Call
+
+
+NeedForSpeed1 <- function (D, S, pD, pS, nrow, N, N_len, ssq, B, overlaps, overlaps_P) 
+{
+  .Call("ROTS_NeedForSpeed1", PACKAGE = "ROTS", D, S, pD, 
+        pS, nrow, N, N_len, ssq, B, overlaps, overlaps_P)
+}
 
 
 #' calculateOverlaps2
@@ -99,6 +129,7 @@ calculateOverlaps1 <- function (D, S, pD, pS, nrow, N, N_len, ssq, B, overlaps, 
 #'
 #' @return A numeric vector of calculated overlaps.
 #' @export
+#' @importFrom stats .Call
 
 
 
@@ -110,6 +141,31 @@ calculateOverlaps2 <- function (D, pD, nrow, N, N_len, B, overlaps, overlaps.P)
 }
 
 
+#' NeedForSpeed2
+#' 
+#' Calls the C++ function for speed-optimized overlap calculations.
+#'
+#' @param D A numeric vector of observed values.
+#' @param pD A numeric vector of permuted values.
+#' @param nrow Number of rows in the data.
+#' @param N Number of permutations.
+#' @param N_len Length of permutations.
+#' @param B Number of bootstrap samples.
+#' @param overlaps A numeric vector of overlaps.
+#' @param overlaps_P A numeric vector of permuted overlaps.
+#'
+#' @return A numeric vector of calculated overlaps.
+#' @export
+#' @importFrom stats .Call
+
+
+
+
+NeedForSpeed2 <- function (D, pD, nrow, N, N_len, B, overlaps, overlaps_P) 
+{
+  .Call("ROTS_NeedForSpeed2", PACKAGE = "ROTS", D, pD, nrow, 
+        N, N_len, B, overlaps, overlaps_P)
+}
 
 
 #' calculateP
@@ -121,6 +177,7 @@ calculateOverlaps2 <- function (D, pD, nrow, N, N_len, B, overlaps, overlaps.P)
 #'
 #' @return A numeric vector of p-values.
 #' @export
+#' @importFrom stats order sort
 
 
 calculateP <- function (observed, permuted) 
@@ -138,7 +195,22 @@ calculateP <- function (observed, permuted)
 
 
 
+#' pvalue
+#' 
+#' Calls the C++ function to compute p-values.
+#'
+#' @param a A numeric vector of observed values.
+#' @param b A numeric vector of permuted values.
+#'
+#' @return A numeric vector of p-values.
+#' @export
+#' @importFrom stats .Call
 
+
+pvalue <- function (a, b) 
+{
+  .Call("ROTS_pvalue", PACKAGE = "ROTS", a, b)
+}
 
 
 #' calculateFDR
@@ -151,6 +223,7 @@ calculateP <- function (observed, permuted)
 #'
 #' @return A numeric vector of FDR values.
 #' @export
+#' @importFrom stats order apply
 
 
 calculateFDR <- function (observed, permuted, progress)
@@ -171,11 +244,18 @@ calculateFDR <- function (observed, permuted, progress)
   }
   if (progress)
     close(pb)
-  FDR <- apply(A, 1, median)
+  FDR <- apply(A, 1, mean)
   FDR[FDR > 1] <- 1
   FDR[ord] <- rev(sapply(length(FDR):1, function(x) return(min(FDR[ord][x:length(FDR)]))))
   return(FDR)
 }
+
+
+
+
+
+
+
 
 #' biggerN
 #' 
@@ -186,6 +266,7 @@ calculateFDR <- function (observed, permuted, progress)
 #'
 #' @return A numeric vector of counts.
 #' @export
+#' @importFrom stats sort match
 
 
 biggerN <- function (x, y)
@@ -212,6 +293,7 @@ biggerN <- function (x, y)
 #'   \item{d}{A numeric vector of test statistics.}
 #'   \item{s}{A numeric vector of standard errors.}
 #' @export
+#' @importFrom stats unique rowMeans rowSums
 
 
 
@@ -260,6 +342,7 @@ testStatistic.surv <- function (samples, time, event)
 #'   \item{d}{A numeric vector of test statistics.}
 #'   \item{s}{A numeric vector of standard errors.}
 #' @export
+#' @importFrom stats rowMeans rowSums
 
 
 
@@ -335,6 +418,7 @@ testStatistic <- function (paired, samples)
 #'
 #' @return A matrix of bootstrap samples.
 #' @export
+#' @importFrom stats sample interaction prop.table
 
 
 
@@ -393,4 +477,49 @@ bootstrapSamples.limRots <- function (data, B, labels, paired, covariates, group
   return(samples)
 }
 
-
+calculateFDR.mean <- function (observed, permuted, progress = FALSE)
+{
+  # Take the absolute values of observed and permuted data
+  observed <- abs(observed)
+  permuted <- abs(permuted)
+  
+  # Sort the observed data in decreasing order
+  ord <- order(observed, decreasing = TRUE, na.last = TRUE)
+  a <- observed[ord]
+  
+  # Initialize matrix to store FDR results for each permutation
+  A <- matrix(NA, nrow = length(a), ncol = ncol(permuted))
+  
+  # Progress bar setup
+  if (progress)
+    pb <- txtProgressBar(min = 0, max = ncol(A), style = 3)
+  
+  # Calculate FDR for each permutation
+  for (i in seq_len(ncol(A))) {
+    a.rand <- sort(permuted[, i], decreasing = TRUE, na.last = TRUE)
+    n.bigger <- biggerN(a, a.rand)
+    A[ord, i] <- n.bigger / seq_along(a)
+    
+    # Update progress bar
+    if (progress)
+      setTxtProgressBar(pb, i)
+  }
+  
+  # Close progress bar
+  if (progress)
+    close(pb)
+  
+  # Compute FDR as the average instead of median, with optional smoothing factor
+  FDR <- apply(A, 1, function(row) mean(row) )
+  
+  # Ensure FDR values do not exceed 1
+  FDR[FDR > 1] <- 1
+  
+  # Introduce a lower bound to avoid FDR values of zero
+  #FDR[FDR < epsilon] <- epsilon
+  
+  # Reverse step-up procedure
+  FDR[ord] <- rev(sapply(length(FDR):1, function(x) return(min(FDR[ord][x:length(FDR)]))))
+  
+  return(FDR)
+}
