@@ -81,7 +81,9 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
     print(paste0("Assay: " , assayNames(data.exp)[1] , " will be used"))
     data <- assay(data.exp , assayNames(data.exp)[1])
 
-  }
+  }else{
+    data <- data.exp
+    }
 
 
   if(any(!row.names(meta.info) %in% colnames(data))){
