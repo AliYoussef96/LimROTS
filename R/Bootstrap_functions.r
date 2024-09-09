@@ -242,12 +242,6 @@ calculateFDR <- function (observed, permuted, progress)
 }
 
 
-
-
-
-
-
-
 #' biggerN
 #'
 #' Computes the number of elements in x that are bigger than elements in y.
@@ -410,48 +404,26 @@ testStatistic <- function (paired, samples)
 
 bootstrapSamples.limRots <- function (data, B, meta.info, group.name)
 {
-
   labels <- meta.info[,group.name]
-
   samples <- matrix(nrow = B, ncol = length(labels))
-
-
   for (i in seq_len(B)) {
-
     for (label in unique(labels)) {
-
       pos <- which(labels == label)
-
       meta.info.pos <- meta.info[row.names(meta.info) %in% colnames(data)[pos],]
-
-      ### Get Factor meta.info
       meta.info.factors <- c()
       for (j in 1:ncol(meta.info.pos)){
-
         if(is.factor(meta.info.pos[,j])){
           meta.info.factors <- c(meta.info.factors, colnames(meta.info.pos)[j])
         }
-
       }
-
       meta.info.factors <- meta.info.factors[meta.info.factors != group.name]
-
-      # Combine gender and batch into a single factor
-
       meta.info.pos$stratum <- interaction(meta.info.pos[,meta.info.factors])
       stratum_sizes <- table(meta.info.pos$stratum)
-
-      # Calculate the number of samples needed from each stratum
       stratum_samples <- round(length(pos) * prop.table(stratum_sizes))
-
-      # Sample from each stratum
       sampled_indices <- unlist(lapply(names(stratum_samples), function(stratum) {
-
         stratum_indices <- row.names(meta.info.pos)[which(meta.info.pos$stratum ==  stratum )]
-
         sample(stratum_indices, stratum_samples[stratum], replace = TRUE)
       }))
-
       samples[i, pos] <- sampled_indices
     }
   }
@@ -459,49 +431,3 @@ bootstrapSamples.limRots <- function (data, B, meta.info, group.name)
 }
 
 
-calculateFDR.mean <- function (observed, permuted, progress = FALSE)
-{
-  # Take the absolute values of observed and permuted data
-  observed <- abs(observed)
-  permuted <- abs(permuted)
-
-  # Sort the observed data in decreasing order
-  ord <- order(observed, decreasing = TRUE, na.last = TRUE)
-  a <- observed[ord]
-
-  # Initialize matrix to store FDR results for each permutation
-  A <- matrix(NA, nrow = length(a), ncol = ncol(permuted))
-
-  # Progress bar setup
-  if (progress)
-    pb <- txtProgressBar(min = 0, max = ncol(A), style = 3)
-
-  # Calculate FDR for each permutation
-  for (i in seq_len(ncol(A))) {
-    a.rand <- sort(permuted[, i], decreasing = TRUE, na.last = TRUE)
-    n.bigger <- biggerN(a, a.rand)
-    A[ord, i] <- n.bigger / seq_along(a)
-
-    # Update progress bar
-    if (progress)
-      setTxtProgressBar(pb, i)
-  }
-
-  # Close progress bar
-  if (progress)
-    close(pb)
-
-  # Compute FDR as the average instead of median, with optional smoothing factor
-  FDR <- apply(A, 1, function(row) mean(row) )
-
-  # Ensure FDR values do not exceed 1
-  FDR[FDR > 1] <- 1
-
-  # Introduce a lower bound to avoid FDR values of zero
-  #FDR[FDR < epsilon] <- epsilon
-
-  # Reverse step-up procedure
-  FDR[ord] <- rev(sapply(length(FDR):1, function(x) return(min(FDR[ord][x:length(FDR)]))))
-
-  return(FDR)
-}

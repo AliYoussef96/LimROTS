@@ -42,7 +42,7 @@
 #'
 #' @examples
 #' # Example usage:
-#' \dontrun{
+#' \donttest{
 #' data <- matrix(rnorm(1000), nrow = 100, ncol = 10) # Simulated data
 #' meta.info <- data.frame(group = rep(1:2, each = 5), sample.id = colnames(data))
 #' result <- LimROTS(data, meta.info = meta.info, group.name = "group")
@@ -350,7 +350,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
     if (progress)
       pb <- txtProgressBar(min = 0, max = length(ssq),
                            style = 3)
-    for (i in 1:length(ssq)) {
+    for (i in seq_len(length(ssq))) {
       overlaps <- matrix(0, nrow = B, ncol = length(N))
       overlaps.P <- matrix(0, nrow = B, ncol = length(N))
       cResults = calculateOverlaps1(D, S, pD, pS, nrow(D),
@@ -401,15 +401,15 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
     rm(reprotable)
     gc()
     if (!is.null(time)) {
-      fit <- testStatistic.surv(lapply(split(1:length(cl),
+      fit <- testStatistic.surv(lapply(split(seq_along(cl),
                                              cl), function(x) data[, x]), cl, event)
     }else if(!is.null(meta.info)){
-      fit <- testStatistic_with_covariates_Fit(data = lapply(split(1:length(cl),cl), function(x) data[, x]),
+      fit <- testStatistic_with_covariates_Fit(data = lapply(split(seq_along(cl),cl), function(x) data[, x]),
                                            group.name = group.name , meta.info = meta.info,
                                            formula.str = formula.str,
                                            trend=trend, robust=robust)
     }else{
-      fit <- testStatistic(paired, lapply(split(1:length(cl),
+      fit <- testStatistic(paired, lapply(split(seq_along(cl),
                                                 cl), function(x) data[, x]))
     }
     d <- fit$d/(a1 + a2 * fit$s)
@@ -436,16 +436,16 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
   }
   else {
     if (!is.null(time)) {
-      fit <- testStatistic.surv(lapply(split(1:length(cl),
+      fit <- testStatistic.surv(lapply(split(seq_along(cl),
                                              cl), function(x) data[, x]), cl, event)
     }else if(!is.null(meta.info)){
-      fit <- testStatistic_with_covariates_Fit(data = lapply(split(1:length(cl),
+      fit <- testStatistic_with_covariates_Fit(data = lapply(split(seq_along(cl),
                                                cl), function(x) data[, x]),
                                                group.name = group.name , meta.info = meta.info ,
                                                formula.str = formula.str,
                                                trend=trend, robust=robust)
     }else{
-      fit <- testStatistic(paired, lapply(split(1:length(cl),
+      fit <- testStatistic(paired, lapply(split(seq_along(cl),
                                                 cl), function(x) data[, x]))
     }
 
