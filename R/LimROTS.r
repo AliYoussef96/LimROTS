@@ -1,36 +1,58 @@
-#' ROTS_with_covariates2
+#' LimROTS: An Extension of the ROTS Method with Limma Integration
 #'
-#' Perform reproducibility-optimized test statistic (ROTS) analysis considering covariates.
+#' The `LimROTS` function performs robust ranking of differential expression statistics for omics data,
+#' incorporating covariates from metadata and optionally integrating survival analysis, paired data, and more.
 #'
-#' @param data A numeric matrix or `ExpressionSet` containing expression data.
-#' @param groups A vector indicating group labels for each sample.
-#' @param B Number of bootstrap samples (default = 1000).
-#' @param K Number of top-ranked genes to consider (optional).
-#' @param paired Logical, indicating whether the data is paired (default = FALSE).
-#' @param seed Random seed for reproducibility (optional).
-#' @param a1, a2 ROTS parameters (optional).
-#' @param log Logical, whether to log-transform data (default = TRUE).
-#' @param progress Logical, display progress bar (default = FALSE).
-#' @param verbose Logical, display additional messages (default = TRUE).
-#' @param time Survival time data (optional).
-#' @param event Event data for survival analysis (optional).
-#' @param covariates Data frame containing covariates (Confounding Variables) (optional).
-#' @param cluster Cluster object for parallel processing (optional).
-#' @param group.name Column name in covariates indicating group labels (optional).
-#' @param formula.str Formula string for covariate adjustment (optional).
-#' @param trend Logical, adjust for trend in covariate analysis (default = TRUE).
-#' @param robust Logical, use robust fitting in covariate analysis (default = TRUE).
+#' @param data A matrix where rows represent features (e.g., genes, proteins), and columns represent samples.
+#'             The values should be either log-transformed or raw counts based on the argument `log`.
+#' @param B An integer specifying the number of bootstrap iterations. Default is 1000.
+#' @param K An optional integer representing the top list size for ranking. If not specified, it is set to one-fourth of the number of features.
+#' @param a1 Optional numeric value used in the optimization process.
+#' @param a2 Optional numeric value used in the optimization process.
+#' @param seed Optional integer value for setting the random seed for reproducibility.
+#' @param log Logical, indicating whether the data is already log-transformed. Default is TRUE.
+#' @param progress Logical, indicating whether to display a progress bar during bootstrap sampling. Default is FALSE.
+#' @param verbose Logical, indicating whether to display messages during the function's execution. Default is TRUE.
+#' @param meta.info A data frame containing sample-level metadata, where each row corresponds to a sample. It should include the grouping variable specified in `group.name`.
+#' @param cluster A parallel cluster object for distributed computation, e.g., created by `makeCluster()`. Default is NULL.
+#' @param group.name A string specifying the column in `meta.info` that represents the groups or conditions for comparison.
+#' @param formula.str An optional formula string used when covariates are present in `meta.info` for modeling.
+#' @param trend Logical, indicating whether to include trend fitting in the differential expression analysis. Default is TRUE.
+#' @param robust Logical, indicating whether robust fitting should be used. Default is TRUE.
+#' @param time A numeric vector representing survival times, if survival analysis is used.
+#' @param event A numeric vector indicating the survival event status (1 = event occurred, 0 = censored) corresponding to `time`.
+#' @param paired Logical, indicating whether the data represent paired samples. Default is FALSE.
 #'
-#' @return A list containing the ROTS analysis results.
+#' @return A list of class `"LimROTS"` with the following elements:
+#' \item{data}{The original data matrix.}
+#' \item{B}{The number of bootstrap samples used.}
+#' \item{d}{Differential expression statistics for each feature.}
+#' \item{logfc}{Log-fold change values between groups.}
+#' \item{pvalue}{P-values computed based on the permutation samples.}
+#' \item{FDR}{False discovery rate estimates.}
+#' \item{a1}{Optimized parameter used in differential expression ranking.}
+#' \item{a2}{Optimized parameter used in differential expression ranking.}
+#' \item{k}{Top list size used for ranking.}
+#' \item{corrected.logfc}{Corrected log-fold change values, if applicable.}
+#' \item{q_values}{Estimated q-values using the `qvalue` package.}
+#' \item{BH.pvalue}{Benjamini-Hochberg adjusted p-values.}
+#'
+#' @details
+#' This function extends the ROTS (Reproducibility Optimized Test Statistic) method by integrating functionality from `limma` for differential expression analysis with optional covariates, survival data, and paired samples.
+#' It allows the user to specify additional covariates and models complex experimental designs.
+#'
+#' @examples
+#' # Example usage:
+#' \dontrun{
+#' data <- matrix(rnorm(1000), nrow = 100, ncol = 10) # Simulated data
+#' meta.info <- data.frame(group = rep(1:2, each = 5), sample.id = colnames(data))
+#' result <- LimROTS(data, meta.info = meta.info, group.name = "group")
+#'
+#' }
+#' @importFrom limma voom lmFit eBayes
+#' @import parallel
+#' @import foreach
 #' @export
-#' @import Biobase
-#' @import qvalue
-#' @importFrom foreach foreach %dopar%
-#' @importFrom doParallel registerDoParallel stopCluster clusterExport
-#' @importFrom utils txtProgressBar setTxtProgressBar close
-#' @importFrom dplyr %>%
-#' @importFrom stringr str_detect
-
 
 LimROTS <- function (data, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
                                    seed = NULL, log = TRUE, progress = FALSE,
@@ -417,6 +439,6 @@ LimROTS <- function (data, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
                         R = NULL, Z = NULL, cl = cl , corrected.logfc = corrected.logfc,
                         q_values = q_values , BH.pvalue = BH.pvalue)
   }
-  class(ROTS.output) <- "ROTS"
+  class(ROTS.output) <- "LimROTS"
   return(ROTS.output)
 }
