@@ -406,9 +406,8 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
       fit <- testStatistic.surv(lapply(split(1:length(cl),
                                              cl), function(x) data[, x]), cl, event)
     }else if(!is.null(meta.info)){
-      fit <- testStatistic_with_covariates_Fit(data = lapply(split(1:length(cl),
-                                                                                cl), function(x) data[, x]),
-                                           group.name = group.name , covariates = meta.info ,
+      fit <- testStatistic_with_covariates_Fit(data = lapply(split(1:length(cl),cl), function(x) data[, x]),
+                                           group.name = group.name , meta.info = meta.info,
                                            formula.str = formula.str,
                                            trend=trend, robust=robust)
     }else{
@@ -443,8 +442,8 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
                                              cl), function(x) data[, x]), cl, event)
     }else if(!is.null(meta.info)){
       fit <- testStatistic_with_covariates_Fit(data = lapply(split(1:length(cl),
-                                                                                    cl), function(x) data[, x]),
-                                               group.name = group.name , covariates = meta.info ,
+                                               cl), function(x) data[, x]),
+                                               group.name = group.name , meta.info = meta.info ,
                                                formula.str = formula.str,
                                                trend=trend, robust=robust)
     }else{
