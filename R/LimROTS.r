@@ -9,7 +9,6 @@
 #' @param K An optional integer representing the top list size for ranking. If not specified, it is set to one-fourth of the number of features.
 #' @param a1 Optional numeric value used in the optimization process.
 #' @param a2 Optional numeric value used in the optimization process.
-#' @param seed Optional integer value for setting the random seed for reproducibility.
 #' @param log Logical, indicating whether the data is already log-transformed. Default is TRUE.
 #' @param progress Logical, indicating whether to display a progress bar during bootstrap sampling. Default is FALSE.
 #' @param verbose Logical, indicating whether to display messages during the function's execution. Default is TRUE.
@@ -60,7 +59,7 @@
 #' @export
 
 LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
-                                   seed = NULL, log = TRUE, progress = FALSE,
+                     log = TRUE, progress = FALSE,
                                    verbose = TRUE, meta.info = NULL, cluster = NULL ,
                                   group.name = NULL , formula.str = NULL, trend = TRUE, robust = TRUE,
                                   time = NULL, event = NULL, paired = FALSE)
@@ -68,22 +67,22 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
 
 
   if(inherits(data.exp, "SummarizedExperiment")){
-    print("Data is SummarizedExperiment object")
-    print(data.exp)
+    message("Data is SummarizedExperiment object")
+    message(data.exp)
 
     if(is.null(meta.info)){
-      stop(paste0("meta.info should be a vector of colData names to be used"))
+      stop("meta.info should be a vector of colData names to be used")
     }else{
       meta.info <- as.data.frame(colData(data.exp)[,meta.info])
     }
 
     if(!group.name %in% colnames(meta.info)){
-      stop(paste0("group.name should be a string specifying the column in `meta.info` that represents the groups or conditions for comparison."))
+      stop("group.name should be a string specifying the column in `meta.info` that represents the groups or conditions for comparison.")
     }else{
       groups <- meta.info[,group.name]
     }
 
-    print(paste0("Assay: " , assayNames(data.exp)[1] , " will be used"))
+    message( sprintf("Assay: %s will be used" , assayNames(data.exp)[1]) )
     data <- assay(data.exp , assayNames(data.exp)[1])
 
   }else{
@@ -92,37 +91,36 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
 
 
   if(any(!row.names(meta.info) %in% colnames(data))){
-    stop(paste0("rownames for meta.info should match the data colnames (samples names)"))
+    stop("rownames for meta.info should match the data colnames (samples names)")
   }
 
 
-  if(grepl("." , colnames(data) , fixed = T)){
-    stop(paste0("Sample names should contains no '.', please remove it if any"))
+  if(grepl("." , colnames(data) , fixed = TRUE)){
+    stop("Sample names should contains no '.', please remove it if any")
   }
 
   groups <- as.numeric(meta.info[,group.name])
 
   if(!is.null(meta.info)){
     if(ncol(meta.info) == 2){
-      print("A meta.info table is provided with only groups infomration >>> LimROTS with no covariates will be used")
+      message("A meta.info table is provided with only groups infomration >>> LimROTS with no covariates will be used")
     }else{
-      print("A meta.info table is provided with covariates >>> LimROTS with covariates will be used")
+      message("A meta.info table is provided with covariates >>> LimROTS with covariates will be used")
     }
   }else{
-    print("A meta.info table is not provided >>> ROTS will be used")
+    message("A meta.info table is not provided >>> ROTS will be used")
 
   }
 
-  if (!is.null(seed))
-    set.seed(seed, kind = "default")
+
   if (!is.null(time)) {
     groups <- time
     if (length(time) != length(event)) {
-      stop(paste("Number of survival times and events do not match."))
+      stop("Number of survival times and events do not match.")
     }
   }
   if (length(groups) != ncol(data)) {
-    stop(paste("Number of samples in the data does not match the groups."))
+    stop("Number of samples in the data does not match the groups.")
   }
   if (is.null(rownames(data)))
     rownames(data) <- 1:nrow(data)
@@ -132,7 +130,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
   if (is.null(K)) {
     K <- floor(nrow(data)/4)
     if (verbose)
-      message(paste("No top list size K given, using",
+      message(sprintf("No top list size K given, using %s",
                     K))
   }
   K <- min(K, nrow(data))
@@ -170,8 +168,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
         else {
           target <- groups.levels[i]
         }
-        stop(paste("The data matrix of group", target,
-                   "contains rows with less than two non-missing values, please remove these rows."))
+        stop(sprintf("The data matrix of group %s contains rows with less than two non-missing values, please remove these rows." , target))
       }
     }
   }
