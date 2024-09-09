@@ -3,7 +3,7 @@ Title: Linear model Reproducibility Optimized Test Statistic
 Version: 0.99.0
 Authors@R: 
     person("Ali", "Youssef", , "aliali.mostafa99@gmail.com", role = c("aut", "cre"),
-           comment = c(ORCID = 0000-0002-5201-387X))
+           comment = c(ORCID = "0000-0002-5201-387X"))
 Description: Perform reproducibility-optimized test statistic (ROTS) analysis considering covariates.
 License: GPL-3
 Encoding: UTF-8
