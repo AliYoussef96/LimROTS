@@ -54,7 +54,7 @@ testStatistic_with_covariates <- function(data, group.name, meta.info, formula.s
     fit <- limma::lmFit(combined_data, design.matrix)
     if(length(data) == 2){
     pairwise_contrasts <- combn(colnames(design.matrix), 2, function(x) paste(x[1], "-", x[2]))
-    cont_matrix <- limma::makeContrasts(pairwise_contrasts,  levels=design.matrix)
+    cont_matrix <- limma::makeContrasts(contrasts = pairwise_contrasts,  levels=design.matrix)
     fit2 <- limma::contrasts.fit(fit, cont_matrix)
     fit.ebayes <- limma::eBayes(fit2, trend=trend, robust=robust)
     d_values <- limma::topTable(fit.ebayes, coef=pairwise_contrasts , number = "Inf" , sort.by = 'none')
