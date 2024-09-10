@@ -30,7 +30,7 @@ group.name <- "Conc."
 formula.str <- "~ 0 + Conc."
 
 
-limrots.result <- LimROTS(data.exp = UPS1.Case0, B = B, K = K, meta.info = meta.info, cluster = cluster, group.name = group.name, trend = TRUE, robust = TRUE)
+limrots.result <- LimROTS(data.exp = UPS1.Case0, B = B, K = K, meta.info = meta.info, cluster = cluster, group.name = group.name, formula.str = formula.str, trend = TRUE, robust = TRUE)
 
 ```
 
