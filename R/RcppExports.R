@@ -2,14 +2,14 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 NeedForSpeed1 <- function(D, S, pD, pS, nrow, N, N_len, ssq, B, overlaps, overlaps_P) {
-    .Call('_LimROTS_NeedForSpeed1', PACKAGE = 'LimROTS', D, S, pD, pS, nrow, N, N_len, ssq, B, overlaps, overlaps_P)
+    .Call('NeedForSpeed1', PACKAGE = 'LimROTS', D, S, pD, pS, nrow, N, N_len, ssq, B, overlaps, overlaps_P)
 }
 
 NeedForSpeed2 <- function(D, pD, nrow, N, N_len, B, overlaps, overlaps_P) {
-    .Call('_LimROTS_NeedForSpeed2', PACKAGE = 'LimROTS', D, pD, nrow, N, N_len, B, overlaps, overlaps_P)
+    .Call('NeedForSpeed2', PACKAGE = 'LimROTS', D, pD, nrow, N, N_len, B, overlaps, overlaps_P)
 }
 
 pvalue <- function(a, b) {
-    .Call('_LimROTS_pvalue', PACKAGE = 'LimROTS', a, b)
+    .Call('pvalue', PACKAGE = 'LimROTS', a, b)
 }
 
