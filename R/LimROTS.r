@@ -110,7 +110,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
 
   if(!is.null(meta.info)){
     if(ncol(meta.info) == 1){
-      message("A meta.info table is provided with only groups infomration >>> LimROTS with no covariates will be used")
+      message("A meta.info table is provided with only group infomration >>> LimROTS with no covariates will be used")
     }else{
       message("A meta.info table is provided with covariates >>> LimROTS with covariates will be used")
     }
@@ -162,7 +162,9 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
   groups <-  as.numeric(sort.df$groups)
 
   if(!is.null(meta.info)){
-  meta.info <- meta.info[colnames(data),]
+  meta.info$temp <- row.names(meta.info)
+  meta.info <- data.frame(meta.info[colnames(data),], check.rows = F, check.names = F)
+  meta.info$temp <- NULL
   }
 
   if (is.null(time)) {
