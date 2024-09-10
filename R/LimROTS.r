@@ -112,12 +112,12 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
     if(ncol(meta.info) == 1){
       message("A meta.info table is provided with only group infomration >>> LimROTS with no covariates will be used")
       if(is.null(formula.str)){
-        srop("formula.str should by provided for the model")
+        stop("formula.str should by provided for the model")
       }
     }else{
       message("A meta.info table is provided with covariates >>> LimROTS with covariates will be used")
       if(is.null(formula.str)){
-        srop("formula.str should by provided for the model")
+        stop("formula.str should by provided for the model")
       }
     }
   }else{
