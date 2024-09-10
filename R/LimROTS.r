@@ -73,13 +73,12 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
       stop("meta.info should be a vector of colData names to be used")
     }else{
       meta.info.colnames <- meta.info
-      meta.info <- data.frame(colData(data.exp)[,meta.info], check.names = FALSE)
+      meta.info <- data.frame(colData(data.exp)[,meta.info], check.names = FALSE, row.names = row.names(colData(data.exp)))
 
       if(length(meta.info) != length(meta.info.colnames)){
         stop("meta.info should be a vector of colData names to be used")
       }else{
         colnames(meta.info) <- meta.info.colnames
-
       }
 
     }
