@@ -14,6 +14,8 @@ library(devtools)
 #test()
 
 devtools::check()
+devtools::build()
+
 
 library(BiocCheck)
 BiocCheck()

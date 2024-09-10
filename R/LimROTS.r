@@ -68,7 +68,6 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
 
   if(inherits(data.exp, "SummarizedExperiment")){
     message("Data is SummarizedExperiment object")
-    message(data.exp)
 
     if(is.null(meta.info)){
       stop("meta.info should be a vector of colData names to be used")
