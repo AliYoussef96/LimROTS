@@ -41,6 +41,7 @@ testStatistic_with_covariates_permutating <- function(data, group.name, meta.inf
                                           trend, robust) {
   combined_data <- cbind(data[[1]], data[[2]])
   covariates.p <- data.frame()
+  meta.info$sample.id <- row.names(meta.info)
   for(i in colnames(combined_data)){
     real_SampleNames <-  str_split_fixed(i , fixed(".") , 2)[,1]
     df.temp <- meta.info[row.names(meta.info) %in% real_SampleNames,]
