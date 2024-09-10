@@ -17,8 +17,6 @@ This case study dataset includes DIA proteomics data derived from a UPS1-spiked 
 library(LimROTS)
 library(parallel)
 
-
-data(package = "LimROTS")
 data("UPS1.Case0") 
 print(UPS1.Case0)
 

@@ -102,7 +102,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
   }
 
 
-  if(grepl("." , colnames(data) , fixed = TRUE)){
+  if(any(grepl("." , colnames(data) , fixed = TRUE))){
     stop("Sample names should contains no '.', please remove it if any")
   }
 
