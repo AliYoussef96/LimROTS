@@ -72,7 +72,16 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
     if(is.null(meta.info)){
       stop("meta.info should be a vector of colData names to be used")
     }else{
-      meta.info <- as.data.frame(colData(data.exp)[,meta.info])
+      meta.info.colnames <- meta.info
+      meta.info <- data.frame(colData(data.exp)[,meta.info], check.names = FALSE)
+
+      if(length(meta.info) != length(meta.info.colnames)){
+        stop("meta.info should be a vector of colData names to be used")
+      }else{
+        colnames(meta.info) <- meta.info.colnames
+
+      }
+
     }
 
     if(!group.name %in% colnames(meta.info)){
