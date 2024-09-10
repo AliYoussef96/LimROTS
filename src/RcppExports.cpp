@@ -62,10 +62,17 @@ BEGIN_RCPP
 END_RCPP
 }
 
+RcppExport SEXP NeedForSpeed1(void *, void *, void *, void *, void *, void *, void *, void *, void *, void *, void *);
+RcppExport SEXP NeedForSpeed2(void *, void *, void *, void *, void *, void *, void *, void *);
+RcppExport SEXP pvalue(void *, void *);
+
 static const R_CallMethodDef CallEntries[] = {
     {"_LimROTS_NeedForSpeed1", (DL_FUNC) &_LimROTS_NeedForSpeed1, 11},
     {"_LimROTS_NeedForSpeed2", (DL_FUNC) &_LimROTS_NeedForSpeed2, 8},
     {"_LimROTS_pvalue", (DL_FUNC) &_LimROTS_pvalue, 2},
+    {"NeedForSpeed1", (DL_FUNC) &NeedForSpeed1, 11},
+    {"NeedForSpeed2", (DL_FUNC) &NeedForSpeed2,  8},
+    {"pvalue",        (DL_FUNC) &pvalue,         2},
     {NULL, NULL, 0}
 };
 

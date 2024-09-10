@@ -83,31 +83,6 @@ calculateOverlaps1 <- function (D, S, pD, pS, nrow, N, N_len, ssq, B, overlaps, 
 
 
 
-#' NeedForSpeed1
-#'
-#' Calls the C++ function for speed-optimized overlap calculations.
-#'
-#' @param D A numeric vector of observed values.
-#' @param S A numeric vector of observed values.
-#' @param pD A numeric vector of permuted values.
-#' @param pS A numeric vector of permuted values.
-#' @param nrow Number of rows in the data.
-#' @param N Number of permutations.
-#' @param N_len Length of permutations.
-#' @param ssq Numeric, a variance-related parameter.
-#' @param B Number of bootstrap samples.
-#' @param overlaps A numeric vector of overlaps.
-#' @param overlaps_P A numeric vector of permuted overlaps.
-#'
-#' @return A numeric vector of calculated overlaps.
-#' @export
-
-
-NeedForSpeed1 <- function (D, S, pD, pS, nrow, N, N_len, ssq, B, overlaps, overlaps_P)
-{
-  .Call("NeedForSpeed1", PACKAGE = "LimROTS", D, S, pD,
-        pS, nrow, N, N_len, ssq, B, overlaps, overlaps_P)
-}
 
 
 #' calculateOverlaps2
@@ -136,32 +111,6 @@ calculateOverlaps2 <- function (D, pD, nrow, N, N_len, B, overlaps, overlaps.P)
 }
 
 
-#' NeedForSpeed2
-#'
-#' Calls the C++ function for speed-optimized overlap calculations.
-#'
-#' @param D A numeric vector of observed values.
-#' @param pD A numeric vector of permuted values.
-#' @param nrow Number of rows in the data.
-#' @param N Number of permutations.
-#' @param N_len Length of permutations.
-#' @param B Number of bootstrap samples.
-#' @param overlaps A numeric vector of overlaps.
-#' @param overlaps_P A numeric vector of permuted overlaps.
-#'
-#' @return A numeric vector of calculated overlaps.
-#' @export
-
-
-
-
-NeedForSpeed2 <- function (D, pD, nrow, N, N_len, B, overlaps, overlaps_P)
-{
-  .Call("NeedForSpeed2", PACKAGE = "LimROTS", D, pD, nrow,
-        N, N_len, B, overlaps, overlaps_P)
-}
-
-
 #' calculateP
 #'
 #' Calculates p-values based on observed and permuted values.
@@ -187,22 +136,6 @@ calculateP <- function (observed, permuted)
 }
 
 
-
-#' pvalue
-#'
-#' Calls the C++ function to compute p-values.
-#'
-#' @param a A numeric vector of observed values.
-#' @param b A numeric vector of permuted values.
-#'
-#' @return A numeric vector of p-values.
-#' @export
-
-
-pvalue <- function (a, b)
-{
-  .Call("pvalue", PACKAGE = "LimROTS", a, b)
-}
 
 
 #' calculateFDR
