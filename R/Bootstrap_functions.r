@@ -105,7 +105,7 @@ calculateOverlaps1 <- function (D, S, pD, pS, nrow, N, N_len, ssq, B, overlaps, 
 
 NeedForSpeed1 <- function (D, S, pD, pS, nrow, N, N_len, ssq, B, overlaps, overlaps_P)
 {
-  .Call("_LimROTS_NeedForSpeed1", PACKAGE = "LimROTS", D, S, pD,
+  .Call("NeedForSpeed1", PACKAGE = "LimROTS", D, S, pD,
         pS, nrow, N, N_len, ssq, B, overlaps, overlaps_P)
 }
 
@@ -157,7 +157,7 @@ calculateOverlaps2 <- function (D, pD, nrow, N, N_len, B, overlaps, overlaps.P)
 
 NeedForSpeed2 <- function (D, pD, nrow, N, N_len, B, overlaps, overlaps_P)
 {
-  .Call("_LimROTS_NeedForSpeed2", PACKAGE = "LimROTS", D, pD, nrow,
+  .Call("NeedForSpeed2", PACKAGE = "LimROTS", D, pD, nrow,
         N, N_len, B, overlaps, overlaps_P)
 }
 
@@ -201,7 +201,7 @@ calculateP <- function (observed, permuted)
 
 pvalue <- function (a, b)
 {
-  .Call("_LimROTS_pvalue", PACKAGE = "LimROTS", a, b)
+  .Call("pvalue", PACKAGE = "LimROTS", a, b)
 }
 
 
