@@ -11,7 +11,7 @@ An Extension of the ROTS Method with LIMMA Integration.
 
 # UPS1 Case 0
 
-This case study dataset includes DIA proteomics data derived from a UPS1-spiked E. coli protein mixture, processed using Spectronaut. UPS1 was spiked at eight different concentrations: 0.1 fmol, 0.25 fmol, 1 fmol, 2.5 fmol, 5 fmol, 10 fmol, 25 fmol, and 50 fmol, with three replicate injections for each concentration. In this case study, concentrations ranging from 0.1 fmol to 2.5 fmol are categorized as Conc. 2, while concentrations from 5 fmol to 50 fmol are categorized as Conc. 1. The dataset is available in a SummarizedExperiment format, along with the necessary metadata to run the example. This example demonstrates how LimROTS can be applied in a straightforward scenario where two groups are compared without including covariates.
+This case study dataset includes DIA proteomics data derived from a UPS1-spiked E. coli protein mixture, processed using Spectronaut. UPS1 was spiked at eight different concentrations: 0.1 fmol, 0.25 fmol, 1 fmol, 2.5 fmol, 5 fmol, 10 fmol, 25 fmol, and 50 fmol, with three replicate injections for each concentration. In this case study, concentrations ranging from 0.1 fmol to 2.5 fmol are categorized as Conc. 2, while concentrations from 5 fmol to 50 fmol are categorized as Conc. 1. The dataset is available in a SummarizedExperiment format, along with the necessary metadata to run the example. This example demonstrates how LimROTS can be applied in a straightforward scenario where two groups are compared without including covariates. 48 UPS1-spiked human proteins were detected in this dataset.
 
 ```{r}
 library(LimROTS)
@@ -34,11 +34,26 @@ limrots.result <- LimROTS(data.exp = UPS1.Case0, B = B, K = K, meta.info = meta.
 
 ```
 
-You can add options to executable code like this
+Now we can cheack if LimROTS detected all the Spicked UPS1 proteins as Significant. But First we can plot FDR and Q.value quality control plots.
 
 ```{r}
-#| echo: false
-2 * 2
+hist(limrots.result$FDR)
+plot(limrots.result$q_values)
+hist(limrots.result$q_values)
+summary(limrots.result$q_values)
+
 ```
 
-The `echo: false` option disables the printing of code (only output is displayed).
+Lets make dataframe with the important result from LimRots, this can be easily done\
+
+```{r}
+limrots.result.df <- data.frame(proteins = row.names(limrots.result$data),
+                                LimROTS.FC = limrots.result$corrected.logf,
+                                FDR = limrots.result$FDR)
+
+limrots.result.df <- limrots.result.df[limrots.result.df$FDR < 0.05,]
+
+limrots.result.df$TP <- ifelse(grepl("HUMAN" , limrots.result.df$proteins), 1 , 0)
+
+table(limrots.result.df$TP)
+```
