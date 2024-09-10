@@ -109,7 +109,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
   groups <- as.numeric(meta.info[,group.name])
 
   if(!is.null(meta.info)){
-    if(ncol(meta.info) == 2){
+    if(ncol(meta.info) == 1){
       message("A meta.info table is provided with only groups infomration >>> LimROTS with no covariates will be used")
     }else{
       message("A meta.info table is provided with covariates >>> LimROTS with covariates will be used")
@@ -212,10 +212,11 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
 
   if(!is.null(meta.info))
     {
-    if (ncol(meta.info) > 2){
+    if (ncol(meta.info) > 1){
     samples <- bootstrapSamples.limRots(data = data, B = 2 * B, meta.info = meta.info, group.name =  group.name )
     pSamples <- samples
     }else{
+      paired <- FALSE
       samples <- bootstrapSamples(data, 2 * B, cl, paired)
       pSamples <- samples
 

@@ -26,9 +26,10 @@ B <- 1000
 K <- dim(UPS1.Case0)[1]/4
 num_cores <- 10
 cluster <- makeCluster(num_cores)
+group.name <- "Conc."
 
 
-limrots.result <- LimROTS(data.exp = UPS1.Case0, B = B, K = K, meta.info = meta.info, cluster = cluster, group.name = "Conc.", trend = TRUE, robust = TRUE)
+limrots.result <- LimROTS(data.exp = UPS1.Case0, B = B, K = K, meta.info = meta.info, cluster = cluster, group.name = group.name, trend = TRUE, robust = TRUE)
 
 ```
 
