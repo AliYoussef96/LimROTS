@@ -1,59 +1,154 @@
 ---
-title: "LimROTS"
+title: "LimROTS Analysis"
 author: "Ali Youssef"
 format: html
 editor: visual
 ---
 
-# LimROTS
+# LimROTS Analysis
 
-An Extension of the ROTS Method with LIMMA Integration.
+This analysis demonstrates how to integrate the Limma and ROTS methods using UPS1-spiked proteomics data.
 
-# UPS1 Case 0
+# UPS1 Case Study 0
 
-This case study dataset includes DIA proteomics data derived from a UPS1-spiked E. coli protein mixture, processed using Spectronaut. UPS1 was spiked at eight different concentrations: 0.1 fmol, 0.25 fmol, 1 fmol, 2.5 fmol, 5 fmol, 10 fmol, 25 fmol, and 50 fmol, with three replicate injections for each concentration. In this case study, concentrations ranging from 0.1 fmol to 2.5 fmol are categorized as Conc. 2, while concentrations from 5 fmol to 50 fmol are categorized as Conc. 1. The dataset is available in a SummarizedExperiment format, along with the necessary metadata to run the example. This example demonstrates how LimROTS can be applied in a straightforward scenario where two groups are compared without including covariates. 48 UPS1-spiked human proteins were detected in this dataset.
+The dataset consists of DIA proteomics data from a UPS1-spiked E. coli protein mixture. Eight different concentrations of UPS1 were used (0.1 to 50 fmol), grouped into two categories: low concentrations (0.1–2.5 fmol, labeled as Conc. 2) and high concentrations (5–50 fmol, labeled as Conc. 1). In this dataset 48 HUMAN UPS1 proteins were detected. The data is provided in a `SummarizedExperiment` format. This example illustrates the application of LimROTS in a simple case where two groups are compared, considering only the concentrations and no other parameters. 48 UPS1-spiked human proteins were detected in this dataset.
 
 ```{r}
+# Load necessary packages
 library(LimROTS)
 library(parallel)
 
-data("UPS1.Case0") 
+# Load the dataset
+data("UPS1.Case0")
 print(UPS1.Case0)
 
+# Set random seed for reproducibility
 set.seed(1234)
+
+# Set metadata and formula for LimROTS analysis
 meta.info <- "Conc."
-B <- 1000
-K <- dim(UPS1.Case0)[1]/4
-num_cores <- 10
-cluster <- makeCluster(num_cores)
+B <- 1000  # Number of bootstrap samples
+K <- dim(UPS1.Case0)[1]/4  # Set the value for K based on the data size
+num_cores <- 10  # Number of cores for parallel processing
+cluster <- makeCluster(num_cores)  # Create a parallel cluster
 group.name <- "Conc."
-formula.str <- "~ 0 + Conc."
+formula.str <- "~ 0 + Conc."  # Formula for group comparison
 
-
-limrots.result <- LimROTS(data.exp = UPS1.Case0, B = B, K = K, meta.info = meta.info, cluster = cluster, group.name = group.name, formula.str = formula.str, trend = TRUE, robust = TRUE)
-
+# Run LimROTS analysis with trend and robust settings enabled
+limrots.result <- LimROTS(data.exp = UPS1.Case0, 
+                          B = B, K = K, meta.info = meta.info, 
+                          cluster = cluster, group.name = group.name, 
+                          formula.str = formula.str, trend = TRUE, robust = TRUE)
 ```
 
-Now we can cheack if LimROTS detected all the Spicked UPS1 proteins as Significant. But First we can plot FDR and Q.value quality control plots.
+## Quality Control Plots
+
+LimROTS generates p-values from permutation samples, along with FDR. Additionally, the `qvalue` package is used to calculate q-values and Benjamini-Hochberg adjusted p-values based on the permutation-derived p-values. These can be used as Quality Control for the LimROTS results. We recommend using permutation-derived p-values and FDR, though they should generally be very similar to the q-values and Benjamini-Hochberg adjusted p-values.
 
 ```{r}
-hist(limrots.result$FDR)
-plot(limrots.result$q_values)
-hist(limrots.result$q_values)
+## Quality Control Plots
+
+# Histogram of False Discovery Rate (FDR)
+hist(limrots.result$FDR, main = "FDR Distribution", xlab = "FDR", col = "skyblue", border = "white")
+
+# Plot of q-values
+plot(limrots.result$q_values, main = "Q-values", xlab = "Index", ylab = "Q-value")
+
+# Histogram of q-values
+hist(limrots.result$q_values, main = "Q-value Distribution", xlab = "Q-value", col = "lightgreen", border = "white")
+
+# Summary of q-values
 summary(limrots.result$q_values)
-
 ```
 
-Lets make dataframe with the important result from LimRots, this can be easily done\
+## Filter and Analyze Significant Results
 
 ```{r}
+# Create a data frame from the LimROTS results
 limrots.result.df <- data.frame(proteins = row.names(limrots.result$data),
                                 LimROTS.FC = limrots.result$corrected.logf,
                                 FDR = limrots.result$FDR)
 
+# Filter for significant proteins (FDR < 0.05)
 limrots.result.df <- limrots.result.df[limrots.result.df$FDR < 0.05,]
 
-limrots.result.df$TP <- ifelse(grepl("HUMAN" , limrots.result.df$proteins), 1 , 0)
+# Mark proteins as true positives (HUMAN UPS1 proteins)
+limrots.result.df$TP <- ifelse(grepl("HUMAN", limrots.result.df$proteins), "HUMAN_TP", "ECOLI.FP")
 
+# Count the number of true positives
 table(limrots.result.df$TP)
+```
+
+## Volcano Plot with ggplot2
+
+```{r}
+# Load ggplot2 for visualization
+library(ggplot2)
+
+# Create a data frame from the LimROTS results
+limrots.result.df <- data.frame(proteins = row.names(limrots.result$data),
+                                LimROTS.FC = limrots.result$corrected.logf,
+                                FDR = limrots.result$FDR)
+# Mark proteins as true positives (HUMAN UPS1 proteins)
+limrots.result.df$TP <- ifelse(grepl("HUMAN", limrots.result.df$proteins), "HUMAN_TP", "ECOLI_FP")
+
+# Create a volcano plot
+ggplot(limrots.result.df, aes(x = LimROTS.FC, y = -log10(FDR), color = factor(TP))) +
+  geom_point(alpha = 0.8) +
+  theme_bw() +
+  labs(title = "Volcano Plot", x = "Log Fold Change", y = "-Log10 FDR", color = "True Positive") +
+  scale_color_manual(values = c("grey", "red"))+
+  geom_hline(yintercept=-log10(0.05), linetype="dashed", color = "blue")+
+  geom_hline(yintercept=-log10(0.01), linetype="dashed", color = "black")
+```
+
+## PCA Plot with ggplot2
+
+```{r}
+library(SummarizedExperiment)
+
+# Perform PCA on the expression data
+pca <- prcomp(t(assay(UPS1.Case0)), scale. = TRUE)
+
+# Create a data frame with PCA results
+pca_df <- as.data.frame(pca$x)
+pca_df$group <- colData(UPS1.Case0)$Conc.
+
+# Plot the PCA
+ggplot(pca_df, aes(x = PC1, y = PC2, color = group)) +
+  geom_point(size = 3) +
+  theme_bw() +
+  labs(title = "PCA Plot", x = "PC1", y = "PC2", color = "Concentration Group")
+```
+
+# UPS1 Case Study 1
+
+In Case Study 0, LimROTS effectively identified only the truly significant proteins, with a very low rate of false positives (just 2 false positives at a 1% FDR threshold). This demonstrates its precision in detecting true signals. In contrast, Case Study 1 introduces a more complex scenario where UPS1 human proteins are removed, and the model is adjusted to include information about analytical replicates from different injections. This modification allows LimROTS to account for additional sources of variability. The example highlights LimROTS' capability not only to handle a more intricate model but also to accurately detect true negatives, showcasing its robustness in more challenging experimental designs.
+
+```{r}
+# Load necessary packages
+library(LimROTS)
+library(parallel)
+
+# Load the dataset
+data("UPS1.Case1")
+print(UPS1.Case1)
+
+# Set random seed for reproducibility
+set.seed(1234)
+
+# Set metadata and formula for LimROTS analysis
+meta.info <- c("Conc." , "inj")
+B <- 1000  # Number of bootstrap samples
+K <- dim(UPS1.Case1)[1]/4  # Set the value for K based on the data size
+num_cores <- 30  # Number of cores for parallel processing
+cluster <- makeCluster(num_cores)  # Create a parallel cluster
+group.name <- "Conc."
+formula.str <- "~ 0 + Conc.+ inj + Conc.*inj"  # Formula for group comparison + injections
+
+# Run LimROTS analysis with trend and robust settings enabled
+limrots.result <- LimROTS(data.exp = UPS1.Case1, 
+                          B = B, K = K, meta.info = meta.info, 
+                          cluster = cluster, group.name = group.name, 
+                          formula.str = formula.str, trend = TRUE, robust = TRUE)
 ```
