@@ -14,14 +14,14 @@
 bootstrapSamples <- function (data, B, labels, paired)
 {
   samples <- matrix(nrow = B, ncol = length(labels))
-  for (i in seq_len(B)) {
+  for (i in 1:B) {
     for (label in unique(labels)) {
       pos <- which(labels == label)
       samples[i, pos] <- sample(pos, length(pos), replace = TRUE)
     }
   }
   if (paired) {
-    for (i in seq_len(B)) {
+    for (i in 1:B) {
       for (label in unique(labels)[-1]) {
         pos <- which(labels == label)
         samples[i, pos] <- samples[i, which(labels ==
@@ -297,7 +297,7 @@ testStatistic <- function (paired, samples)
       f <- sum(sapply(samples, ncol))/prod(sapply(samples,
                                                   ncol))
       r <- vector(mode = "numeric", length = nrow(samples.all))
-      for (k in seq_len(length(samples))) {
+      for (k in 1:length(samples)) {
         r <- r + (rowMeans(samples[[k]], na.rm = TRUE) -
                     rowMeans(samples.all, na.rm = TRUE))^2
       }
@@ -305,7 +305,7 @@ testStatistic <- function (paired, samples)
       f <- 1/sum(sapply(samples, ncol) - 1) * sum(1/sapply(samples,
                                                            ncol))
       s <- vector(mode = "numeric", length = nrow(samples.all))
-      for (k in seq_len(length(samples))) {
+      for (k in 1:length(samples)) {
         s <- s + colSums(apply(samples[[k]], 1, function(x) (x -
                                                                mean(x, na.rm = TRUE))^2), na.rm = TRUE)
       }
@@ -339,12 +339,12 @@ bootstrapSamples.limRots <- function (data, B, meta.info, group.name)
 {
   labels <- meta.info[,group.name]
   samples <- matrix(nrow = B, ncol = length(labels))
-  for (i in seq_len(B)) {
+  for (i in 1:B) {
     for (label in unique(labels)) {
       pos <- which(labels == label)
       meta.info.pos <- meta.info[row.names(meta.info) %in% colnames(data)[pos],]
       meta.info.factors <- c()
-      for (j in seq_len(ncol(meta.info.pos))){
+      for (j in 1:ncol(covariates.pos)){
         if(is.factor(meta.info.pos[,j])){
           meta.info.factors <- c(meta.info.factors, colnames(meta.info.pos)[j])
         }

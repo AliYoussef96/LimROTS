@@ -29,6 +29,7 @@ set.seed(1234)
 meta.info <- "Conc."
 B <- 1000  # Number of bootstrap samples
 K <- dim(UPS1.Case0)[1]/4  # Set the value for K based on the data size
+K <- floor(K) 
 num_cores <- 10  # Number of cores for parallel processing
 cluster <- makeCluster(num_cores)  # Create a parallel cluster
 group.name <- "Conc."
@@ -140,8 +141,9 @@ set.seed(1234)
 # Set metadata and formula for LimROTS analysis
 meta.info <- c("Conc." , "inj")
 B <- 1000  # Number of bootstrap samples
-K <- dim(UPS1.Case1)[1]/4  # Set the value for K based on the data size
-num_cores <- 30  # Number of cores for parallel processing
+K <- dim(UPS1.Case1)[1]/4 # Set the value for K based on the data size
+K <- floor(K) 
+num_cores <- 10  # Number of cores for parallel processing
 cluster <- makeCluster(num_cores)  # Create a parallel cluster
 group.name <- "Conc."
 formula.str <- "~ 0 + Conc.+ inj + Conc.*inj"  # Formula for group comparison + injections
@@ -151,4 +153,85 @@ limrots.result <- LimROTS(data.exp = UPS1.Case1,
                           B = B, K = K, meta.info = meta.info, 
                           cluster = cluster, group.name = group.name, 
                           formula.str = formula.str, trend = TRUE, robust = TRUE)
+```
+
+## Filter and Analyze Significant Results
+
+```{r}
+# Create a data frame from the LimROTS results
+limrots.result.df <- data.frame(proteins = row.names(limrots.result$data),
+                                LimROTS.FC = limrots.result$corrected.logf,
+                                FDR = limrots.result$FDR)
+
+# Filter for significant proteins (FDR < 0.01)
+limrots.result.df <- limrots.result.df[limrots.result.df$FDR < 0.05,]
+
+dim(limrots.result.df)
+```
+
+## Volcano Plot with ggplot2
+
+```{r}
+# Load ggplot2 for visualization
+library(ggplot2)
+
+# Create a data frame from the LimROTS results
+limrots.result.df <- data.frame(proteins = row.names(limrots.result$data),
+                                LimROTS.FC = limrots.result$corrected.logf,
+                                FDR = limrots.result$FDR)
+
+# Create a volcano plot
+ggplot(limrots.result.df, aes(x = LimROTS.FC, y = -log10(FDR))) +
+  geom_point(alpha = 0.6, color = "black") +
+  theme_bw() +
+  labs(title = "Volcano Plot", x = "Log Fold Change", y = "-Log10 FDR") +
+  geom_hline(yintercept=-log10(0.05), linetype="dashed", color = "blue")+
+  geom_hline(yintercept=-log10(0.01), linetype="dashed", color = "black")
+```
+
+# UPS1 Case Study 2
+
+In this case study, we will examine a different set of covariates compared to Case Study 1. This dataset includes 48 samples: 24 samples analyzed with Spectronaut and another 24 analyzed with ScaffoldDIA software. As in the previous case study, UPS1 human proteins have been removed to focus solely on proteins that might be influenced by the use of different software, rather than other factors.
+
+```{r}
+# Load necessary packages
+library(LimROTS)
+library(parallel)
+
+# Load the dataset
+data("UPS1.Case2")
+print(UPS1.Case2)
+
+# Set random seed for reproducibility
+set.seed(1234)
+
+# Set metadata and formula for LimROTS analysis
+meta.info <- c("Conc." , "tool")
+B <- 1000  # Number of bootstrap samples
+K <- dim(UPS1.Case2)[1]/4 # Set the value for K based on the data size
+K <- floor(K) 
+num_cores <- 10  # Number of cores for parallel processing
+cluster <- makeCluster(num_cores)  # Create a parallel cluster
+group.name <- "Conc."
+formula.str <- "~ 0 + Conc.+ tool"  # Formula for group comparison + injections
+
+# Run LimROTS analysis with trend and robust settings enabled
+limrots.result <- LimROTS(data.exp = UPS1.Case2, 
+                          B = B, K = 200, meta.info = meta.info, 
+                          cluster = cluster, group.name = group.name, 
+                          formula.str = formula.str, trend = TRUE, robust = TRUE)
+```
+
+## Filter and Analyze Significant Results
+
+```{r}
+# Create a data frame from the LimROTS results
+limrots.result.df <- data.frame(proteins = row.names(limrots.result$data),
+                                LimROTS.FC = limrots.result$corrected.logf,
+                                FDR = limrots.result$FDR)
+
+# Filter for significant proteins (FDR < 0.01)
+limrots.result.df <- limrots.result.df[limrots.result.df$FDR < 0.05,]
+
+dim(limrots.result.df)
 ```
