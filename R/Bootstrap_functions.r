@@ -344,7 +344,7 @@ bootstrapSamples.limRots <- function (data, B, meta.info, group.name)
       pos <- which(labels == label)
       meta.info.pos <- meta.info[row.names(meta.info) %in% colnames(data)[pos],]
       meta.info.factors <- c()
-      for (j in 1:ncol(covariates.pos)){
+      for (j in 1:ncol(meta.info)){
         if(is.factor(meta.info.pos[,j])){
           meta.info.factors <- c(meta.info.factors, colnames(meta.info.pos)[j])
         }
