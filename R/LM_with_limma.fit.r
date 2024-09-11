@@ -48,7 +48,7 @@ testStatistic_with_covariates_Fit <- function(data, group.name, meta.info , form
   colnames(design.matrix) <- make.names(colnames(design.matrix) )
   fit <- limma::lmFit(combined_data, design.matrix)
   if(length(data) == 2){
-    pairwise_contrasts <- paste0(group.name , unique(covariates.p[,group.name]))
+    pairwise_contrasts <- paste0(group.name , unique(meta.info[,group.name]))
     pairwise_contrasts <- combn(pairwise_contrasts, 2, function(x) paste(x[1], "-", x[2]))
     cont_matrix <- limma::makeContrasts(contrasts = pairwise_contrasts,  levels=design.matrix)
     fit2 <- limma::contrasts.fit(fit, cont_matrix)
@@ -59,7 +59,7 @@ testStatistic_with_covariates_Fit <- function(data, group.name, meta.info , form
     s_values <- as.numeric( sqrt(fit.ebayes$s2.post)  * fit.ebayes$stdev.unscaled[,1] )
     return(list(d = d_values, s = s_values , corrected.logfc = corrected.logfc))
   }else if(length(data) > 2 & ncol(meta.info) == 1){
-    pairwise_contrasts <- paste0(group.name , unique(covariates.p[,group.name]))
+    pairwise_contrasts <- paste0(group.name , unique(meta.info[,group.name]))
     pairwise_contrasts <- combn(pairwise_contrasts, 2, function(x) paste(x[1], "-", x[2]))
     cont_matrix <- limma::makeContrasts(contrasts = pairwise_contrasts, levels = design.matrix)
     fit2 <- limma::contrasts.fit(fit, cont_matrix)
