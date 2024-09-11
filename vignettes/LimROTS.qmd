@@ -23,7 +23,7 @@ data("UPS1.Case0")
 print(UPS1.Case0)
 
 # Set random seed for reproducibility
-set.seed(1234)
+set.seed(1234, kind = "default")
 
 # Set metadata and formula for LimROTS analysis
 meta.info <- "Conc."
@@ -136,7 +136,7 @@ data("UPS1.Case1")
 print(UPS1.Case1)
 
 # Set random seed for reproducibility
-set.seed(1234)
+set.seed(1234, kind = "default")
 
 # Set metadata and formula for LimROTS analysis
 meta.info <- c("Conc." , "inj")
