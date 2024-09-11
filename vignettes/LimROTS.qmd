@@ -203,7 +203,7 @@ data("UPS1.Case2")
 print(UPS1.Case2)
 
 # Set random seed for reproducibility
-set.seed(1234)
+set.seed(1234, kind = "default")
 
 # Set metadata and formula for LimROTS analysis
 meta.info <- c("Conc." , "tool")
@@ -231,7 +231,7 @@ limrots.result.df <- data.frame(proteins = row.names(limrots.result$data),
                                 FDR = limrots.result$FDR)
 
 # Filter for significant proteins (FDR < 0.01)
-limrots.result.df <- limrots.result.df[limrots.result.df$FDR < 0.05,]
+limrots.result.df <- limrots.result.df[limrots.result.df$FDR < 0.01,]
 
 dim(limrots.result.df)
 ```
