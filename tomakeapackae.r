@@ -15,7 +15,7 @@ library(devtools)
 
 devtools::check()
 devtools::build()
-
+devtools::build_vignettes()
 
 library(BiocCheck)
 BiocCheck()
