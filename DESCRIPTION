@@ -16,6 +16,7 @@ biocViews: Software, GeneExpression, DifferentialExpression,
         Microarray, RNASeq, Proteomics, ImmunoOncology
 URL: https://github.com/AliYoussef96/LimROTS
 BugReports: https://github.com/AliYoussef96/LimROTS/issues
+VignetteBuilder: knitr
 Imports: 
     limma,
     parallel,
@@ -26,4 +27,6 @@ Imports:
     SummarizedExperiment,
     utils,
     stats,
-    doRNG
+    doRNG,
+    knitr,
+    rmarkdown
