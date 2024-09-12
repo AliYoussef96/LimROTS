@@ -213,7 +213,7 @@ K <- floor(K)
 num_cores <- 30  # Number of cores for parallel processing
 cluster <- makeCluster(num_cores)  # Create a parallel cluster
 group.name <- "Conc."
-formula.str <- "~ 0 + Conc. + tool"  # Formula for group comparison + injections
+formula.str <- "~ 0 + Conc. + tool"  # Formula for group comparison 
 
 # Run LimROTS analysis with trend and robust settings enabled
 limrots.result <- LimROTS(data.exp = UPS1.Case2, 
@@ -236,4 +236,51 @@ limrots.result.df <- limrots.result.df[limrots.result.df$FDR < 0.01,]
 dim(limrots.result.df)
 ```
 
-In the previous case studies 0,1, and 2, LimROTS showed the ability of detecting the True Significant proteins also True Negatuve in simple and semi-complex expermental desgin.
+In case studies 0 and 1, LimROTS demonstrated its efficacy in identifying both true significant proteins and true negatives across simple and semi-complex experimental designs. In case study 2, approximately 70 proteins were identified as significant (false positives) with a false discovery rate (FDR) of 1%. Despite this, the results are favorable when compared to alternative methods such as LIMMA and ANCOVA. For a comprehensive analysis, please refer to the associated publication.
+
+# UPS1 Case Study 3
+
+In this case study, we will explore a more intricate experimental design. Similar to case study 2, the data will be sourced from two software programs, Spectronaut and ScaffoldDIA. This time, the focus will be on comparing the performance of the software packages themselves, rather than the concentration levels. However, concentration and injection information will be utilized as covariates and interaction parameters in the analysis. Please note that in this dataset, the UPS1 human proteins have not been removed. However, they will not be considered true positives, as the focus of this analysis is on comparing the software, rather than the concentration.
+
+```{r}
+# Load necessary packages
+library(LimROTS)
+library(parallel)
+
+# Load the dataset
+data("UPS1.Case3")
+print(UPS1.Case3)
+
+# Set random seed for reproducibility
+set.seed(1234, kind = "default")
+
+# Set metadata and formula for LimROTS analysis
+meta.info <- c("Conc." , "tool" , "inj")
+B <- 1000  # Number of bootstrap samples
+K <- dim(UPS1.Case3)[1]/4 # Set the value for K based on the data size
+K <- floor(K) 
+num_cores <- 30  # Number of cores for parallel processing
+cluster <- makeCluster(num_cores)  # Create a parallel cluster
+group.name <- "tool"
+formula.str <- "~ 0 + tool + Conc. + inj + tool:Conc. + tool:inj"  # Formula for group comparison
+
+# Run LimROTS analysis with trend and robust settings enabled
+limrots.result <- LimROTS(data.exp = UPS1.Case3, 
+                          B = B, K = 200, meta.info = meta.info, 
+                          cluster = cluster, group.name = group.name, 
+                          formula.str = formula.str, trend = TRUE, robust = TRUE)
+```
+
+## Filter and Analyze Significant Results
+
+```{r}
+# Create a data frame from the LimROTS results
+limrots.result.df <- data.frame(proteins = row.names(limrots.result$data),
+                                LimROTS.FC = limrots.result$corrected.logf,
+                                FDR = limrots.result$FDR, bh = limrots.result$BH.pvalue, p.value = limrots.result$pvalue)
+
+# Filter for significant proteins (FDR < 0.01)
+limrots.result.df <- limrots.result.df[limrots.result.df$FDR < 0.01,]
+
+dim(limrots.result.df)
+```
