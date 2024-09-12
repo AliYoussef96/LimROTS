@@ -249,9 +249,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
   registerDoParallel(cluster)
   clusterExport(cluster, varlist = c( "pb", "samples" , "pSamples" , "D", "data",
                                      "S" , "pD" , "pS", "time", "formula.str", "group.name" ,
-                                     "cl", "event", "meta.info", "testStatistic",
-                                     "testStatistic_with_covariates" , "testStatistic.surv",
-                                     "testStatistic_with_covariates_permutating",
+                                     "cl", "event", "meta.info",
                                      "a1" , "a2", "trend", "robust" )  ,envir = environment())
 
 
@@ -260,7 +258,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
     setTxtProgressBar(pb, 50)
   }
   results_list <- foreach(i = seq_len(nrow(samples)), .combine = "c",
-                          .packages = c("utils", "dplyr" , "stringr")) %dopar% {
+                          .packages = c("utils", "dplyr" , "stringr", "stats" ,"LimROTS")) %dopar% {
 
                             samples.R <- split(samples[i, ], cl)
                             pSamples.R <- split(pSamples[i, ], cl)
