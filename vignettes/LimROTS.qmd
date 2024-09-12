@@ -206,18 +206,20 @@ print(UPS1.Case2)
 set.seed(1234, kind = "default")
 
 # Set metadata and formula for LimROTS analysis
-meta.info <- c("Conc." , "tool")
+meta.info <- covariates.df
+row.names(meta.info) <- meta.info$sample.id
+meta.info$sample.id <- NULL
 B <- 1000  # Number of bootstrap samples
 K <- dim(UPS1.Case2)[1]/4 # Set the value for K based on the data size
 K <- floor(K) 
-num_cores <- 10  # Number of cores for parallel processing
+num_cores <- 30  # Number of cores for parallel processing
 cluster <- makeCluster(num_cores)  # Create a parallel cluster
-group.name <- "Conc."
-formula.str <- "~ 0 + Conc.+ tool"  # Formula for group comparison + injections
+group.name <- "groups"
+formula.str <- "~ 0 + groups + tool"  # Formula for group comparison + injections
 
 # Run LimROTS analysis with trend and robust settings enabled
-limrots.result <- LimROTS(data.exp = UPS1.Case2, 
-                          B = B, K = K, meta.info = meta.info, 
+limrots.result <- LimROTS(data.exp = both.norm, 
+                          B = B, K = 200, meta.info = meta.info, 
                           cluster = cluster, group.name = group.name, 
                           formula.str = formula.str, trend = TRUE, robust = TRUE)
 ```
@@ -228,7 +230,7 @@ limrots.result <- LimROTS(data.exp = UPS1.Case2,
 # Create a data frame from the LimROTS results
 limrots.result.df <- data.frame(proteins = row.names(limrots.result$data),
                                 LimROTS.FC = limrots.result$corrected.logf,
-                                FDR = limrots.result$FDR)
+                                FDR = limrots.result$FDR, bh = limrots.result$BH.pvalue, p.value = limrots.result$pvalue)
 
 # Filter for significant proteins (FDR < 0.01)
 limrots.result.df <- limrots.result.df[limrots.result.df$FDR < 0.01,]

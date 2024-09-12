@@ -221,7 +221,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
   if(!is.null(meta.info))
     {
     if (ncol(meta.info) > 1){
-    samples <- bootstrapSamples.limRots(data = data, B = 2 * B, meta.info = meta.info, group.name =  group.name )
+    samples <- bootstrapSamples.limRots(data = data, B = 2 * B, labels = cl, group.name =  group.name )
     pSamples <- samples
     }else{
       paired <- FALSE

@@ -335,9 +335,9 @@ testStatistic <- function (paired, samples)
 
 
 
-bootstrapSamples.limRots <- function (data, B, meta.info, group.name)
+bootstrapSamples.limRots <- function (data, B, labels, group.name)
 {
-  labels <- meta.info[,group.name]
+  #labels <- meta.info[,group.name]
   samples <- matrix(nrow = B, ncol = length(labels))
   for (i in 1:B) {
     for (label in unique(labels)) {
