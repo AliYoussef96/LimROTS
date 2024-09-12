@@ -225,14 +225,14 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
     pSamples <- samples
     }else{
       paired <- FALSE
-      #samples <- bootstrapSamples(data, 2 * B, cl, paired)
-      #pSamples <- samples
+      samples <- bootstrapSamples(data, 2 * B, cl, paired)
+      pSamples <- samples
 
     }
 
   }else{
-    #samples <- bootstrapSamples(data, 2 * B, cl, paired)
-    #pSamples <- permutatedSamples(data, nrow(samples), cl)
+    samples <- bootstrapSamples(data, 2 * B, cl, paired)
+    pSamples <- permutatedSamples(data, nrow(samples), cl)
 
   }
 
