@@ -110,7 +110,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
 
   groups <- as.numeric(meta.info[,group.name])
 
-  if(!is.null(meta.info)){
+  if(!is.null(meta.info) & n.ROTS == FALSE){
     if(ncol(meta.info) == 1){
       message("A meta.info table is provided with only group infomration >>> LimROTS with no covariates will be used")
       if(is.null(formula.str)){
