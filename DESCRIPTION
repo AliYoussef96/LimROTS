@@ -16,7 +16,6 @@ biocViews: Software, GeneExpression, DifferentialExpression,
         Microarray, RNASeq, Proteomics, ImmunoOncology
 URL: https://github.com/AliYoussef96/LimROTS
 BugReports: https://github.com/AliYoussef96/LimROTS/issues
-VignetteBuilder: quarto
 Imports: 
     limma,
     parallel,
