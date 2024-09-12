@@ -40,6 +40,7 @@
 testStatistic_with_covariates_permutating <- function(data, group.name, meta.info, formula.str ,
                                           trend, robust) {
   combined_data <- cbind(data[[1]], data[[2]])
+  combined_data <- paste0(colnames(combined_data), "." , seq(1,ncol(combined_data)))
   covariates.p <- data.frame()
   meta.info$sample.id <- row.names(meta.info)
   for(i in colnames(combined_data)){

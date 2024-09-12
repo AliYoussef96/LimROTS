@@ -164,7 +164,7 @@ limrots.result.df <- data.frame(proteins = row.names(limrots.result$data),
                                 FDR = limrots.result$FDR)
 
 # Filter for significant proteins (FDR < 0.01)
-limrots.result.df <- limrots.result.df[limrots.result.df$FDR < 0.05,]
+limrots.result.df <- limrots.result.df[limrots.result.df$FDR < 0.01,]
 
 dim(limrots.result.df)
 ```
@@ -235,3 +235,5 @@ limrots.result.df <- limrots.result.df[limrots.result.df$FDR < 0.01,]
 
 dim(limrots.result.df)
 ```
+
+In the previous case studies 0,1, and 2, LimROTS showed the ability of detecting the True Significant proteins also True Negatuve in simple and semi-complex expermental desgin.
