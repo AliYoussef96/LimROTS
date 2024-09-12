@@ -71,7 +71,7 @@ limrots.result.df <- data.frame(proteins = row.names(limrots.result$data),
                                 FDR = limrots.result$FDR)
 
 # Filter for significant proteins (FDR < 0.05)
-limrots.result.df <- limrots.result.df[limrots.result.df$FDR < 0.05,]
+limrots.result.df <- limrots.result.df[limrots.result.df$FDR < 0.01,]
 
 # Mark proteins as true positives (HUMAN UPS1 proteins)
 limrots.result.df$TP <- ifelse(grepl("HUMAN", limrots.result.df$proteins), "HUMAN_TP", "ECOLI.FP")
