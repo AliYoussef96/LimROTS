@@ -124,7 +124,7 @@ ggplot(pca_df, aes(x = PC1, y = PC2, color = group)) +
 
 # UPS1 Case Study 1
 
-In Case Study 0, LimROTS effectively identified only the truly significant proteins, with a very low rate of false positives (just 2 false positives at a 1% FDR threshold). This demonstrates its precision in detecting true signals. In contrast, Case Study 1 introduces a more complex scenario where UPS1 human proteins are removed, and the model is adjusted to include information about analytical replicates from different injections. This modification allows LimROTS to account for additional sources of variability. The example highlights LimROTS' capability not only to handle a more intricate model but also to accurately detect true negatives, showcasing its robustness in more challenging experimental designs.
+In Case Study 0, LimROTS effectively identified only the truly significant proteins, with a very low rate of false positives (just 1 false positives at a 1% FDR threshold). This demonstrates its precision in detecting true signals. In contrast, Case Study 1 introduces a more complex scenario where UPS1 human proteins are removed, and the model is adjusted to include information about analytical replicates from different injections. This modification allows LimROTS to account for additional sources of variability. The example highlights LimROTS' capability not only to handle a more intricate model but also to accurately detect true negatives, showcasing its robustness in more challenging experimental designs.
 
 ```{r}
 # Load necessary packages
