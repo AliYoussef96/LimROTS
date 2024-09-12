@@ -25,4 +25,5 @@ Imports:
     qvalue,
     SummarizedExperiment,
     utils,
-    stats
+    stats,
+    doRNG
