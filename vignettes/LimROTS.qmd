@@ -266,7 +266,7 @@ formula.str <- "~ 0 + tool + Conc. + inj + tool:Conc. + tool:inj"  # Formula for
 
 # Run LimROTS analysis with trend and robust settings enabled
 limrots.result <- LimROTS(data.exp = UPS1.Case3, 
-                          B = B, K = 200, meta.info = meta.info, 
+                          B = B, K = K , meta.info = meta.info, 
                           cluster = cluster, group.name = group.name, 
                           formula.str = formula.str, trend = TRUE, robust = TRUE)
 ```
@@ -283,4 +283,84 @@ limrots.result.df <- data.frame(proteins = row.names(limrots.result$data),
 limrots.result.df <- limrots.result.df[limrots.result.df$FDR < 0.01,]
 
 dim(limrots.result.df)
+```
+
+# UPS1 Case Study 4
+
+To demonstrate LimROTS' ability to detect true negatives in more complex scenarios, this dataset mirrors that of case study 3, but with synthetic, unbalanced fake batches assigned to the samples. The assignment follows the ratio: `c(rep("M", 9), rep("F", 3), rep("M", 3), rep("F", 9), rep("M", 9), rep("F", 3), rep("M", 3), rep("F", 9))`.
+
+Additionally, 100 E. coli proteins were randomly selected, and an effect size of 10 was added to each. The software model was then run using these fake batches. The expected outcome is that only the UPS1 human proteins will be identified as truly significant, while none of the remaining proteins should show significant differences between the concentration groups.\
+\
+This scenario resembles a real-world case where the experiment involves unbalanced batch assignments or, for instance, an uneven gender ratio among the samples.\
+\
+
+```{r}
+
+# Load necessary packages
+library(LimROTS)
+library(parallel)
+
+# Load the dataset
+data("UPS1.Case4")
+print(UPS1.Case4)
+
+# Set random seed for reproducibility
+set.seed(1234, kind = "default")
+
+# Set metadata and formula for LimROTS analysis
+meta.info <- c("Conc." , "tool" , "fake.batch")
+B <- 1000  # Number of bootstrap samples
+K <- dim(UPS1.Case4)[1]/4 # Set the value for K based on the data size
+K <- floor(K) 
+num_cores <- 30  # Number of cores for parallel processing
+cluster <- makeCluster(num_cores)  # Create a parallel cluster
+group.name <- "Conc."
+formula.str <- "~ 0 + Conc. + tool + fake.batch"  # Formula for group comparison
+
+# Run LimROTS analysis with trend and robust settings enabled
+limrots.result <- LimROTS(data.exp = UPS1.Case4, 
+                          B = B, K = K, meta.info = meta.info, 
+                          cluster = cluster, group.name = group.name, 
+                          formula.str = formula.str, trend = TRUE, robust = TRUE)
+```
+
+## Filter and Analyze Significant Results
+
+```{r}
+# Create a data frame from the LimROTS results
+limrots.result.df <- data.frame(proteins = row.names(limrots.result$data),
+                                LimROTS.FC = limrots.result$corrected.logf,
+                                FDR = limrots.result$FDR)
+
+# Filter for significant proteins (FDR < 0.05)
+limrots.result.df <- limrots.result.df[limrots.result.df$FDR < 0.01,]
+
+# Mark proteins as true positives (HUMAN UPS1 proteins)
+limrots.result.df$TP <- ifelse(grepl("HUMAN", limrots.result.df$proteins), "HUMAN_TP", "ECOLI.FP")
+
+# Count the number of true positives
+table(limrots.result.df$TP)
+```
+
+## Volcano Plot with ggplot2
+
+```{r}
+# Load ggplot2 for visualization
+library(ggplot2)
+
+# Create a data frame from the LimROTS results
+limrots.result.df <- data.frame(proteins = row.names(limrots.result$data),
+                                LimROTS.FC = limrots.result$corrected.logf,
+                                FDR = limrots.result$FDR)
+# Mark proteins as true positives (HUMAN UPS1 proteins)
+limrots.result.df$TP <- ifelse(grepl("HUMAN", limrots.result.df$proteins), "HUMAN_TP", "ECOLI_FP")
+
+# Create a volcano plot
+ggplot(limrots.result.df, aes(x = LimROTS.FC, y = -log10(FDR), color = factor(TP))) +
+  geom_point(alpha = 0.8) +
+  theme_bw() +
+  labs(title = "Volcano Plot", x = "Log Fold Change", y = "-Log10 FDR", color = "True Positive") +
+  scale_color_manual(values = c("grey", "red"))+
+  geom_hline(yintercept=-log10(0.05), linetype="dashed", color = "blue")+
+  geom_hline(yintercept=-log10(0.01), linetype="dashed", color = "black")
 ```
