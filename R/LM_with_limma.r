@@ -41,10 +41,11 @@ testStatistic_with_covariates <- function(data, group.name, meta.info, formula.s
   combined_data <- cbind(data[[1]], data[[2]])
   colnames(combined_data) <- paste0(colnames(combined_data), "." , seq(1,ncol(combined_data)))
     covariates.p <- data.frame()
-    meta.info$sample.id <- row.names(meta.info)
+    meta.info.temp <- meta.info
+    meta.info.temp$sample.id <- row.names(meta.info.temp)
     for(i in colnames(combined_data)){
       real_SampleNames <-  str_split_fixed(i , fixed(".") , 2)[,1]
-      df.temp <- meta.info[row.names(meta.info) %in% real_SampleNames,]
+      df.temp <- meta.info.temp[row.names(meta.info.temp) %in% real_SampleNames,]
       df.temp$sample.id <- i
       covariates.p <- rbind(covariates.p , df.temp)
     }

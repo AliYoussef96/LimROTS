@@ -217,7 +217,7 @@ formula.str <- "~ 0 + Conc.+ tool"  # Formula for group comparison + injections
 
 # Run LimROTS analysis with trend and robust settings enabled
 limrots.result <- LimROTS(data.exp = UPS1.Case2, 
-                          B = B, K = 200, meta.info = meta.info, 
+                          B = B, K = K, meta.info = meta.info, 
                           cluster = cluster, group.name = group.name, 
                           formula.str = formula.str, trend = TRUE, robust = TRUE)
 ```
