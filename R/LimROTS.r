@@ -52,6 +52,7 @@
 #' @importFrom stats model.matrix formula p.adjust
 #' @import parallel
 #' @import foreach
+#' @import doRNG
 #' @import qvalue
 #' @import utils
 #' @import SummarizedExperiment
@@ -257,8 +258,8 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
   if (progress) {
     setTxtProgressBar(pb, 50)
   }
-  results_list <- foreach(i = seq_len(nrow(samples)), .combine = "c",
-                          .packages = c("utils", "dplyr" , "stringr", "stats" ,"LimROTS")) %dopar% {
+  results_list <- foreach(i = seq_len(nrow(samples)), .combine = "c", .options.RNG = 1234,
+                          .packages = c("utils", "dplyr" , "stringr", "stats" ,"LimROTS")) %dorng% {
 
                             samples.R <- split(samples[i, ], cl)
                             pSamples.R <- split(pSamples[i, ], cl)
