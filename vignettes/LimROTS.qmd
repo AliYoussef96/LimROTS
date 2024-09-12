@@ -206,19 +206,17 @@ print(UPS1.Case2)
 set.seed(1234, kind = "default")
 
 # Set metadata and formula for LimROTS analysis
-meta.info <- covariates.df
-row.names(meta.info) <- meta.info$sample.id
-meta.info$sample.id <- NULL
+meta.info <- c("Conc." , "tool")
 B <- 1000  # Number of bootstrap samples
 K <- dim(UPS1.Case2)[1]/4 # Set the value for K based on the data size
 K <- floor(K) 
 num_cores <- 30  # Number of cores for parallel processing
 cluster <- makeCluster(num_cores)  # Create a parallel cluster
-group.name <- "groups"
-formula.str <- "~ 0 + groups + tool"  # Formula for group comparison + injections
+group.name <- "Conc."
+formula.str <- "~ 0 + Conc. + tool"  # Formula for group comparison + injections
 
 # Run LimROTS analysis with trend and robust settings enabled
-limrots.result <- LimROTS(data.exp = both.norm, 
+limrots.result <- LimROTS(data.exp = UPS1.Case2, 
                           B = B, K = 200, meta.info = meta.info, 
                           cluster = cluster, group.name = group.name, 
                           formula.str = formula.str, trend = TRUE, robust = TRUE)
