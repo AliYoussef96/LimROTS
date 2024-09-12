@@ -342,7 +342,7 @@ bootstrapSamples.limRots <- function (data, B, meta.info ,group.name)
   for (i in 1:B) {
     for (label in unique(labels)) {
       pos <- which(labels == label)
-      meta.info.pos <- meta.info[row.names(meta.info) %in% colnames(data)[pos],]
+      meta.info.pos <- meta.info[meta.info[,group.name] == label,]
       meta.info.factors <- c()
       for (j in 1:ncol(meta.info)){
         if(is.factor(meta.info.pos[,j])){
