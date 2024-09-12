@@ -3,6 +3,10 @@ title: "LimROTS Analysis"
 author: "Ali Youssef"
 format: html
 editor: visual
+vignette: >
+  %\VignetteIndexEntry{LimROTS Analysis}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
 ---
 
 # LimROTS Analysis
