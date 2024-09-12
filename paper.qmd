@@ -66,11 +66,45 @@ K <- floor(K)
 num_cores <- 10  # Number of cores for parallel processing
 cluster <- makeCluster(num_cores)  # Create a parallel cluster
 group.name <- "Conc."
-formula.str <- "~ 0 + Conc."  # Formula for group comparison
+formula.str <- "Conc."
 
 # Run LimROTS analysis with trend and robust settings enabled
 rots.result <- LimROTS(data.exp = UPS1.Case0, 
                           B = B, K = K, meta.info = meta.info, 
                           cluster = cluster, group.name = group.name, 
-                          formula.str = formula.str, trend = TRUE, robust = TRUE)
+                          formula.str = formula.str, trend = TRUE, robust = TRUE, n.ROTS = TRUE)
+```
+
+## Run limma
+
+```{r}
+
+library(limma)
+
+data("UPS1.Case0")
+
+data <- assay(UPS1.Case0)
+
+formula.str <- "~ 0 + Conc."
+
+meta.info <- data.frame(colData(UPS1.Case0), check.names = FALSE, row.names = row.names(colData(UPS1.Case0)))
+
+meta.info$sample.id <- NULL
+
+design.matrix <- model.matrix(formula(formula.str), data = meta.info)
+
+
+colnames(design.matrix) <- make.names(colnames(design.matrix))
+
+fit <- lmFit(data, design.matrix)
+
+
+cont_matrix <- makeContrasts("Conc.1-Conc.2",  levels=design.matrix)
+
+fit2 <- contrasts.fit(fit, cont_matrix)
+
+fit.ebayes <- eBayes(fit2, trend=TRUE, robust=TRUE)
+
+limma.result <- topTable(fit.ebayes, coef="Conc.1-Conc.2" , number = "Inf")
+
 ```
