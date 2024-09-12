@@ -63,7 +63,8 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
                      log = TRUE, progress = FALSE,
                                    verbose = TRUE, meta.info = NULL, cluster = NULL ,
                                   group.name = NULL , formula.str = NULL, trend = TRUE, robust = TRUE,
-                                  time = NULL, event = NULL, paired = FALSE)
+                                  time = NULL, event = NULL, paired = FALSE,
+                     n.ROTS = FALSE)
 {
 
 
@@ -217,7 +218,9 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
     message("Bootstrapping samples")
 
 
-
+  if(n.ROTS == TRUE){
+    meta.info = NULL
+  }
 
   if(!is.null(meta.info))
     {
