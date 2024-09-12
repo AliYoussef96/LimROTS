@@ -320,6 +320,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
     setTxtProgressBar(pb, 80)
   }
 
+  names(results_list) <- paste0(names(results_list) , seq(1,length(names(results_list))))
 
   j <-  0
   q <-  0
@@ -327,14 +328,14 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
   for (i in seq_along(results_list)) {
 
 
-    if (names(results_list)[i] == "ds"){
+    if (grepl("ds", names(results_list)[i], fixed = TRUE)){
       j <- j + 1
-      D[, j] <- results_list[[i]]$d_result
-      S[, j] <- results_list[[i]]$s_result
+      D[, j] <- results_list[[names(results_list)[i]]]$d_result
+      S[, j] <- results_list[[names(results_list)[i]]]$s_result
     }else{
       q <- q + 1
-      pD[, q] <- results_list[[i]]$pd_result
-      pS[, q] <- results_list[[i]]$ps_result
+      pD[, q] <- results_list[[names(results_list)[i]]]$pd_result
+      pS[, q] <- results_list[[names(results_list)[i]]]$ps_result
     }
 
   }
