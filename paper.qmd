@@ -13,7 +13,7 @@ The dataset consists of DIA proteomics data from a UPS1-spiked E. coli protein m
 
 ## Run LimROTS
 
-```{r}
+```{r results = "hide" , message = FALSE, warning = FALSE}
 # Load necessary packages
 library(LimROTS)
 library(parallel)
@@ -41,7 +41,7 @@ saveRDS(limrots.result, "../LimROTS paper/UPS1.Case0.LimROTS.rds")
 
 ## Run ROTS
 
-```{r}
+```{r results = "hide" , message = FALSE, warning = FALSE}
 # Load necessary packages
 library(LimROTS)
 library(parallel)
@@ -69,7 +69,7 @@ saveRDS(rots.result, "../LimROTS paper/UPS1.Case0.ROTS.rds")
 
 ## Run limma
 
-```{r}
+```{r results = "hide" , message = FALSE, warning = FALSE}
 library(limma)
 library(SummarizedExperiment, quietly = T, warn.conflicts = T)
 data("UPS1.Case0")
@@ -89,8 +89,8 @@ saveRDS(limma.result, "../LimROTS paper/UPS1.Case0.limma.rds")
 
 ## Comparison
 
-```{r}
-library(caret)
+```{r results = "hide" , message = FALSE, warning = FALSE}
+library(caret, quietly = T, warn.conflicts = T)
 
 TP <- UPS1.Case0@elementMetadata@listData[["GeneID"]]
 TP <- TP[grepl("HUMAN" , TP)]
@@ -162,7 +162,7 @@ ggplot(all_metrics, aes(x = Metric, y = Value, fill = Method)) +
 
 ## Run LimROTS
 
-```{r}
+```{r results = "hide" , message = FALSE, warning = FALSE}
 # Load necessary packages
 library(LimROTS)
 library(parallel)
@@ -190,7 +190,7 @@ saveRDS(limrots.result, "../LimROTS paper/UPS1.Case1.LimROTS.rds")
 
 ## Run ROTS
 
-```{r}
+```{r results = "hide" , message = FALSE, warning = FALSE}
 # Load necessary packages
 library(LimROTS)
 library(parallel)
@@ -218,7 +218,7 @@ saveRDS(rots.result, "../LimROTS paper/UPS1.Case1.ROTS.rds")
 
 ## Run limma
 
-```{r}
+```{r results = "hide" , message = FALSE, warning = FALSE}
 library(limma)
 library(SummarizedExperiment, quietly = T, warn.conflicts = T)
 data("UPS1.Case1")
@@ -276,7 +276,7 @@ This scenario resembles a real-world case where the experiment involves unbalanc
 
 ## Run LimROTS
 
-```{r}
+```{r results = "hide" , message = FALSE, warning = FALSE}
 
 # Load necessary packages
 library(LimROTS)
@@ -309,7 +309,7 @@ saveRDS(limrots.result, "../LimROTS paper/UPS1.Case2.LimROTS.rds")
 
 ## Run limma
 
-```{r}
+```{r results = "hide" , message = FALSE, warning = FALSE}
 library(limma)
 library(SummarizedExperiment, quietly = T, warn.conflicts = T)
 data("UPS1.Case4")
@@ -327,9 +327,9 @@ limma.result <- topTable(fit.ebayes, coef="Conc.1-Conc.2" , number = "Inf")
 saveRDS(limma.result, "../LimROTS paper/UPS1.Case2.limma.rds")
 ```
 
-Run ANCOVA
+## Run ANCOVA
 
-```{r}
+```{r results = "hide" , message = FALSE, warning = FALSE}
 formula.str <- "~ Conc. + tool + fake.batch"
 data("UPS1.Case4")
 data <- assay(UPS1.Case4)
@@ -352,7 +352,7 @@ ancova.result$FDR <- p.adjust(ancova.result$p.value, method = "fdr")
 
 ## Comparison
 
-```{r}
+```{r results = "hide" , message = FALSE, warning = FALSE}
 library(caret)
 
 TP <- UPS1.Case4@elementMetadata@listData[["GeneID"]]
