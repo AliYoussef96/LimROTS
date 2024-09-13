@@ -293,7 +293,7 @@ dim(limrots.result.df)
 
 To demonstrate LimROTS' ability to detect true negatives in more complex scenarios, this dataset mirrors that of case study 3, but with synthetic, unbalanced fake batches assigned to the samples. The assignment follows the ratio: `c(rep("M", 9), rep("F", 3), rep("M", 3), rep("F", 9), rep("M", 9), rep("F", 3), rep("M", 3), rep("F", 9))`.
 
-Additionally, 100 E. coli proteins were randomly selected, and an effect size of 10 was added to each. The software model was then run using these fake batches. The expected outcome is that only the UPS1 human proteins will be identified as truly significant, while none of the remaining proteins should show significant differences between the concentration groups.\
+Additionally, 100 E. coli proteins were randomly selected, and an effect size of 10 was added to each. The model was then run using these fake batches. The expected outcome is that only the UPS1 human proteins will be identified as truly significant, while none of the remaining proteins should show significant differences between the concentration groups.\
 \
 This scenario resembles a real-world case where the experiment involves unbalanced batch assignments or, for instance, an uneven gender ratio among the samples.\
 \
