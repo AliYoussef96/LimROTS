@@ -326,7 +326,7 @@ plot_data.melt <-  plot_data %>%
 ggplot(plot_data.melt, aes(x = Alpha, y = FDR, color = Method)) +
   geom_line( size = 1) +
   theme_minimal() +
-  labs(title = "Significant Proteins vs FDR",
+  labs(title = "Significant Proteins vs FDR Case study 1",
        x = "FDR",
        y = "Number of Significant Proteins") +
    geom_vline(xintercept = 0.01, linetype="dotted", 
@@ -352,7 +352,7 @@ This scenario resembles a real-world case where the experiment involves unbalanc
 
 ## Run LimROTS
 
-```{r results = "hide" , message = FALSE, warning = FALSE}
+```{r results = "hide" , message = FALSE, warning = FALSE, eval=FALSE}
 
 # Load necessary packages
 library(LimROTS)
@@ -385,7 +385,7 @@ saveRDS(limrots.result, "../LimROTS paper/UPS1.Case2.LimROTS.rds")
 
 ## Run limma
 
-```{r results = "hide" , message = FALSE, warning = FALSE}
+```{r results = "hide" , message = FALSE, warning = FALSE, eval=FALSE}
 library(limma)
 library(SummarizedExperiment, quietly = T, warn.conflicts = T)
 data("UPS1.Case4")
@@ -405,7 +405,7 @@ saveRDS(limma.result, "../LimROTS paper/UPS1.Case2.limma.rds")
 
 ## Run ANCOVA
 
-```{r results = "hide" , message = FALSE, warning = FALSE}
+```{r results = "hide" , message = FALSE, warning = FALSE, eval=FALSE}
 formula.str <- "~ Conc. + tool + fake.batch"
 data("UPS1.Case4")
 data <- assay(UPS1.Case4)
@@ -423,13 +423,17 @@ for(i in 1:nrow(data)){
   ancova.result <- rbind(ancova.result, data.frame(protein = row.names(data)[i], p.value =significant_groups[, 5] ))
 }
 ancova.result$FDR <- p.adjust(ancova.result$p.value, method = "fdr")
-
+saveRDS(ancova.result, "../LimROTS paper/UPS1.Case2.ancova.rds")
 ```
 
 ## Comparison
 
 ```{r results = "hide" , message = FALSE, warning = FALSE}
 library(caret)
+
+limrots.result <- readRDS("../LimROTS paper/UPS1.Case2.LimROTS.rds")
+limma.result <- readRDS("../LimROTS paper/UPS1.Case2.limma.rds")
+ancova.result <- readRDS("../LimROTS paper/UPS1.Case2.ancova.rds")
 
 TP <- UPS1.Case4@elementMetadata@listData[["GeneID"]]
 TP <- TP[grepl("HUMAN" , TP)]
@@ -444,8 +448,7 @@ predictions_limma <- limma.result$adj.P.Val < 0.01
 predictions_limma <- factor(predictions_limma, levels = c(TRUE, FALSE))
 true_labels_limma <- ifelse(row.names(limma.result) %in% TP , TRUE, FALSE)
 true_labels_limma <- factor(true_labels_limma, levels = c(TRUE, FALSE))
-true_labels_limma <- confusionMatrix(predictions_limma, true_labels_limma)
-
+conf_matrix_limma <- confusionMatrix(predictions_limma, true_labels_limma)
 
 predictions_ancova <- ancova.result$FDR < 0.01
 predictions_ancova <- factor(predictions_ancova, levels = c(TRUE, FALSE))
@@ -481,9 +484,16 @@ all_metrics <- bind_rows(metrics_limrots, metrics_limma, metrics_ancova)
 ggplot(all_metrics, aes(x = Metric, y = Value, fill = Method)) +
   geom_bar(stat = "identity", position = "dodge") +
   theme_bw() +
-  labs(title = "Comparison of Performance Metrics",
+  labs(title = "Comparison of Performance case study 2",
        y = "Value", x = "Metric") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+      scale_fill_npg() + 
+    theme(
+    plot.title = element_text(face = "bold", color = "black"),
+    axis.title = element_text(face = "bold", color = "black"),
+    axis.text = element_text(face = "bold", color = "black"),
+    axis.ticks = element_line(color = "black")
+  )
 ```
 
 -   **limROTS** is clearly the best performer, with strong results across sensitivity, specificity, PPV, and F1 score, indicating a well-balanced method with accurate classification of significant and non-significant proteins.
