@@ -13,7 +13,7 @@ The dataset consists of DIA proteomics data from a UPS1-spiked E. coli protein m
 
 ## Run LimROTS
 
-```{r results = "hide" , message = FALSE, warning = FALSE}
+```{r results = "hide" , message = FALSE, warning = FALSE, eval = TRUE}
 # Load necessary packages
 library(LimROTS)
 library(parallel)
@@ -41,7 +41,7 @@ saveRDS(limrots.result, "../LimROTS paper/UPS1.Case0.LimROTS.rds")
 
 ## Run ROTS
 
-```{r results = "hide" , message = FALSE, warning = FALSE}
+```{r results = "hide" , message = FALSE, warning = FALSE, eval=FALSE}
 # Load necessary packages
 library(LimROTS)
 library(parallel)
@@ -69,7 +69,7 @@ saveRDS(rots.result, "../LimROTS paper/UPS1.Case0.ROTS.rds")
 
 ## Run limma
 
-```{r results = "hide" , message = FALSE, warning = FALSE}
+```{r results = "hide" , message = FALSE, warning = FALSE, eval=FALSE}
 library(limma)
 library(SummarizedExperiment, quietly = T, warn.conflicts = T)
 data("UPS1.Case0")
@@ -89,7 +89,7 @@ saveRDS(limma.result, "../LimROTS paper/UPS1.Case0.limma.rds")
 
 ## Run t-test
 
-```{r}
+```{r eval=FALSE}
 library(SummarizedExperiment, quietly = T, warn.conflicts = F)
 data("UPS1.Case0")
 data <- assay(UPS1.Case0)
@@ -200,7 +200,7 @@ ggplot(all_metrics, aes(x = Metric, y = Value, fill = Method)) +
 
 ## Run LimROTS
 
-```{r results = "hide" , message = FALSE, warning = FALSE}
+```{r results = "hide" , message = FALSE, warning = FALSE, eval=FALSE}
 # Load necessary packages
 library(LimROTS)
 library(parallel)
@@ -228,7 +228,7 @@ saveRDS(limrots.result, "../LimROTS paper/UPS1.Case1.LimROTS.rds")
 
 ## Run ROTS
 
-```{r results = "hide" , message = FALSE, warning = FALSE}
+```{r results = "hide" , message = FALSE, warning = FALSE, eval=FALSE}
 # Load necessary packages
 library(LimROTS)
 library(parallel)
@@ -256,7 +256,7 @@ saveRDS(rots.result, "../LimROTS paper/UPS1.Case1.ROTS.rds")
 
 ## Run limma
 
-```{r results = "hide" , message = FALSE, warning = FALSE}
+```{r results = "hide" , message = FALSE, warning = FALSE, eval=FALSE}
 library(limma)
 library(SummarizedExperiment, quietly = T, warn.conflicts = T)
 data("UPS1.Case1")
@@ -274,19 +274,50 @@ limma.result <- topTable(fit.ebayes, coef="Conc.1-Conc.2" , number = "Inf")
 saveRDS(limma.result, "../LimROTS paper/UPS1.Case1.limma.rds")
 ```
 
+## Run ANCOVA
+
+```{r results = "hide" , message = FALSE, warning = FALSE, eval=FLASE}
+
+formula.str <- "~Conc.+ inj + Conc.*inj"
+data("UPS1.Case1")
+data <- assay(UPS1.Case1)
+meta.info <- data.frame(colData(UPS1.Case1), check.names = FALSE, row.names = row.names(colData(UPS1.Case1)))
+meta.info$sample.id <- NULL
+ancova.result <- data.frame()
+for(i in 1:nrow(data)){
+  df.temp <- data[i,]
+  data.temp <- data.frame(response = as.numeric(df.temp) , Conc. = meta.info$Conc.,
+                     inj = meta.info$inj)
+  ancova_model <- lm(formula(paste("response", formula.str)), data = data.temp)
+  coef_table <- anova(ancova_model)
+  coef_table <- data.frame(coef_table)
+  significant_groups <- coef_table[rownames(coef_table) == "Conc." , ]
+  ancova.result <- rbind(ancova.result, data.frame(protein = row.names(data)[i], p.value =significant_groups[, 5] ))
+}
+ancova.result$FDR <- p.adjust(ancova.result$p.value, method = "fdr")
+saveRDS(ancova.result, "../LimROTS paper/UPS1.Case1.ancova.rds")
+```
+
 ## Comparison
 
 ```{r}
 library(tidyverse, quietly = T, warn.conflicts = T)
+library(ggsci)
+limrots.result <- readRDS("../LimROTS paper/UPS1.Case1.LimROTS.rds")
+rots.result <- readRDS("../LimROTS paper/UPS1.Case1.ROTS.rds")
+limma.result <- readRDS("../LimROTS paper/UPS1.Case1.limma.rds")
+ancova.result <- readRDS("../LimROTS paper/UPS1.Case1.ancova.rds")
+
+
 
 alpha_thresholds <- seq(0, 0.2, by = 0.001)
 significant_limROTS <- sapply(alpha_thresholds, function(alpha) sum(limrots.result$FDR < alpha))
 significant_ROTS <- sapply(alpha_thresholds, function(alpha) sum(rots.result$FDR < alpha))
 significant_limma <- sapply(alpha_thresholds, function(alpha) sum(limma.result$adj.P.Val < alpha))
-
+significant_ancova <- sapply(alpha_thresholds, function(alpha) sum(ancova.result$FDR < alpha))
 
 plot_data <- data.frame(Alpha = alpha_thresholds, significant_limROTS = significant_limROTS,
-                        significant_ROTS = significant_ROTS , significant_limma = significant_limma)
+                        significant_ROTS = significant_ROTS , significant_limma = significant_limma  ,significant_ancova = significant_ancova)
 
 plot_data.melt <-  plot_data %>%
   pivot_longer(cols = starts_with("significant"), names_to = "Method", values_to = "FDR")
@@ -301,7 +332,14 @@ ggplot(plot_data.melt, aes(x = Alpha, y = FDR, color = Method)) +
    geom_vline(xintercept = 0.01, linetype="dotted", 
                 color = "red", size=1) + 
     geom_vline(xintercept = 0.05, linetype="dotted", 
-                color = "red", size=1)
+                color = "red", size=1)+
+    scale_color_npg() + 
+    theme(
+    plot.title = element_text(face = "bold", color = "black"),
+    axis.title = element_text(face = "bold", color = "black"),
+    axis.text = element_text(face = "bold", color = "black"),
+    axis.ticks = element_line(color = "black")
+  )
 ```
 
 Case Study 1 presents a more complex situation where UPS1 human proteins are removed, so no significant differences are expected among the E. coli proteins. The model has been adjusted to account for analytical replicates from different injections. The figure demonstrates that LimROTS and limma handle the data similarly in terms of the number of significant proteins. It is important to note that comparing ROTS in this case is not entirely fair, as ROTS was not designed to account for covariates. However, it is included in this case study to highlight the importance of considering covariates in differential protein analysis, were LimROTS will be more suitable to be used.
