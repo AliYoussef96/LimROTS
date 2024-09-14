@@ -87,10 +87,34 @@ limma.result <- topTable(fit.ebayes, coef="Conc.1-Conc.2" , number = "Inf")
 saveRDS(limma.result, "../LimROTS paper/UPS1.Case0.limma.rds")
 ```
 
+## Run t-test
+
+```{r}
+library(SummarizedExperiment, quietly = T, warn.conflicts = F)
+data("UPS1.Case0")
+data <- assay(UPS1.Case0)
+meta.info <- data.frame(colData(UPS1.Case0), check.names = FALSE, row.names = row.names(colData(UPS1.Case0)))
+t.test.result <- data.frame()
+
+for(i in 1:nrow(data)){
+  p <- t.test(data[i,1:12], data[i,13:24])
+  t.test.result <- rbind(t.test.result, data.frame(protein = row.names(data)[i] ,p.value = p$p.value))
+}
+
+t.test.result$fdr <- p.adjust(t.test.result$p.value)
+saveRDS(t.test.result, "../LimROTS paper/UPS1.Case0.t.test.rds")
+```
+
 ## Comparison
 
 ```{r results = "hide" , message = FALSE, warning = FALSE}
 library(caret, quietly = T, warn.conflicts = T)
+
+limrots.result <- readRDS("../LimROTS paper/UPS1.Case0.LimROTS.rds")
+rots.result <- readRDS("../LimROTS paper/UPS1.Case0.ROTS.rds")
+limma.result <- readRDS("../LimROTS paper/UPS1.Case0.limma.rds")
+t.test.result <- readRDS("../LimROTS paper/UPS1.Case0.t.test.rds")
+
 
 TP <- UPS1.Case0@elementMetadata@listData[["GeneID"]]
 TP <- TP[grepl("HUMAN" , TP)]
@@ -107,18 +131,24 @@ true_labels_rots <- ifelse(row.names(rots.result$data) %in% TP , TRUE, FALSE)
 true_labels_rots <- factor(true_labels_rots, levels = c(TRUE, FALSE))
 conf_matrix_rots <- confusionMatrix(predictions_rots, true_labels_rots)
 
-
 predictions_limma <- limma.result$adj.P.Val < 0.01
 predictions_limma <- factor(predictions_limma, levels = c(TRUE, FALSE))
 true_labels_limma <- ifelse(row.names(limma.result) %in% TP , TRUE, FALSE)
 true_labels_limma <- factor(true_labels_limma, levels = c(TRUE, FALSE))
 conf_matrix_limma <- confusionMatrix(predictions_limma, true_labels_limma)
 
+predictions_t.test <- t.test.result$fdr < 0.01
+predictions_t.test <- factor(predictions_t.test, levels = c(TRUE, FALSE))
+true_labels_t.test <- ifelse(t.test.result$protein %in% TP , TRUE, FALSE)
+true_labels_t.test <- factor(true_labels_t.test, levels = c(TRUE, FALSE))
+conf_matrix_t.test <- confusionMatrix(predictions_t.test, true_labels_t.test)
+
 ```
 
 ```{r}
 library(dplyr, quietly = T, warn.conflicts = T)  
 library(ggplot2)
+library(ggsci)
 
 extract_metrics <- function(conf_matrix, method_name) {
   metrics <- c(
@@ -136,16 +166,24 @@ extract_metrics <- function(conf_matrix, method_name) {
 metrics_limrots <- extract_metrics(conf_matrix_limrots, "limROTS")
 metrics_rots <- extract_metrics(conf_matrix_rots, "ROTS")
 metrics_limma <- extract_metrics(conf_matrix_limma, "limma")
+metrics_t.test <- extract_metrics(conf_matrix_t.test, "t.test")
 
-all_metrics <- bind_rows(metrics_limrots, metrics_rots, metrics_limma)
+all_metrics <- bind_rows(metrics_limrots, metrics_rots, metrics_limma,metrics_t.test)
 
 
 ggplot(all_metrics, aes(x = Metric, y = Value, fill = Method)) +
   geom_bar(stat = "identity", position = "dodge") +
   theme_bw() +
-  labs(title = "Comparison of Performance Metrics",
+  labs(title = "Comparison of Performance Case Study0",
        y = "Value", x = "Metric") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_fill_npg() + 
+    theme(
+    plot.title = element_text(face = "bold", color = "black"),
+    axis.title = element_text(face = "bold", color = "black"),
+    axis.text = element_text(face = "bold", color = "black"),
+    axis.ticks = element_line(color = "black")
+  )
 
 
 ```
