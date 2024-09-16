@@ -168,7 +168,7 @@ calculateFDR <- function (observed, permuted, progress)
   }
   if (progress)
     close(pb)
-  FDR <- apply(A, 1, mean)
+  FDR <- apply(A, 1, median)
   FDR[FDR > 1] <- 1
   FDR[ord] <- rev(sapply(length(FDR):1, function(x) return(min(FDR[ord][x:length(FDR)]))))
   return(FDR)
