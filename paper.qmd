@@ -416,3 +416,117 @@ ggplot(all_metrics, aes(x = Metric, y = Value, fill = Method)) +
 
 In biomarker and drug discovery, particularly during the discovery phase using omics approaches, accurate identification of true significant features is crucial to streamline subsequent steps, making them faster, more precise, and reliable. The selection of an appropriate statistical tool is a critical decision, given the multitude of available methods. In the context of DIA proteomics, which is an ideal experimental setup for early biomarker and drug discovery phases, many previous studies have relied on tools such as ANCOVA and limma, which were developed for broader omics applications. While these tools may be acceptable, more specialized methods should be employed for greater accuracy. LimROTS offers a robust statistical approach for identifying true significant proteins in DIA experiments, minimizing false positive discoveries. LimROTS excels by providing high balanced accuracy, strong sensitivity, and excellent specificity, making it a reliable tool for these critical phases of discovery.\
 In theory, LimROTS is applicable to other types of omics, such as transcriptomics and metabolomics. However, further case studies are needed to validate its effectiveness in these areas.
+
+# BM21 Case study 3
+
+## Run LimROTS
+
+```{r}
+# Load necessary packages
+library(LimROTS)
+library(parallel)
+
+# Load the dataset
+load("../LimROTS paper/metabolomics/BM21.Case0.rda")
+
+print(BM21.Case0)
+
+# Set random seed for reproducibility
+set.seed(1234, kind = "default")
+
+# Set metadata and formula for LimROTS analysis
+meta.info <- "mixing.ratio"
+B <- 1000  # Number of bootstrap samples
+K <- dim(BM21.Case0)[1]/2  # Set the value for K based on the data size
+K <- floor(K) 
+num_cores <- 10  # Number of cores for parallel processing
+cluster <- makeCluster(num_cores)  # Create a parallel cluster
+group.name <- "mixing.ratio"
+formula.str <- "~ 0 + mixing.ratio"  # Formula for group comparison
+
+# Run LimROTS analysis with trend and robust settings enabled
+limrots.result <- LimROTS(data.exp = BM21.Case0, 
+                          B = B, K = K, meta.info = meta.info, 
+                          cluster = cluster, group.name = group.name, 
+                          formula.str = formula.str, trend = TRUE, robust = TRUE)
+```
+
+```{r}
+length(which(limrots.result$FDR < 0.05))
+summary(limrots.result$q_values)
+plot(limrots.result$q_values)
+hist(limrots.result$FDR)
+
+limrots.result.df <- data.frame(proteins = row.names(limrots.result$data),
+                                LimROTS.FC = limrots.result$corrected.logf,
+                                FDR = limrots.result$FDR)
+```
+
+## Run ROTS
+
+```{r}
+# Load the dataset
+load("../LimROTS paper/metabolomics/BM21.Case0.rda")
+  library(SummarizedExperiment)
+library(doParallel)
+library(LimROTS)
+print(BM21.Case0)
+
+# Set random seed for reproducibility
+set.seed(1234, kind = "default")
+
+# Set metadata and formula for LimROTS analysis
+meta.info <- "mixing.ratio"
+B <- 1000  # Number of bootstrap samples
+K <- dim(BM21.Case0)[1]/2 # Set the value for K based on the data size
+K <- floor(K) 
+num_cores <- 10  # Number of cores for parallel processing
+cluster <- makeCluster(num_cores)  # Create a parallel cluster
+group.name <- "mixing.ratio"
+formula.str <- "~ 0 + mixing.ratio"  # Formula for group comparison
+
+
+
+# Run LimROTS analysis with trend and robust settings enabled
+rots.result <- LimROTS(data.exp = BM21.Case0, 
+                          B = B, K = K, meta.info = meta.info, 
+                          cluster = cluster, group.name = group.name, 
+                          formula.str = formula.str, trend = TRUE, robust = TRUE, n.ROTS = T)
+```
+
+```{r}
+length(which(rots.result$FDR < 0.01))
+summary(rots.result$q_values)
+plot(rots.result$q_values)
+hist(rots.result$q_values)
+hist(rots.result$p)
+hist(rots.result$FDR)
+```
+
+## Run Limma
+
+```{r}
+
+library(limma)
+library(SummarizedExperiment, quietly = T, warn.conflicts = T)
+
+load("../LimROTS paper/metabolomics/BM21.Case0.rda")
+
+print("BM21.Case0")
+data <- assay(BM21.Case0)
+formula.str <- "~ 0 + mixing.ratio"
+meta.info <- data.frame(colData(BM21.Case0), check.names = FALSE, row.names = row.names(colData(BM21.Case0)))
+meta.info$sample.id <- NULL
+design.matrix <- model.matrix(formula(formula.str), data = meta.info)
+colnames(design.matrix) <- make.names(colnames(design.matrix))
+fit <- lmFit(data, design.matrix)
+cont_matrix <- makeContrasts("mixing.ratio1-mixing.ratio2",  levels=design.matrix)
+fit2 <- contrasts.fit(fit, cont_matrix)
+fit.ebayes <- eBayes(fit2, trend=T, robust=T)
+limma.result <- topTable(fit.ebayes, coef="mixing.ratio1-mixing.ratio2" , number = "Inf")
+
+
+length(which(limma.result$adj.P.Val < 0.01))
+
+saveRDS(limma.result, "../LimROTS paper/BM21.case0.limma.rds")
+```
