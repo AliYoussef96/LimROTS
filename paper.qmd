@@ -537,7 +537,7 @@ meta.info <- "mixing.ratio"
 B <- 1000  # Number of bootstrap samples
 K <- dim(BM21.Case0)[1]/4  # Set the value for K based on the data size
 K <- floor(K) 
-num_cores <- 30   # Number of cores for parallel processing
+num_cores <- 10   # Number of cores for parallel processing
 cluster <- makeCluster(num_cores)  # Create a parallel cluster
 group.name <- "mixing.ratio"
 formula.str <- "~ 0 + mixing.ratio"  # Formula for group comparison
@@ -547,6 +547,8 @@ limrots.result <- LimROTS(data.exp = BM21.Case0,
                           B = B, K = K, meta.info = meta.info, 
                           cluster = cluster, group.name = group.name, 
                           formula.str = formula.str, trend = TRUE, robust = TRUE)
+
+saveRDS(limrots.result , "paperdata/BM21.Case0.limrots.rds")
 ```
 
 ### Run ROTS
@@ -579,6 +581,8 @@ rots.result <- LimROTS(data.exp = BM21.Case0,
                           B = B, K = K, meta.info = meta.info, 
                           cluster = cluster, group.name = group.name, 
                           formula.str = formula.str, trend = TRUE, robust = TRUE, n.ROTS = T)
+
+saveRDS(rots.result , "paperdata/BM21.Case0.rots.rds")
 ```
 
 ### Run Limma
@@ -603,13 +607,55 @@ fit2 <- contrasts.fit(fit, cont_matrix)
 fit.ebayes <- eBayes(fit2, trend=T, robust=T)
 limma.result <- topTable(fit.ebayes, coef="mixing.ratio1-mixing.ratio2" , number = "Inf")
 
+saveRDS(limma.result , "paperdata/BM21.Case0.limma.rds")
+```
 
-length(which(limma.result$adj.P.Val < 0.05))
+### Comparison
 
-saveRDS(limma.result, "../LimROTS paper/BM21.case0.limma.rds")
+```{r}
+library(tidyverse, quietly = T, warn.conflicts = T)
+library(ggsci)
+
+limrots.result <- readRDS("paperdata/BM21.Case0.limrots.rds")
+rots.result <- readRDS("paperdata/BM21.Case0.rots.rds")
+limma.result <- readRDS("paperdata/BM21.Case0.limma.rds")
+
+
+alpha_thresholds <- seq(0, 0.075, by = 0.01)
+significant_limROTS <- sapply(alpha_thresholds, function(alpha) sum(limrots.result$q_values$qvalues < alpha))
+significant_ROTS <- sapply(alpha_thresholds, function(alpha) sum(rots.result$FDR < alpha))
+significant_limma <- sapply(alpha_thresholds, function(alpha) sum(limma.result$adj.P.Val < alpha))
+
+
+plot_data <- data.frame(Alpha = alpha_thresholds, significant_limROTS = significant_limROTS,
+                        significant_ROTS = significant_ROTS , significant_limma = significant_limma )
+
+plot_data.melt <-  plot_data %>%
+  pivot_longer(cols = starts_with("significant"), names_to = "Method", values_to = "FDR")
+
+# Plot using ggplot2
+ggplot(plot_data.melt, aes(x = Alpha, y = FDR, color = Method)) +
+  geom_line( size = 1) +
+  theme_minimal() +
+  labs(title = "Significant Proteins vs FDR Case study 1",
+       x = "FDR",
+       y = "Number of Significant Proteins") +
+   geom_vline(xintercept = 0.01, linetype="dotted", 
+                color = "red", size=1) + 
+    geom_vline(xintercept = 0.05, linetype="dotted", 
+                color = "red", size=1)+
+    scale_color_npg() + 
+    theme(
+    plot.title = element_text(face = "bold", color = "black"),
+    axis.title = element_text(face = "bold", color = "black"),
+    axis.text = element_text(face = "bold", color = "black"),
+    axis.ticks = element_line(color = "black")
+  )
 ```
 
 ## BM21 Case study 4
+
+### Run LimROTS
 
 ```{r}
 
@@ -618,7 +664,7 @@ library(LimROTS)
 library(parallel)
 
 # Load the dataset
-load("../LimROTS paper/metabolomics/BM21.Case1.rda")
+data(BM21.Case1)
 
 print(BM21.Case1)
 
@@ -729,15 +775,9 @@ limrots.result.df <- data.frame(row.names = row.names(limrots.result$data), q.va
                                 bh = limrots.result$BH.pvalue , fc = limrots.result$corrected.logfc)
 
 
-length(which(limrots.result.df$q.value < 0.05))
-length(which(limrots.result.df$fdr < 0.05))
-
-limrots.result.df <- limrots.result.df[limrots.result.df$q.value < 0.05,]
-
-length(which(grepl("_pluseffect", row.names(limrots.result.df)) ))
-
-length(which(grepl("synthetic", row.names(limrots.result.df)) ))
 ```
+
+### Run limma
 
 ```{r}
 
