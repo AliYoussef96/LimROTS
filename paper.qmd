@@ -724,7 +724,7 @@ set.seed(1234, kind = "default")
 # Set metadata and formula for LimROTS analysis
 meta.info <- c("mixing.ratio" , "fake.batch")
 B <- 1000  # Number of bootstrap samples
-K <- dim(BM21.Case3)[1]/2  # Set the value for K based on the data size
+K <- dim(BM21.Case3)[1]/4  # Set the value for K based on the data size
 K <- floor(K) 
 num_cores <- 30   # Number of cores for parallel processing
 cluster <- makeCluster(num_cores)  # Create a parallel cluster
@@ -737,6 +737,24 @@ limrots.result <- LimROTS(data.exp = BM21.Case3,
                           B = B, K = K, meta.info = meta.info, 
                           cluster = cluster, group.name = group.name, 
                           formula.str = formula.str, trend = TRUE, robust = TRUE)
+
+summary(limrots.result$q_values)
+plot(limrots.result$q_values)
+hist(limrots.result$q_values)
+
+
+limrots.result.df <- data.frame(row.names = row.names(limrots.result$data), q.value = limrots.result$q_values$qvalues , fdr = limrots.result$FDR,
+                                bh = limrots.result$BH.pvalue , fc = limrots.result$corrected.logfc)
+
+
+length(which(limrots.result.df$q.value < 0.05))
+length(which(limrots.result.df$fdr < 0.05))
+
+limrots.result.df <- limrots.result.df[limrots.result.df$q.value < 0.05,]
+
+length(which(grepl("_pluseffect", row.names(limrots.result.df)) ))
+
+length(which(grepl("synthetic", row.names(limrots.result.df)) ))
 ```
 
 ```{r}
