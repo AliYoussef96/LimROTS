@@ -707,3 +707,67 @@ length(which(limma.result$adj.P.Val < 0.05))
 
 saveRDS(limma.result, "../LimROTS paper/BM21.case0.limma.rds")
 ```
+
+```{r}
+# Load necessary packages
+library(LimROTS)
+library(parallel)
+
+# Load the dataset
+load("../LimROTS paper/metabolomics/BM21.Case3.rda")
+
+print(BM21.Case3)
+
+# Set random seed for reproducibility
+set.seed(1234, kind = "default")
+
+# Set metadata and formula for LimROTS analysis
+meta.info <- c("mixing.ratio" , "fake.batch")
+B <- 1000  # Number of bootstrap samples
+K <- dim(BM21.Case3)[1]/2  # Set the value for K based on the data size
+K <- floor(K) 
+num_cores <- 30   # Number of cores for parallel processing
+cluster <- makeCluster(num_cores)  # Create a parallel cluster
+group.name <- "mixing.ratio"
+formula.str <- "~ 0 + mixing.ratio + fake.batch"  # Formula for group comparison
+
+
+# Run LimROTS analysis with trend and robust settings enabled
+limrots.result <- LimROTS(data.exp = BM21.Case3, 
+                          B = B, K = K, meta.info = meta.info, 
+                          cluster = cluster, group.name = group.name, 
+                          formula.str = formula.str, trend = TRUE, robust = TRUE)
+```
+
+```{r}
+
+
+library(limma)
+library(SummarizedExperiment, quietly = T, warn.conflicts = T)
+
+load("../LimROTS paper/metabolomics/BM21.Case3.rda")
+
+print("BM21.Case3")
+data <- assay(BM21.Case3)
+formula.str <- "~ 0 + mixing.ratio + fake.batch"
+meta.info <- data.frame(colData(BM21.Case3), check.names = FALSE, row.names = row.names(colData(BM21.Case3)))
+meta.info$sample.id <- NULL
+design.matrix <- model.matrix(formula(formula.str), data = meta.info)
+colnames(design.matrix) <- make.names(colnames(design.matrix))
+fit <- lmFit(data, design.matrix)
+cont_matrix <- makeContrasts("mixing.ratio1-mixing.ratio2",  levels=design.matrix)
+fit2 <- contrasts.fit(fit, cont_matrix)
+fit.ebayes <- eBayes(fit2, trend=T, robust=T)
+limma.result <- topTable(fit.ebayes, coef="mixing.ratio1-mixing.ratio2" , number = "Inf")
+
+
+length(which(limma.result$adj.P.Val < 0.05))
+
+limma.result <- limma.result[limma.result$adj.P.Val < 0.05,]
+
+length(which(grepl("_pluseffect", row.names(limma.result)) ))
+
+length(which(grepl("synthetic", row.names(limma.result)) ))
+
+
+```
