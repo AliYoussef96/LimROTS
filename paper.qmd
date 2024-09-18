@@ -33,9 +33,6 @@ group.name <- "Conc."
 formula.str <- "~ 0 + Conc."  # Formula for group comparison
 # Run LimROTS analysis with trend and robust settings enabled
 
-
-trace(LimROTS, edit = T)
-
 limrots.result <- LimROTS(data.exp = UPS1.Case0, 
                           B = B, K = K, meta.info = meta.info, 
                           cluster = cluster, group.name = group.name, 
@@ -461,7 +458,7 @@ predictions_limma <- limma.result$adj.P.Val < 0.05
 predictions_limma <- factor(predictions_limma, levels = c(TRUE, FALSE))
 true_labels_limma <- ifelse(row.names(limma.result) %in% TP , TRUE, FALSE)
 true_labels_limma <- factor(true_labels_limma, levels = c(TRUE, FALSE))
-true_labels_limma <- confusionMatrix(predictions_limma, true_labels_limma)
+conf_matrix_limma <- confusionMatrix(predictions_limma, true_labels_limma)
 
 
 predictions_ancova <- ancova.result$FDR < 0.05
@@ -650,7 +647,6 @@ cluster <- makeCluster(num_cores)  # Create a parallel cluster
 group.name <- "mixing.ratio"
 formula.str <- "~ 0 + mixing.ratio"  # Formula for group comparison
 
-trace(LimROTS, edit = T)
 
 # Run LimROTS analysis with trend and robust settings enabled
 limrots.result <- LimROTS(data.exp = BM21.Case1, 
