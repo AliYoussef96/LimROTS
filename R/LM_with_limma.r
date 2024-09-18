@@ -39,7 +39,11 @@
 
 testStatistic_with_covariates <- function(data, group.name, meta.info, formula.str ,
                                           trend, robust) {
-  combined_data <- bind_cols(data)
+  combined_data <- data.frame(check.rows = F, check.names = F , none = rep("none" , nrow(data[[1]])))
+  for(k.list in names(data)){
+    combined_data <- cbind(combined_data, data.frame(data[[k.list]], check.rows = F, check.names = F))
+  }
+  combined_data <- combined_data[,-1]
   colnames(combined_data) <- paste0(colnames(combined_data), "." , seq(1,ncol(combined_data)))
     covariates.p <- data.frame()
     meta.info.temp <- meta.info

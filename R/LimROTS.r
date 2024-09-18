@@ -446,7 +446,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
     rm(pD)
     gc()
 
-    q_values <- qvalue(p)
+    q_values <- qvalue(p, pi0.method = "bootstrap", lambda = seq(0.01,0.95, 0.01))
     BH.pvalue <- p.adjust(p, method = "BH")
 
     ROTS.output <- list(data = data, B = B, d = d, logfc = logfc,
@@ -477,7 +477,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
       message("Calculating FDR")
     FDR <- calculateFDR(d, pD/(a1 + a2 * pS), progress)
     corrected.logfc <- fit$corrected.logfc
-    q_values <- qvalue(p)
+    q_values <-  qvalue(p, pi0.method = "bootstrap", lambda = seq(0.01,0.95, 0.01))
     BH.pvalue <- p.adjust(p, method = "BH")
     ROTS.output <- list(data = data, B = B, d = d, logfc = logfc ,
                         pvalue = p, FDR = FDR, a1 = a1, a2 = a2, k = NULL,

@@ -32,6 +32,10 @@ cluster <- makeCluster(num_cores)  # Create a parallel cluster
 group.name <- "Conc."
 formula.str <- "~ 0 + Conc."  # Formula for group comparison
 # Run LimROTS analysis with trend and robust settings enabled
+
+
+trace(LimROTS, edit = T)
+
 limrots.result <- LimROTS(data.exp = UPS1.Case0, 
                           B = B, K = K, meta.info = meta.info, 
                           cluster = cluster, group.name = group.name, 
@@ -646,11 +650,64 @@ cluster <- makeCluster(num_cores)  # Create a parallel cluster
 group.name <- "mixing.ratio"
 formula.str <- "~ 0 + mixing.ratio"  # Formula for group comparison
 
-
+trace(LimROTS, edit = T)
 
 # Run LimROTS analysis with trend and robust settings enabled
 limrots.result <- LimROTS(data.exp = BM21.Case1, 
                           B = B, K = K, meta.info = meta.info, 
                           cluster = cluster, group.name = group.name, 
                           formula.str = formula.str, trend = TRUE, robust = TRUE)
+```
+
+```{r}
+length(which(limrots.result$q_values$qvalues < 0.05))
+
+length(which(limrots.result$FDR < 0.05))
+
+
+length(which(limrots.result$BH.pvalue < 0.05))
+
+summary(limrots.result$q_values)
+plot(limrots.result$q_values)
+hist(limrots.result$q_values)
+p.value = limrots.result$pvalue
+hist(p.value)
+
+library(qvalue)
+q <- qvalue(p.value, pi0.method = "bootstrap", lambda  = seq(0.01, 0.95, 0.01))
+plot(q)
+hist(q)
+summary(q)
+
+pi0est(p.value, pi0.method = "bootstrap")
+
+limrots.result.df <- data.frame(row.names  = row.names(limrots.result$data),
+                                LimROTS.FC = limrots.result$corrected.logf,
+                                FDR = limrots.result$FDR, p.value = limrots.result$pvalue, bh = limrots.result$BH.pvalue)
+```
+
+```{r}
+
+library(limma)
+library(SummarizedExperiment, quietly = T, warn.conflicts = T)
+
+load("../LimROTS paper/metabolomics/BM21.Case1.rda")
+
+print("BM21.Case1")
+data <- assay(BM21.Case1)
+formula.str <- "~ 0 + mixing.ratio"
+meta.info <- data.frame(colData(BM21.Case1), check.names = FALSE, row.names = row.names(colData(BM21.Case1)))
+meta.info$sample.id <- NULL
+design.matrix <- model.matrix(formula(formula.str), data = meta.info)
+colnames(design.matrix) <- make.names(colnames(design.matrix))
+fit <- lmFit(data, design.matrix)
+cont_matrix <- makeContrasts("mixing.ratio1-mixing.ratio2",  levels=design.matrix)
+fit2 <- contrasts.fit(fit, cont_matrix)
+fit.ebayes <- eBayes(fit2, trend=T, robust=T)
+limma.result <- topTable(fit.ebayes, coef="mixing.ratio1-mixing.ratio2" , number = "Inf")
+
+
+length(which(limma.result$adj.P.Val < 0.05))
+
+saveRDS(limma.result, "../LimROTS paper/BM21.case0.limma.rds")
 ```
