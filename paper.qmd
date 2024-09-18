@@ -122,27 +122,27 @@ t.test.result <- readRDS("../LimROTS paper/UPS1.Case0.t.test.rds")
 TP <- UPS1.Case0@elementMetadata@listData[["GeneID"]]
 TP <- TP[grepl("HUMAN" , TP)]
 
-predictions_limrots <- limrots.result$q_values$qvalues < 0.01
+predictions_limrots <- limrots.result$q_values$qvalues < 0.05
 predictions_limrots <- factor(predictions_limrots, levels = c(TRUE, FALSE))
 true_labels_limrots <- ifelse(row.names(limrots.result$data) %in% TP , TRUE, FALSE)
 true_labels_limrots <- factor(true_labels_limrots, levels = c(TRUE, FALSE))
 conf_matrix_limrots <- confusionMatrix(predictions_limrots, true_labels_limrots)
 
-predictions_rots <- rots.result$FDR < 0.01
+predictions_rots <- rots.result$FDR < 0.05
 predictions_rots <- factor(predictions_rots, levels = c(TRUE, FALSE))
 true_labels_rots <- ifelse(row.names(rots.result$data) %in% TP , TRUE, FALSE)
 true_labels_rots <- factor(true_labels_rots, levels = c(TRUE, FALSE))
 conf_matrix_rots <- confusionMatrix(predictions_rots, true_labels_rots)
 
 
-predictions_limma <- limma.result$adj.P.Val < 0.01
+predictions_limma <- limma.result$adj.P.Val < 0.05
 predictions_limma <- factor(predictions_limma, levels = c(TRUE, FALSE))
 true_labels_limma <- ifelse(row.names(limma.result) %in% TP , TRUE, FALSE)
 true_labels_limma <- factor(true_labels_limma, levels = c(TRUE, FALSE))
 conf_matrix_limma <- confusionMatrix(predictions_limma, true_labels_limma)
 
 
-predictions_t.test <- t.test.result$fdr < 0.01
+predictions_t.test <- t.test.result$fdr < 0.05
 predictions_t.test <- factor(predictions_t.test, levels = c(TRUE, FALSE))
 true_labels_t.test <- ifelse(t.test.result$protein %in% TP , TRUE, FALSE)
 true_labels_t.test <- factor(true_labels_t.test, levels = c(TRUE, FALSE))
@@ -193,7 +193,7 @@ ggplot(all_metrics, aes(x = Metric, y = Value, fill = Method)) +
 
 ```
 
--   **ROTS** and **limROTS** perform almost equally well across all metrics, with very high sensitivity, specificity, PPV, NPV, and balanced accuracy. However, ROTS edges slightly ahead in F1 score and PPV.
+-   **ROTS** and **limROTS** perform almost equally well across all metrics, with very high sensitivity, specificity, PPV, NPV, and balanced accuracy.
 
 -   **limma** performs significantly worse than both **limROTS** and **ROTS**, especially in PPV and F1 score, making it less reliable for this particular dataset and analysis task. The lower sensitivity and specificity suggest that limma struggles with both true positive and true negative identification compared to the other two methods.
 
@@ -429,7 +429,7 @@ for(i in 1:nrow(data)){
   ancova.result <- rbind(ancova.result, data.frame(protein = row.names(data)[i], p.value =significant_groups[, 5] ))
 }
 ancova.result$FDR <- p.adjust(ancova.result$p.value, method = "fdr")
-ancova.result <- saveRDS("../LimROTS paper/UPS1.Case2.ancova.rds")
+saveRDS(ancova.result, "../LimROTS paper/UPS1.Case2.ancova.rds")
 
 ```
 
@@ -447,20 +447,20 @@ ancova.result <- readRDS("../LimROTS paper/UPS1.Case2.ancova.rds")
 TP <- UPS1.Case4@elementMetadata@listData[["GeneID"]]
 TP <- TP[grepl("HUMAN" , TP)]
 
-predictions_limrots <- limrots.result$q_values$qvalues < 0.01
+predictions_limrots <- limrots.result$q_values$qvalues < 0.05
 predictions_limrots <- factor(predictions_limrots, levels = c(TRUE, FALSE))
 true_labels_limrots <- ifelse(row.names(limrots.result$data) %in% TP , TRUE, FALSE)
 true_labels_limrots <- factor(true_labels_limrots, levels = c(TRUE, FALSE))
 conf_matrix_limrots <- confusionMatrix(predictions_limrots, true_labels_limrots)
 
-predictions_limma <- limma.result$adj.P.Val < 0.01
+predictions_limma <- limma.result$adj.P.Val < 0.05
 predictions_limma <- factor(predictions_limma, levels = c(TRUE, FALSE))
 true_labels_limma <- ifelse(row.names(limma.result) %in% TP , TRUE, FALSE)
 true_labels_limma <- factor(true_labels_limma, levels = c(TRUE, FALSE))
 true_labels_limma <- confusionMatrix(predictions_limma, true_labels_limma)
 
 
-predictions_ancova <- ancova.result$FDR < 0.01
+predictions_ancova <- ancova.result$FDR < 0.05
 predictions_ancova <- factor(predictions_ancova, levels = c(TRUE, FALSE))
 true_labels_ancova <- ifelse(ancova.result$protein %in% TP , TRUE, FALSE)
 true_labels_ancova <- factor(true_labels_ancova, levels = c(TRUE, FALSE))
@@ -533,11 +533,6 @@ cluster <- makeCluster(num_cores)  # Create a parallel cluster
 group.name <- "mixing.ratio"
 formula.str <- "~ 0 + mixing.ratio"  # Formula for group comparison
 
-
-trace(LimROTS::LimROTS , edit = T)
-
-trace(LimROTS::calculateFDR , edit = T)
-
 # Run LimROTS analysis with trend and robust settings enabled
 limrots.result <- LimROTS(data.exp = BM21.Case0, 
                           B = B, K = K, meta.info = meta.info, 
@@ -546,13 +541,13 @@ limrots.result <- LimROTS(data.exp = BM21.Case0,
 ```
 
 ```{r}
-length(which(limrots.result$FDR < 0.01))
+length(which(limrots.result$q_values$qvalues < 0.05))
 
-length(which(limrots.result$BH.pvalue < 0.01))
+length(which(limrots.result$BH.pvalue < 0.05))
 
 summary(limrots.result$q_values)
 plot(limrots.result$q_values)
-hist(limrots.result$FDR)
+hist(limrots.result$q_values)
 
 limrots.result.df <- data.frame(row.names  = row.names(limrots.result$data),
                                 LimROTS.FC = limrots.result$corrected.logf,
@@ -564,7 +559,7 @@ limrots.result.df <- data.frame(row.names  = row.names(limrots.result$data),
 ```{r}
 # Load the dataset
 load("../LimROTS paper/metabolomics/BM21.Case0.rda")
-  library(SummarizedExperiment)
+library(SummarizedExperiment)
 library(doParallel)
 library(LimROTS)
 print(BM21.Case0)
@@ -582,8 +577,6 @@ cluster <- makeCluster(num_cores)  # Create a parallel cluster
 group.name <- "mixing.ratio"
 formula.str <- "~ 0 + mixing.ratio"  # Formula for group comparison
 
-trace(LimROTS::calculateFDR , edit = T)
-
 #trace(LimROTS , edit = T)
 # Run LimROTS analysis with trend and robust settings enabled
 rots.result <- LimROTS(data.exp = BM21.Case0, 
@@ -593,7 +586,7 @@ rots.result <- LimROTS(data.exp = BM21.Case0,
 ```
 
 ```{r}
-length(which(rots.result$FDR < 0.01))
+length(which(rots.result$FDR < 0.05))
 summary(rots.result$q_values)
 plot(rots.result$q_values)
 hist(rots.result$q_values)
@@ -624,7 +617,42 @@ fit.ebayes <- eBayes(fit2, trend=T, robust=T)
 limma.result <- topTable(fit.ebayes, coef="mixing.ratio1-mixing.ratio2" , number = "Inf")
 
 
-length(which(limma.result$adj.P.Val < 0.01))
+length(which(limma.result$adj.P.Val < 0.05))
 
 saveRDS(limma.result, "../LimROTS paper/BM21.case0.limma.rds")
+```
+
+```{r}
+
+# Load necessary packages
+library(LimROTS)
+library(parallel)
+
+# Load the dataset
+load("../LimROTS paper/metabolomics/BM21.Case1.rda")
+
+print(BM21.Case1)
+
+# Set random seed for reproducibility
+set.seed(1234, kind = "default")
+
+# Set metadata and formula for LimROTS analysis
+meta.info <- "mixing.ratio"
+B <- 1000  # Number of bootstrap samples
+K <- dim(BM21.Case1)[1]/2  # Set the value for K based on the data size
+K <- floor(K) 
+num_cores <- 30   # Number of cores for parallel processing
+cluster <- makeCluster(num_cores)  # Create a parallel cluster
+group.name <- "mixing.ratio"
+formula.str <- "~ 0 + mixing.ratio"  # Formula for group comparison
+
+trace(LimROTS::testStatistic_with_covariates_Fit, edit = T)
+trace(LimROTS::testStatistic_with_covariates_permutating, edit = T)
+trace(LimROTS::testStatistic_with_covariates, edit = T)
+
+# Run LimROTS analysis with trend and robust settings enabled
+limrots.result <- LimROTS(data.exp = BM21.Case1, 
+                          B = B, K = K, meta.info = meta.info, 
+                          cluster = cluster, group.name = group.name, 
+                          formula.str = formula.str, trend = TRUE, robust = TRUE)
 ```

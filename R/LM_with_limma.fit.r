@@ -43,7 +43,7 @@
 testStatistic_with_covariates_Fit <- function(data, group.name, meta.info , formula.str,
                                                       trend, robust) {
 
-  combined_data <- cbind(data[[1]], data[[2]])
+  combined_data <- do.call(cbind, data)
   design.matrix <- model.matrix(formula(formula.str), data = meta.info)
   colnames(design.matrix) <- make.names(colnames(design.matrix) )
   fit <- limma::lmFit(combined_data, design.matrix)
