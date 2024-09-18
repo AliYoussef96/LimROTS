@@ -50,6 +50,7 @@
 #' }
 #' @importFrom limma voom lmFit eBayes
 #' @importFrom stats model.matrix formula p.adjust
+#' @importFrom dplyr bind_cols
 #' @import parallel
 #' @import foreach
 #' @import doRNG

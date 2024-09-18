@@ -29,5 +29,6 @@ Imports:
     utils,
     stats,
     doRNG,
+    dplyr
 Suggests: 
     quarto

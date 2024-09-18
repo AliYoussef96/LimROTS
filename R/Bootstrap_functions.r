@@ -17,7 +17,8 @@ bootstrapSamples <- function (data, B, labels, paired)
   for (i in 1:B) {
     for (label in unique(labels)) {
       pos <- which(labels == label)
-      samples[i, pos] <- sample(pos, length(pos), replace = TRUE)
+      pos.names <- colnames(data)[pos]
+      samples[i, pos] <- sample(pos.names, length(pos), replace = TRUE)
     }
   }
   if (paired) {

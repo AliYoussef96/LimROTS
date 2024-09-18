@@ -31,6 +31,7 @@
 #' \code{\link[limma]{makeContrasts}}
 #'
 #' @importFrom stats model.matrix formula
+#' @importFrom dplyr bind_cols
 #' @import utils
 #' @importFrom stringr str_split_fixed fixed
 #'
@@ -39,7 +40,7 @@
 
 testStatistic_with_covariates_permutating <- function(data, group.name, meta.info, formula.str ,
                                           trend, robust) {
-  combined_data <- do.call(cbind, data)
+  combined_data <- bind_cols(data)
   colnames(combined_data) <- paste0(colnames(combined_data), "." , seq(1,ncol(combined_data)))
   covariates.p <- data.frame()
   meta.info.temp <- meta.info

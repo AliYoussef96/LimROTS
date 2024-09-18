@@ -646,9 +646,7 @@ cluster <- makeCluster(num_cores)  # Create a parallel cluster
 group.name <- "mixing.ratio"
 formula.str <- "~ 0 + mixing.ratio"  # Formula for group comparison
 
-trace(LimROTS::testStatistic_with_covariates_Fit, edit = T)
-trace(LimROTS::testStatistic_with_covariates_permutating, edit = T)
-trace(LimROTS::testStatistic_with_covariates, edit = T)
+
 
 # Run LimROTS analysis with trend and robust settings enabled
 limrots.result <- LimROTS(data.exp = BM21.Case1, 
