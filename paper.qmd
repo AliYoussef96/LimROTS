@@ -110,16 +110,45 @@ saveRDS(t.test.result, "../LimROTS paper/UPS1.Case0.t.test.rds")
 
 ```
 
+### Run samr
+
+```{r}
+library(samr)
+data("UPS1.Case0")
+data <- assay(UPS1.Case0)
+meta.info <- data.frame(colData(UPS1.Case0), check.names = FALSE, row.names = row.names(colData(UPS1.Case0)))
+
+data <- list(x = as.matrix(data), y = rev(meta.info$Conc.), geneid = row.names(data), genenames = row.names(data), logged2 = TRUE)
+
+# Set up SAM input data
+samfit <- samr(data, resp.type="Two class unpaired", nperms = 1000 )
+
+delta.table <- samr.compute.delta.table(samfit, min.foldchange = 0) 
+
+delta <- delta.table[delta.table[, "median FDR"] < 0.05, ][1, ][1] 
+siggenes.table <- samr.compute.siggenes.table(samfit, delta, data, delta.table, min.foldchange = 0 , all.genes = TRUE) 
+
+both <- rbind(siggenes.table$genes.up, siggenes.table$genes.lo)
+dim(both)
+both <- data.frame(both)
+
+both$q.value... <- as.numeric(both$q.value...) / 100
+
+saveRDS(both,"paperdata/UPS1.Case0.samr.rds")
+```
+
 ### Comparison
 
 ```{r results = "hide" , message = FALSE, warning = FALSE}
 library(caret, quietly = T, warn.conflicts = T)
 
+data(UPS1.Case0)
 
-limrots.result <- readRDS("../LimROTS paper/UPS1.Case0.LimROTS.rds")
-rots.result <- readRDS("../LimROTS paper/UPS1.Case0.ROTS.rds")
-limma.result <- readRDS("../LimROTS paper/UPS1.Case0.limma.rds")
-t.test.result <- readRDS("../LimROTS paper/UPS1.Case0.t.test.rds")
+limrots.result <- readRDS("paperdata/UPS1.Case0.LimROTS.rds")
+rots.result <- readRDS("paperdata/UPS1.Case0.ROTS.rds")
+limma.result <- readRDS("paperdata/UPS1.Case0.limma.rds")
+t.test.result <- readRDS("paperdata/UPS1.Case0.t.test.rds")
+samr.result <- readRDS("paperdata/UPS1.Case0.samr.rds")
 
 
 TP <- UPS1.Case0@elementMetadata@listData[["GeneID"]]
@@ -151,6 +180,12 @@ true_labels_t.test <- ifelse(t.test.result$protein %in% TP , TRUE, FALSE)
 true_labels_t.test <- factor(true_labels_t.test, levels = c(TRUE, FALSE))
 conf_matrix_t.test <- confusionMatrix(predictions_t.test, true_labels_t.test)
 
+predictions_samr <- samr.result$q.value... < 0.05
+predictions_samr <- factor(predictions_samr, levels = c(TRUE, FALSE))
+true_labels_samr <- ifelse(samr.result$Gene.ID %in% TP , TRUE, FALSE)
+true_labels_samr <- factor(true_labels_samr, levels = c(TRUE, FALSE))
+conf_matrix_samr <- confusionMatrix(predictions_samr, true_labels_samr)
+
 ```
 
 ```{r}
@@ -175,8 +210,9 @@ metrics_limrots <- extract_metrics(conf_matrix_limrots, "limROTS")
 metrics_rots <- extract_metrics(conf_matrix_rots, "ROTS")
 metrics_limma <- extract_metrics(conf_matrix_limma, "limma")
 metrics_t.test <- extract_metrics(conf_matrix_t.test, "t.test")
+metrics_samr <- extract_metrics(conf_matrix_samr, "samr")
 
-all_metrics <- bind_rows(metrics_limrots, metrics_rots, metrics_limma,metrics_t.test)
+all_metrics <- bind_rows(metrics_limrots, metrics_rots, metrics_limma,metrics_t.test , metrics_samr)
 
 
 ggplot(all_metrics, aes(x = Metric, y = Value, fill = Method)) +
@@ -198,7 +234,7 @@ ggplot(all_metrics, aes(x = Metric, y = Value, fill = Method)) +
 
 -   **ROTS** and **limROTS** perform almost equally well across all metrics, with very high sensitivity, specificity, PPV, NPV, and balanced accuracy.
 
--   **limma** performs significantly worse than both **limROTS** and **ROTS**, especially in PPV and F1 score, making it less reliable for this particular dataset and analysis task. The lower sensitivity and specificity suggest that limma struggles with both true positive and true negative identification compared to the other two methods.
+-   **limma, and samr** performs significantly worse than both **limROTS** and **ROTS**, especially in PPV and F1 score, making it less reliable for this particular dataset and analysis task. The lower sensitivity and specificity suggest that limma struggles with both true positive and true negative identification compared to the other two methods.
 
 -   Previous studies have demonstrated that ROTS outperforms limma in similar scenarios across various types of omics data. This case study is intended to illustrate that the new LimROTS implementation can achieve comparable performance to ROTS when applied to this type of data, particularly in a straightforward experimental design where only two groups are being compared and no covariates are considered.
 
@@ -306,16 +342,45 @@ ancova.result$FDR <- p.adjust(ancova.result$p.value, method = "fdr")
 saveRDS(ancova.result, "../LimROTS paper/UPS1.Case1.ancova.rds")
 ```
 
+### Run samr
+
+```{r}
+library(samr)
+
+data("UPS1.Case1")
+data <- assay(UPS1.Case1)
+meta.info <- data.frame(colData(UPS1.Case1), check.names = FALSE, row.names = row.names(colData(UPS1.Case1)))
+
+data <- list(x = as.matrix(data), y = rev(meta.info$Conc.), geneid = row.names(data), genenames = row.names(data), logged2 = TRUE)
+
+# Set up SAM input data
+samfit <- samr(data, resp.type="Two class unpaired", nperms = 1000 )
+
+delta.table <- samr.compute.delta.table(samfit, min.foldchange = 0) 
+
+delta <- delta.table[delta.table[, "median FDR"] < 0.05, ][1, ][1] 
+siggenes.table <- samr.compute.siggenes.table(samfit, delta, data, delta.table, min.foldchange = 0 , all.genes = TRUE) 
+
+both <- rbind(siggenes.table$genes.up, siggenes.table$genes.lo)
+dim(both)
+both <- data.frame(both)
+
+both$q.value... <- as.numeric(both$q.value...) / 100
+
+saveRDS(both,"paperdata/UPS1.Case1.samr.rds")
+```
+
 ### Comparison
 
 ```{r}
 library(tidyverse, quietly = T, warn.conflicts = T)
 library(ggsci)
 
-limrots.result <- readRDS("../LimROTS paper/UPS1.Case1.LimROTS.rds")
-rots.result <- readRDS("../LimROTS paper/UPS1.Case1.ROTS.rds")
-limma.result <- readRDS("../LimROTS paper/UPS1.Case1.limma.rds")
-ancova.result <- readRDS("../LimROTS paper/UPS1.Case1.ancova.rds")
+limrots.result <- readRDS("paperdata/UPS1.Case1.LimROTS.rds")
+rots.result <- readRDS("paperdata/UPS1.Case1.ROTS.rds")
+limma.result <- readRDS("paperdata/UPS1.Case1.limma.rds")
+ancova.result <- readRDS("paperdata/UPS1.Case1.ancova.rds")
+samar.result <- readRDS("paperdata/UPS1.Case1.samr.rds")
 
 
 
@@ -324,9 +389,11 @@ significant_limROTS <- sapply(alpha_thresholds, function(alpha) sum(limrots.resu
 significant_ROTS <- sapply(alpha_thresholds, function(alpha) sum(rots.result$FDR < alpha))
 significant_limma <- sapply(alpha_thresholds, function(alpha) sum(limma.result$adj.P.Val < alpha))
 significant_ancova <- sapply(alpha_thresholds, function(alpha) sum(ancova.result$FDR < alpha))
+significant_samr <- sapply(alpha_thresholds, function(alpha) sum(samar.result$q.value... < alpha))
+
 
 plot_data <- data.frame(Alpha = alpha_thresholds, significant_limROTS = significant_limROTS,
-                        significant_ROTS = significant_ROTS , significant_limma = significant_limma  ,significant_ancova = significant_ancova)
+                        significant_ROTS = significant_ROTS , significant_limma = significant_limma  ,significant_ancova = significant_ancova , significant_samr = significant_samr)
 
 plot_data.melt <-  plot_data %>%
   pivot_longer(cols = starts_with("significant"), names_to = "Method", values_to = "FDR")
@@ -628,6 +695,34 @@ t.test.result$fdr <- p.adjust(t.test.result$p.value)
 saveRDS(t.test.result , "paperdata/BM21.Case0.t.test.rds")
 ```
 
+### Run samar
+
+```{r}
+library(samr)
+
+data("BM21.Case0")
+data <- assay(BM21.Case0)
+meta.info <- data.frame(colData(BM21.Case0), check.names = FALSE, row.names = row.names(colData(BM21.Case0)))
+
+data <- list(x = as.matrix(data), y = rev(meta.info$mixing.ratio), geneid = row.names(data), genenames = row.names(data), logged2 = TRUE)
+
+# Set up SAM input data
+samfit <- samr(data, resp.type="Two class unpaired", nperms = 1000 )
+
+delta.table <- samr.compute.delta.table(samfit, min.foldchange = 0) 
+
+delta <- delta.table[delta.table[, "median FDR"] < 0.05, ][1, ][1] 
+siggenes.table <- samr.compute.siggenes.table(samfit, delta, data, delta.table, min.foldchange = 0 , all.genes = TRUE) 
+
+both <- rbind(siggenes.table$genes.up, siggenes.table$genes.lo)
+dim(both)
+both <- data.frame(both)
+
+both$q.value... <- as.numeric(both$q.value...) / 100
+
+saveRDS(both,"paperdata/BM21.Case0.samr.rds")
+```
+
 ### Comparison
 
 ```{r}
@@ -638,15 +733,20 @@ limrots.result <- readRDS("paperdata/BM21.Case0.limrots.rds")
 rots.result <- readRDS("paperdata/BM21.Case0.rots.rds")
 limma.result <- readRDS("paperdata/BM21.Case0.limma.rds")
 t.test.result <- readRDS("paperdata/BM21.Case0.t.test.rds")
+samr.result <- readRDS("paperdata/BM21.Case0.samr.rds")
+
+
 
 alpha_thresholds <- seq(0, 0.075, by = 0.01)
 significant_limROTS <- sapply(alpha_thresholds, function(alpha) sum(limrots.result$q_values$qvalues < alpha))
 significant_ROTS <- sapply(alpha_thresholds, function(alpha) sum(rots.result$FDR < alpha))
 significant_limma <- sapply(alpha_thresholds, function(alpha) sum(limma.result$adj.P.Val < alpha))
 significant_t.test <- sapply(alpha_thresholds, function(alpha) sum(t.test.result$fdr < alpha))
+significant_samr <- sapply(alpha_thresholds, function(alpha) sum(samr.result$q.value... < alpha))
 
-plot_data <- data.frame(Alpha = alpha_thresholds, significant_limROTS = significant_limROTS,
-                        significant_ROTS = significant_ROTS , significant_limma = significant_limma, significant_t.test = significant_t.test )
+plot_data <- data.frame(Alpha = alpha_thresholds, significant_samr = significant_samr,
+                        significant_limROTS = significant_limROTS,
+                        significant_ROTS = significant_ROTS , significant_limma = significant_limma, significant_t.test = significant_t.test  )
 
 plot_data.melt <-  plot_data %>%
   pivot_longer(cols = starts_with("significant"), names_to = "Method", values_to = "FDR")
@@ -739,13 +839,13 @@ formula.str <- "~ 0 + mixing.ratio"  # Formula for group comparison
 
 
 # Run LimROTS analysis with trend and robust settings enabled
-limrots.result <- LimROTS(data.exp = BM21.Case1, 
+rots.result <- LimROTS(data.exp = BM21.Case1, 
                           B = B, K = K, meta.info = meta.info, 
                           cluster = cluster, group.name = group.name, 
                           formula.str = formula.str, trend = TRUE, robust = TRUE, n.ROTS = TRUE)
 
 
-saveRDS(limrots.result , "paperdata/BM21.Case1.rots.rds")
+saveRDS(rots.result , "paperdata/BM21.Case1.rots.rds")
 ```
 
 ### Run limma
@@ -768,6 +868,111 @@ cont_matrix <- makeContrasts("mixing.ratio1-mixing.ratio2",  levels=design.matri
 fit2 <- contrasts.fit(fit, cont_matrix)
 fit.ebayes <- eBayes(fit2, trend=T, robust=T)
 limma.result <- topTable(fit.ebayes, coef="mixing.ratio1-mixing.ratio2" , number = "Inf")
+
+saveRDS(limma.result , "paperdata/BM21.Case1.limma.rds")
+```
+
+### Run ANOVA
+
+```{r}
+formula.str <- "~ 0 + mixing.ratio"
+data(BM21.Case1)
+
+data <- assay(BM21.Case1)
+meta.info <- data.frame(colData(BM21.Case1), check.names = FALSE, row.names = row.names(colData(BM21.Case1)))
+meta.info$sample.id <- NULL
+ancova.result <- data.frame()
+for(i in 1:nrow(data)){
+  df.temp <- data[i,]
+  
+  data.temp <- data.frame(response = as.numeric(df.temp) , mixing.ratio = meta.info$mixing.ratio)
+  
+  ancova_model <- lm(formula(paste("response", formula.str)), data = data.temp)
+  coef_table <- anova(ancova_model)
+  coef_table <- data.frame(coef_table)
+  significant_groups <- coef_table[rownames(coef_table) == "mixing.ratio" , ]
+  ancova.result <- rbind(ancova.result, data.frame(protein = row.names(data)[i], p.value =significant_groups[, 5] ))
+}
+ancova.result$FDR <- p.adjust(ancova.result$p.value, method = "fdr")
+saveRDS(ancova.result, "paperdata/BM21.Case1.anova.rds")
+```
+
+Run samr
+
+```{r}
+library(samr)
+
+data("BM21.Case1")
+data <- assay(BM21.Case1)
+meta.info <- data.frame(colData(BM21.Case1), check.names = FALSE, row.names = row.names(colData(BM21.Case1)))
+
+data <- list(x = as.matrix(data), y = rev(meta.info$mixing.ratio), geneid = row.names(data), genenames = row.names(data), logged2 = TRUE)
+
+# Set up SAM input data
+samfit <- samr(data, resp.type="Multiclass", nperms = 1000 )
+
+delta.table <- samr.compute.delta.table(samfit, min.foldchange = 0) 
+
+delta <- delta.table[delta.table[, "median FDR"] < 0.05, ][1, ][1] 
+siggenes.table <- samr.compute.siggenes.table(samfit, delta, data, delta.table, min.foldchange = 0 , all.genes = TRUE) 
+
+both <- rbind(siggenes.table$genes.up, siggenes.table$genes.lo)
+dim(both)
+both <- data.frame(both)
+
+both$q.value... <- as.numeric(both$q.value...) / 100
+
+saveRDS(both,"paperdata/BM21.Case1.samr.rds")
+```
+
+### Comparison
+
+```{r}
+library(tidyverse, quietly = T, warn.conflicts = T)
+library(ggsci)
+
+limrots.result <- readRDS("paperdata/BM21.Case1.limrots.rds")
+rots.result <- readRDS("paperdata/BM21.Case1.rots.rds")
+limma.result <- readRDS("paperdata/BM21.Case1.limma.rds")
+anova.result <- readRDS("paperdata/BM21.Case1.anova.rds")
+samr.result <- readRDS("paperdata/BM21.Case1.samr.rds")
+
+
+
+alpha_thresholds <- seq(0, 0.075, by = 0.01)
+significant_limROTS <- sapply(alpha_thresholds, function(alpha) sum(limrots.result$q_values$qvalues < alpha))
+significant_ROTS <- sapply(alpha_thresholds, function(alpha) sum(rots.result$FDR < alpha))
+significant_limma <- sapply(alpha_thresholds, function(alpha) sum(limma.result$adj.P.Val < alpha))
+significant_anova <- sapply(alpha_thresholds, function(alpha) sum(anova.result$FDR < alpha))
+significant_samr <- sapply(alpha_thresholds, function(alpha) sum(samr.result$q.value... < alpha))
+
+plot_data <- data.frame(Alpha = alpha_thresholds, significant_limROTS = significant_limROTS,
+                        significant_ROTS = significant_ROTS , significant_limma = significant_limma, significant_anova = significant_anova, significant_samr = significant_samr)
+
+plot_data.melt <-  plot_data %>%
+  pivot_longer(cols = starts_with("significant"), names_to = "Method", values_to = "FDR")
+
+
+plot_data.melt$size <- ifelse(plot_data.melt$Method == "significant_anova", 2.5,1.2)
+
+# Plot using ggplot2
+ggplot(plot_data.melt, aes(x = Alpha, y = FDR, color = Method , size =size)) +
+  geom_line() +
+  theme_minimal() + scale_size_identity()+
+  labs(title = "Significant Proteins vs FDR BM21 Case study 4",
+       x = "FDR",
+       y = "Number of Significant Proteins") +
+   geom_vline(xintercept = 0.01, linetype="dotted", 
+                color = "red", size=1) + 
+    geom_vline(xintercept = 0.05, linetype="dotted", 
+                color = "red", size=1)+
+    scale_color_npg() 
+    theme(
+    plot.title = element_text(face = "bold", color = "black"),
+    axis.title = element_text(face = "bold", color = "black"),
+    axis.text = element_text(face = "bold", color = "black"),
+    axis.ticks = element_line(color = "black")
+  )
 ```
 
 ## BM21 Case study 5
@@ -780,8 +985,7 @@ library(LimROTS)
 library(parallel)
 
 # Load the dataset
-load("../LimROTS paper/metabolomics/BM21.Case3.rda")
-
+data(BM21.Case3)
 print(BM21.Case3)
 
 # Set random seed for reproducibility
@@ -790,7 +994,7 @@ set.seed(1234, kind = "default")
 # Set metadata and formula for LimROTS analysis
 meta.info <- c("mixing.ratio" , "fake.batch")
 B <- 1000  # Number of bootstrap samples
-K <- dim(BM21.Case3)[1]/4  # Set the value for K based on the data size
+K <- dim(BM21.Case3)[1]/2  # Set the value for K based on the data size
 K <- floor(K) 
 num_cores <- 30   # Number of cores for parallel processing
 cluster <- makeCluster(num_cores)  # Create a parallel cluster
@@ -812,6 +1016,14 @@ hist(limrots.result$q_values)
 limrots.result.df <- data.frame(row.names = row.names(limrots.result$data), q.value = limrots.result$q_values$qvalues , fdr = limrots.result$FDR,
                                 bh = limrots.result$BH.pvalue , fc = limrots.result$corrected.logfc)
 
+
+length(which(limrots.result.df$q.value < 0.01))
+
+limrots.result.df <- limrots.result.df[limrots.result.df$q.value < 0.01,]
+
+length(which(grepl("_pluseffect", row.names(limrots.result.df)) ))
+
+length(which(grepl("synthetic", row.names(limrots.result.df)) ))
 ```
 
 ### Run limma
@@ -838,9 +1050,9 @@ fit.ebayes <- eBayes(fit2, trend=T, robust=T)
 limma.result <- topTable(fit.ebayes, coef="mixing.ratio1-mixing.ratio2" , number = "Inf")
 
 
-length(which(limma.result$adj.P.Val < 0.05))
+length(which(limma.result$adj.P.Val < 0.01))
 
-limma.result <- limma.result[limma.result$adj.P.Val < 0.05,]
+limma.result <- limma.result[limma.result$adj.P.Val < 0.01,]
 
 length(which(grepl("_pluseffect", row.names(limma.result)) ))
 
