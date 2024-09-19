@@ -17,10 +17,10 @@ This analysis demonstrates how to integrate the Limma and ROTS methods using UPS
 
 The dataset consists of DIA proteomics data from a UPS1-spiked E. coli protein mixture. Eight different concentrations of UPS1 were used (0.1 to 50 fmol), grouped into two categories: low concentrations (0.1–2.5 fmol, labeled as Conc. 2) and high concentrations (5–50 fmol, labeled as Conc. 1). In this dataset 48 HUMAN UPS1 proteins were detected. The data is provided in a `SummarizedExperiment` format. This example illustrates the application of LimROTS in a simple case where two groups are compared, considering only the concentrations and no other parameters. 48 UPS1-spiked human proteins were detected in this dataset.
 
-```{r results="hide", message=FALSE, warning=FALSE}
+```{r}
 # Load necessary packages
-library(LimROTS, warn.conflicts = FALSE, quietly = TRUE)
-library(parallel, warn.conflicts = FALSE, quietly = TRUE)
+require("LimROTS")
+require("parallel")
 
 ```
 
@@ -268,7 +268,7 @@ limrots.result <- LimROTS(data.exp = UPS1.Case3,
 
 ```{r results="hide", message=FALSE, warning=FALSE, echo=FALSE}
 
-file_path <- system.file("extdata", "UPS1.Case1.LimROTS.rds", package = "LimROTS")
+file_path <- system.file("extdata", "UPS1.Case3.LimROTS.rds", package = "LimROTS")
 limrots.result <- readRDS(file_path)
 ```
 
@@ -323,7 +323,7 @@ limrots.result <- LimROTS(data.exp = UPS1.Case4,
 
 ```{r results="hide", message=FALSE, warning=FALSE, echo=FALSE}
 
-file_path <- system.file("extdata", "UPS1.Case1.LimROTS.rds", package = "LimROTS")
+file_path <- system.file("extdata", "UPS1.Case4.LimROTS.rds", package = "LimROTS")
 limrots.result <- readRDS(file_path)
 
 ```
@@ -406,7 +406,7 @@ limrots.result <- LimROTS(data.exp = BM21.Case1,
 
 ```{r results="hide", message=FALSE, warning=FALSE, echo=FALSE}
 
-file_path <- system.file("extdata", "UPS1.Case1.LimROTS.rds", package = "LimROTS")
+file_path <- system.file("extdata", "BM21.Case1.limrots.rds", package = "LimROTS")
 limrots.result <- readRDS(file_path)
 ```
 
@@ -423,4 +423,3 @@ limrots.result.df <- limrots.result.df[limrots.result.df$q.value < 0.01,]
 
 dim(limrots.result.df)
 ```
-
