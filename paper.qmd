@@ -610,6 +610,24 @@ limma.result <- topTable(fit.ebayes, coef="mixing.ratio1-mixing.ratio2" , number
 saveRDS(limma.result , "paperdata/BM21.Case0.limma.rds")
 ```
 
+### Run t-test
+
+```{r}
+library(SummarizedExperiment, quietly = T, warn.conflicts = F)
+data("BM21.Case0")
+data <- assay(BM21.Case0)
+meta.info <- data.frame(colData(BM21.Case0), check.names = FALSE, row.names = row.names(colData(BM21.Case0)))
+t.test.result <- data.frame()
+
+for(i in 1:nrow(data)){
+  p <- t.test(data[i,c(1:3,13:18)], data[i,4:12])
+  t.test.result <- rbind(t.test.result, data.frame(protein = row.names(data)[i] ,p.value = p$p.value))
+}
+
+t.test.result$fdr <- p.adjust(t.test.result$p.value)
+saveRDS(t.test.result , "paperdata/BM21.Case0.t.test.rds")
+```
+
 ### Comparison
 
 ```{r}
@@ -619,16 +637,16 @@ library(ggsci)
 limrots.result <- readRDS("paperdata/BM21.Case0.limrots.rds")
 rots.result <- readRDS("paperdata/BM21.Case0.rots.rds")
 limma.result <- readRDS("paperdata/BM21.Case0.limma.rds")
-
+t.test.result <- readRDS("paperdata/BM21.Case0.t.test.rds")
 
 alpha_thresholds <- seq(0, 0.075, by = 0.01)
 significant_limROTS <- sapply(alpha_thresholds, function(alpha) sum(limrots.result$q_values$qvalues < alpha))
 significant_ROTS <- sapply(alpha_thresholds, function(alpha) sum(rots.result$FDR < alpha))
 significant_limma <- sapply(alpha_thresholds, function(alpha) sum(limma.result$adj.P.Val < alpha))
-
+significant_t.test <- sapply(alpha_thresholds, function(alpha) sum(t.test.result$fdr < alpha))
 
 plot_data <- data.frame(Alpha = alpha_thresholds, significant_limROTS = significant_limROTS,
-                        significant_ROTS = significant_ROTS , significant_limma = significant_limma )
+                        significant_ROTS = significant_ROTS , significant_limma = significant_limma, significant_t.test = significant_t.test )
 
 plot_data.melt <-  plot_data %>%
   pivot_longer(cols = starts_with("significant"), names_to = "Method", values_to = "FDR")
@@ -692,6 +710,42 @@ limrots.result <- LimROTS(data.exp = BM21.Case1,
 
 
 saveRDS(limrots.result , "paperdata/BM21.Case1.limrots.rds")
+```
+
+### Run ROTS
+
+```{r}
+# Load necessary packages
+library(LimROTS)
+library(parallel)
+
+# Load the dataset
+data(BM21.Case1)
+
+print(BM21.Case1)
+
+# Set random seed for reproducibility
+set.seed(1234, kind = "default")
+
+# Set metadata and formula for LimROTS analysis
+meta.info <- "mixing.ratio"
+B <- 1000  # Number of bootstrap samples
+K <- dim(BM21.Case1)[1]/4  # Set the value for K based on the data size
+K <- floor(K) 
+num_cores <- 30   # Number of cores for parallel processing
+cluster <- makeCluster(num_cores)  # Create a parallel cluster
+group.name <- "mixing.ratio"
+formula.str <- "~ 0 + mixing.ratio"  # Formula for group comparison
+
+
+# Run LimROTS analysis with trend and robust settings enabled
+limrots.result <- LimROTS(data.exp = BM21.Case1, 
+                          B = B, K = K, meta.info = meta.info, 
+                          cluster = cluster, group.name = group.name, 
+                          formula.str = formula.str, trend = TRUE, robust = TRUE, n.ROTS = TRUE)
+
+
+saveRDS(limrots.result , "paperdata/BM21.Case1.rots.rds")
 ```
 
 ### Run limma
