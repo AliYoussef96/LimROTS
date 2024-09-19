@@ -568,7 +568,7 @@ set.seed(1234, kind = "default")
 # Set metadata and formula for LimROTS analysis
 meta.info <- "mixing.ratio"
 B <- 1000  # Number of bootstrap samples
-K <- dim(BM21.Case0)[1]/2 # Set the value for K based on the data size
+K <- dim(BM21.Case0)[1]/4 # Set the value for K based on the data size
 K <- floor(K) 
 num_cores <- 30  # Number of cores for parallel processing
 cluster <- makeCluster(num_cores)  # Create a parallel cluster
@@ -655,6 +655,8 @@ ggplot(plot_data.melt, aes(x = Alpha, y = FDR, color = Method)) +
 
 ## BM21 Case study 4
 
+Another feature in LimROTS is the ability to handle more than two groups using moderated F-statistics and ROTS optimization. In this example, three different ratio mixtures were extracted from the BM21 dataset and processed similarly to the dataset in case study 3. Therefore, we expect to see the maximum number of features that are significantly different with a true effect.
+
 ### Run LimROTS
 
 ```{r}
@@ -674,7 +676,7 @@ set.seed(1234, kind = "default")
 # Set metadata and formula for LimROTS analysis
 meta.info <- "mixing.ratio"
 B <- 1000  # Number of bootstrap samples
-K <- dim(BM21.Case1)[1]/2  # Set the value for K based on the data size
+K <- dim(BM21.Case1)[1]/4  # Set the value for K based on the data size
 K <- floor(K) 
 num_cores <- 30   # Number of cores for parallel processing
 cluster <- makeCluster(num_cores)  # Create a parallel cluster
@@ -687,34 +689,12 @@ limrots.result <- LimROTS(data.exp = BM21.Case1,
                           B = B, K = K, meta.info = meta.info, 
                           cluster = cluster, group.name = group.name, 
                           formula.str = formula.str, trend = TRUE, robust = TRUE)
+
+
+saveRDS(limrots.result , "paperdata/BM21.Case1.limrots.rds")
 ```
 
-```{r}
-length(which(limrots.result$q_values$qvalues < 0.05))
-
-length(which(limrots.result$FDR < 0.05))
-
-
-length(which(limrots.result$BH.pvalue < 0.05))
-
-summary(limrots.result$q_values)
-plot(limrots.result$q_values)
-hist(limrots.result$q_values)
-p.value = limrots.result$pvalue
-hist(p.value)
-
-library(qvalue)
-q <- qvalue(p.value, pi0.method = "bootstrap", lambda  = seq(0.01, 0.95, 0.01))
-plot(q)
-hist(q)
-summary(q)
-
-pi0est(p.value, pi0.method = "bootstrap")
-
-limrots.result.df <- data.frame(row.names  = row.names(limrots.result$data),
-                                LimROTS.FC = limrots.result$corrected.logf,
-                                FDR = limrots.result$FDR, p.value = limrots.result$pvalue, bh = limrots.result$BH.pvalue)
-```
+### Run limma
 
 ```{r}
 
@@ -735,6 +715,10 @@ fit2 <- contrasts.fit(fit, cont_matrix)
 fit.ebayes <- eBayes(fit2, trend=T, robust=T)
 limma.result <- topTable(fit.ebayes, coef="mixing.ratio1-mixing.ratio2" , number = "Inf")
 ```
+
+## BM21 Case study 5
+
+### Run LimROTS
 
 ```{r}
 # Load necessary packages
@@ -773,7 +757,6 @@ hist(limrots.result$q_values)
 
 limrots.result.df <- data.frame(row.names = row.names(limrots.result$data), q.value = limrots.result$q_values$qvalues , fdr = limrots.result$FDR,
                                 bh = limrots.result$BH.pvalue , fc = limrots.result$corrected.logfc)
-
 
 ```
 
