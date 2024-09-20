@@ -17,7 +17,8 @@ bootstrapSamples <- function (data, B, labels, paired)
   for (i in 1:B) {
     for (label in unique(labels)) {
       pos <- which(labels == label)
-      samples[i, pos] <- sample(pos, length(pos), replace = TRUE)
+      pos.names <- colnames(data)[pos]
+      samples[i, pos] <- sample(pos.names, length(pos), replace = TRUE)
     }
   }
   if (paired) {
@@ -147,6 +148,9 @@ calculateP <- function (observed, permuted)
 #' @param progress Logical, whether to display a progress bar (default = FALSE).
 #'
 #' @return A numeric vector of FDR values.
+#'
+#' @importFrom stats median
+#'
 #' @export
 
 
@@ -168,7 +172,7 @@ calculateFDR <- function (observed, permuted, progress)
   }
   if (progress)
     close(pb)
-  FDR <- apply(A, 1, mean)
+  FDR <- apply(A, 1, median)
   FDR[FDR > 1] <- 1
   FDR[ord] <- rev(sapply(length(FDR):1, function(x) return(min(FDR[ord][x:length(FDR)]))))
   return(FDR)

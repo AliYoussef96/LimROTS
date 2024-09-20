@@ -32,13 +32,18 @@
 #'
 #' @importFrom stats model.matrix formula
 #' @import utils
+#' @importFrom dplyr bind_cols
 #' @importFrom stringr str_split_fixed fixed
 #'
 
 
 testStatistic_with_covariates <- function(data, group.name, meta.info, formula.str ,
                                           trend, robust) {
-  combined_data <- cbind(data[[1]], data[[2]])
+  combined_data <- data.frame(check.rows = F, check.names = F , none = rep("none" , nrow(data[[1]])))
+  for(k.list in names(data)){
+    combined_data <- cbind(combined_data, data.frame(data[[k.list]], check.rows = F, check.names = F))
+  }
+  combined_data <- combined_data[,-1]
   colnames(combined_data) <- paste0(colnames(combined_data), "." , seq(1,ncol(combined_data)))
     covariates.p <- data.frame()
     meta.info.temp <- meta.info

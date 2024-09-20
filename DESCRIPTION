@@ -16,6 +16,8 @@ biocViews: Software, GeneExpression, DifferentialExpression,
         Microarray, RNASeq, Proteomics, ImmunoOncology
 URL: https://github.com/AliYoussef96/LimROTS
 BugReports: https://github.com/AliYoussef96/LimROTS/issues
+LazyData: true
+SystemRequirements: Rtools
 VignetteBuilder: 
     quarto
 Imports: 
@@ -29,5 +31,8 @@ Imports:
     utils,
     stats,
     doRNG,
+    dplyr
 Suggests: 
-    quarto
+    quarto,
+    ggplot2,
+    devtools
