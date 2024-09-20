@@ -90,7 +90,7 @@ It allows the user to specify additional covariates and models complex experimen
 # Example usage:
 
 data <- data.frame(matrix(rnorm(1000), nrow = 100, ncol = 10)) # Simulated data
-meta.info <- data.frame(group = rep(1:2, each = 5), sample.id = colnames(data) , row.names = colnames(data))
+meta.info <- data.frame(group = factor(rep(1:2, each = 5)), row.names = colnames(data))
 formula.str <- "~ 0 + group"
 result <- LimROTS(data, meta.info = meta.info, group.name = "group", formula.str = formula.str)
 
