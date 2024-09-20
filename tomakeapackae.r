@@ -13,6 +13,8 @@ Rcpp::compileAttributes()
 library(devtools)
 #test()
 
+roxygen2::roxygenize()
+
 devtools::check(vignettes = FALSE)
 
 devtools::check(vignettes = TRUE)

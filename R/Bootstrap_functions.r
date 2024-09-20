@@ -148,6 +148,9 @@ calculateP <- function (observed, permuted)
 #' @param progress Logical, whether to display a progress bar (default = FALSE).
 #'
 #' @return A numeric vector of FDR values.
+#'
+#' @importFrom stats median
+#'
 #' @export
 
 

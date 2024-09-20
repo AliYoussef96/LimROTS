@@ -60,6 +60,8 @@ The values should be log-transformed \code{log}, or a SummarizedExperiment objec
 \item{event}{A numeric vector indicating the survival event status (1 = event occurred, 0 = censored) corresponding to \code{time}.}
 
 \item{paired}{Logical, indicating whether the data represent paired samples. Default is FALSE.}
+
+\item{n.ROTS}{Default is FALSE. If TRUE, all parameters related to LimROTS will be ignored, and the normal ROTS analysis will run.}
 }
 \value{
 A list of class \code{"LimROTS"} with the following elements:
@@ -86,10 +88,10 @@ It allows the user to specify additional covariates and models complex experimen
 }
 \examples{
 # Example usage:
-\donttest{
-data <- matrix(rnorm(1000), nrow = 100, ncol = 10) # Simulated data
-meta.info <- data.frame(group = rep(1:2, each = 5), sample.id = colnames(data))
-result <- LimROTS(data, meta.info = meta.info, group.name = "group")
 
-}
+data <- data.frame(matrix(rnorm(1000), nrow = 100, ncol = 10)) # Simulated data
+meta.info <- data.frame(group = rep(1:2, each = 5), sample.id = colnames(data) , row.names = colnames(data))
+formula.str <- "~ 0 + group"
+result <- LimROTS(data, meta.info = meta.info, group.name = "group", formula.str = formula.str)
+
 }
