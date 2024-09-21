@@ -1,140 +1,38 @@
-#' bootstrapSamples
-#'
-#' Generates bootstrap samples for given data, optionally accounting for paired design.
-#'
-#' @param data A matrix or data frame of the data to be bootstrapped.
-#' @param B Number of bootstrap samples to generate.
-#' @param labels A vector of labels indicating group membership for each sample.
-#' @param paired Logical, indicating whether the data is paired (default = FALSE).
-#'
-#' @return A matrix of bootstrap samples.
-#' @export
 
-
-bootstrapSamples <- function (data, B, labels, paired)
+bootstrapS <- function (B, meta.info, paired)
 {
-  samples <- matrix(nrow = B, ncol = length(labels))
-  for (i in 1:B) {
-    for (label in unique(labels)) {
-      pos <- which(labels == label)
-      pos.names <- colnames(data)[pos]
-      samples[i, pos] <- sample(pos.names, length(pos), replace = TRUE)
+  groups <- meta.info[,group.name]
+  bootsamples <- matrix(nrow = B, ncol = length(groups))
+  for (i in seq_len(B)) {
+    for (g in unique(groups)) {
+      g.names <- row.names(meta.info)[which(groups == g)]
+      bootsamples[i, which(groups == g)] <- sample(g.names, length(g.names), replace = TRUE)
     }
   }
   if (paired) {
     for (i in 1:B) {
-      for (label in unique(labels)[-1]) {
-        pos <- which(labels == label)
-        samples[i, pos] <- samples[i, which(labels ==
-                                              1)] + pos[1] - 1
-      }
+        g.names1 <-  bootsamples[i, which(groups == unique(groups)[1])]
+
+        g.names2 <- match(g.names1 , row.names(meta.info)) + length(g.names1)
+
+        bootsamples[i, which(groups == unique(groups)[2])] <- row.names(meta.info)[g.names2]
+
     }
   }
-  return(samples)
+  return(bootsamples)
 }
 
-#' permutatedSamples
-#'
-#' Generates permuted samples for given data.
-#'
-#' @param data A matrix or data frame of the data to be permuted.
-#' @param B Number of permuted samples to generate.
-#' @param cl Cluster object for parallel processing (optional).
-#'
-#' @return A matrix of permuted samples.
-#' @export
 
 
-
-permutatedSamples <- function (data, B, cl)
+permutatedS <- function (meta.info, B)
 {
-  samples <- matrix(nrow = B, ncol = ncol(data))
+  persamples <- matrix(nrow = B, ncol = nrow(meta.info))
   for (i in seq_len(B)) {
-    samples[i, ] <- sample(seq_len(ncol(data)))
+    persamples[i, ] <- sample(row.names(meta.info))
   }
-  return(samples)
+  return(persamples)
 }
 
-#' calculateOverlaps1
-#'
-#' Calculates overlaps using the NeedForSpeed1 function.
-#'
-#' @param D A numeric vector of observed values.
-#' @param S A numeric vector of observed values.
-#' @param pD A numeric vector of permuted values.
-#' @param pS A numeric vector of permuted values.
-#' @param nrow Number of rows in the data.
-#' @param N Number of permutations.
-#' @param N_len Length of permutations.
-#' @param ssq Numeric, a variance-related parameter.
-#' @param B Number of bootstrap samples.
-#' @param overlaps A numeric vector of overlaps.
-#' @param overlaps.P A numeric vector of permuted overlaps.
-#'
-#' @return A numeric vector of calculated overlaps.
-#' @export
-
-
-calculateOverlaps1 <- function (D, S, pD, pS, nrow, N, N_len, ssq, B, overlaps, overlaps.P)
-{
-  overlap <- NeedForSpeed1(D, S, pD, pS, nrow, N, N_len, ssq,
-                           B, overlaps, overlaps.P)
-  overlap
-}
-
-
-
-
-
-#' calculateOverlaps2
-#'
-#' Calculates overlaps using the NeedForSpeed2 function.
-#'
-#' @param D A numeric vector of observed values.
-#' @param pD A numeric vector of permuted values.
-#' @param nrow Number of rows in the data.
-#' @param N Number of permutations.
-#' @param N_len Length of permutations.
-#' @param B Number of bootstrap samples.
-#' @param overlaps A numeric vector of overlaps.
-#' @param overlaps.P A numeric vector of permuted overlaps.
-#'
-#' @return A numeric vector of calculated overlaps.
-#' @export
-
-
-
-calculateOverlaps2 <- function (D, pD, nrow, N, N_len, B, overlaps, overlaps.P)
-{
-  overlap <- NeedForSpeed2(D, pD, nrow, N, N_len, B, overlaps,
-                           overlaps.P)
-  overlap
-}
-
-
-#' calculateP
-#'
-#' Calculates p-values based on observed and permuted values.
-#'
-#' @param observed A numeric vector of observed values.
-#' @param permuted A matrix of permuted values.
-#'
-#' @return A numeric vector of p-values.
-#' @export
-
-
-calculateP <- function (observed, permuted)
-{
-  observed_order <- order(abs(observed), decreasing = TRUE)
-  observed <- sort(abs(observed), decreasing = TRUE)
-  permuted <- sort(abs(as.vector(permuted)), decreasing = TRUE)
-  p <- pvalue(observed, permuted)
-  results <- vector(mode = "numeric", length = length(p))
-  for (i in seq_along(results)) {
-    results[observed_order[i]] <- p[i]
-  }
-  return(results)
-}
 
 
 

@@ -55,7 +55,7 @@
 #' @import parallel
 #' @import foreach
 #' @import doRNG
-#' @import qvalue
+#' @importFrom qvalue empPvals qvalue
 #' @import utils
 #' @import SummarizedExperiment
 #' @importFrom doParallel registerDoParallel
@@ -448,7 +448,8 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
     gc()
     if (verbose)
       message("Calculating p-values")
-    p <- calculateP(d, pD)
+    p <- empPvals(stat = d, stat0 = pD,
+                  pool = TRUE)
     if (verbose)
       message("Calculating FDR")
     FDR <- calculateFDR(d, pD, progress)
@@ -480,9 +481,11 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
     }
 
     d <- fit$d/(a1 + a2 * fit$s)
+    pD <- pD/(a1 + a2 * pS)
     if (verbose)
       message("Calculating p-values")
-    p <- calculateP(d, pD/(a1 + a2 * pS))
+    p <- empPvals(stat = d, stat0 = pD,
+                  pool = TRUE)
     if (verbose)
       message("Calculating FDR")
     FDR <- calculateFDR(d, pD/(a1 + a2 * pS), progress)
