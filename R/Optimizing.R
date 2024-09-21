@@ -69,6 +69,6 @@ Optimizing <- function(B, ssq, N, D, S, pD, pS,
   gc()
 
   return(list(a1 = a1, a2 = a2,
-              k = k, R = R, Z = Z))
+              k = k, R = R, Z = Z, ztable = ztable))
 
 }

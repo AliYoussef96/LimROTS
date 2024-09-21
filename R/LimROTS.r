@@ -374,6 +374,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
     k <- optimized.parameters$k
     R <- optimized.parameters$R
     Z <- optimized.parameters$Z
+    ztable <- optimized.parameters$ztable
 
     if (!is.null(time)) {
       fit <- testStatSurvivalOptimized(lapply(split(1:length(cl),
