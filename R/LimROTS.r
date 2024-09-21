@@ -125,7 +125,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
       }
     }
   }else{
-    message("A meta.info table is not provided >>> ROTS will be used")
+    message("n.ROTS is TRUE >>> ROTS will be used")
 
   }
 
@@ -220,11 +220,11 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
     message("Bootstrapping samples")
 
 
-  if(n.ROTS == TRUE){
-    meta.info = NULL
-  }
+  # if(n.ROTS == TRUE){
+  #   meta.info = NULL
+  # }
 
-  if(!is.null(meta.info))
+  if(n.ROTS == FALSE)
     {
     if (ncol(meta.info) > 1){
     samples <- bootstrapSamples.limRots(data = data, B = 2 * B, meta.info = meta.info, group.name =  group.name )
@@ -280,7 +280,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
 
                                 fit <- testStatSurvivalOptimized(lapply(samples.R, function(x) data[, x]), cl, event)
 
-                              }else if(!is.null(meta.info)){
+                              }else if(n.ROTS == FALSE){
 
                                 fit <- testStatistic_with_covariates(data = lapply(samples.R, function(x) data[, x]),
                                                                      group.name = group.name, meta.info = meta.info,
@@ -303,7 +303,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
                               pSamples.R <- split(pSamples[i, ], cl)
 
                               pFit <- testStatSurvivalOptimized(lapply(pSamples.R, function(x) data[, x]), cl, event)
-                            }else if(!is.null(meta.info)){
+                            }else if(n.ROTS == FALSE){
 
                               pFit <- testStatistic_with_covariates_permutating(data = lapply(split(1:length(cl),cl), function(x) data[, x]),
                                                                     group.name = group.name,
@@ -379,7 +379,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
     if (!is.null(time)) {
       fit <- testStatSurvivalOptimized(lapply(split(1:length(cl),
                                              cl), function(x) data[, x]), cl, event)
-    }else if(!is.null(meta.info)){
+    }else if(n.ROTS == FALSE){
       fit <- testStatistic_with_covariates_Fit(data = lapply(split(1:length(cl),cl), function(x) data[, x]),
                                            group.name = group.name , meta.info = meta.info,
                                            formula.str = formula.str,
@@ -416,7 +416,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
     if (!is.null(time)) {
       fit <- testStatSurvivalOptimized(lapply(split(1:length(cl),
                                              cl), function(x) data[, x]), cl, event)
-    }else if(!is.null(meta.info)){
+    }else if(n.ROTS == FALSE){
       fit <- testStatistic_with_covariates_Fit(data = lapply(split(1:length(cl),
                                                cl), function(x) data[, x]),
                                                group.name = group.name , meta.info = meta.info ,
