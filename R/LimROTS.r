@@ -284,7 +284,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
                             # Compute D and S if conditions are met
                             if (is.null(a1) | is.null(a2)) {
                               if (!is.null(time)) {
-                                fit <- testStatistic.surv(lapply(samples.R, function(x) data[, x]), cl, event)
+                                fit <- testStatSurvivalOptimized(lapply(samples.R, function(x) data[, x]), cl, event)
 
                               }else if(!is.null(meta.info)){
 
@@ -295,7 +295,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
 
                               }else{
 
-                                fit <- testStatistic(paired, lapply(samples.R,
+                                fit <- testStatOptimized(paired, lapply(samples.R,
                                                                               function(x) data[, x]))
                               }
                               d_result <- fit$d
@@ -306,7 +306,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
 
                             # Compute pD and pS
                             if (!is.null(time)) {
-                              pFit <- testStatistic.surv(lapply(pSamples.R, function(x) data[, x]), cl, event)
+                              pFit <- testStatSurvivalOptimized(lapply(pSamples.R, function(x) data[, x]), cl, event)
                             }else if(!is.null(meta.info)){
 
                               pFit <- testStatistic_with_covariates_permutating(data = lapply(pSamples.R, function(x) data[, x]),
@@ -316,7 +316,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
                                                                     trend=trend, robust=robust)
                             }else{
 
-                              pFit <- testStatistic(paired, lapply(pSamples.R,
+                              pFit <- testStatOptimized(paired, lapply(pSamples.R,
                                                                    function(x) data[, x]))
                             }
                             pd_result <- pFit$d
@@ -431,7 +431,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
     rm(reprotable)
     gc()
     if (!is.null(time)) {
-      fit <- testStatistic.surv(lapply(split(1:length(cl),
+      fit <- testStatSurvivalOptimized(lapply(split(1:length(cl),
                                              cl), function(x) data[, x]), cl, event)
     }else if(!is.null(meta.info)){
       fit <- testStatistic_with_covariates_Fit(data = lapply(split(1:length(cl),cl), function(x) data[, x]),
@@ -439,7 +439,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
                                            formula.str = formula.str,
                                            trend=trend, robust=robust)
     }else{
-      fit <- testStatistic(paired, lapply(split(1:length(cl),
+      fit <- testStatOptimized(paired, lapply(split(1:length(cl),
                                                 cl), function(x) data[, x]))
     }
     d <- fit$d/(a1 + a2 * fit$s)
@@ -467,7 +467,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
   }
   else {
     if (!is.null(time)) {
-      fit <- testStatistic.surv(lapply(split(1:length(cl),
+      fit <- testStatSurvivalOptimized(lapply(split(1:length(cl),
                                              cl), function(x) data[, x]), cl, event)
     }else if(!is.null(meta.info)){
       fit <- testStatistic_with_covariates_Fit(data = lapply(split(1:length(cl),
@@ -476,7 +476,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
                                                formula.str = formula.str,
                                                trend=trend, robust=robust)
     }else{
-      fit <- testStatistic(paired,  lapply(split(1:length(cl),
+      fit <- testStatOptimized(paired,  lapply(split(1:length(cl),
                                                 cl), function(x) data[, x]))
     }
 
