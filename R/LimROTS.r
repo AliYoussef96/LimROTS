@@ -65,10 +65,12 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
                      log = TRUE, progress = FALSE,
                                    verbose = TRUE, meta.info = NULL, cluster = NULL ,
                                   group.name = NULL , formula.str = NULL, trend = TRUE, robust = TRUE,
-                                  time = NULL, event = NULL, paired = FALSE,
+                     survival = FALSE, paired = FALSE,
                      n.ROTS = FALSE, seed.cl = 1234)
 {
 
+
+  ### SummarizedExperiment
 
   if(inherits(data.exp, "SummarizedExperiment")){
     message("Data is SummarizedExperiment object")
@@ -101,6 +103,8 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
     }
 
 
+  ### meta.info
+
   if(any(!row.names(meta.info) %in% colnames(data))){
     stop("rownames for meta.info should match the data colnames (samples names)")
   }
@@ -110,7 +114,6 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
     stop("Sample names should contains no '.', please remove it if any")
   }
 
-  groups <- as.numeric(meta.info[,group.name])
 
   if(!is.null(meta.info) & n.ROTS == FALSE){
     if(ncol(meta.info) == 1){
@@ -129,68 +132,51 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
 
   }
 
+  ### Sort
 
-  if (!is.null(time)) {
-    groups <- time
-    if (length(time) != length(event)) {
-      stop("Number of survival times and events do not match.")
-    }
-  }
-  if (length(groups) != ncol(data)) {
+  if (nrow(meta.info) != ncol(data)) {
     stop("Number of samples in the data does not match the groups.")
   }
-  if (is.null(rownames(data)))
-    rownames(data) <- 1:nrow(data)
-  ssq <- c((0:20)/100, (11:50)/50, (6:25)/5)
-  N <- c((1:20) * 5, (11:50) * 10, (21:40) * 25, (11:1000) *
-           100)
-  if (is.null(K)) {
-    K <- floor(nrow(data)/4)
-    if (verbose)
-      message(sprintf("No top list size K given, using %s",
-                    K))
-  }
-  K <- min(K, nrow(data))
-  N <- N[N < K]
-  if (inherits(groups, "character")) {
-    groups <- factor(groups)
-    groups.levels <- levels(groups)
-    groups <- as.numeric(groups)
-  }
-  else {
-    groups.levels <- NULL
-  }
-
-  if (!is.null(time)) {
-    event <- event[order(groups)]
-  }
-
 
   sort.df <- data.frame(sample.id = colnames(data), groups = meta.info[,group.name])
   sort.df <- sort.df[ order( sort.df$groups ), ]
   data <- data[,sort.df$sample.id]
-  groups <-  as.numeric(sort.df$groups)
 
-  if(!is.null(meta.info)){
+
   meta.info$temp <- row.names(meta.info)
   meta.info <- data.frame(meta.info[colnames(data),], check.rows = F, check.names = F)
   meta.info$temp <- NULL
+
+
+  ### Groups
+
+
+  if(!inherits(meta.info[,group.name], "character")){
+    meta.info[,group.name] <- factor(meta.info[,group.name])
+    groups.levels <- levels(groups)
+    meta.info[,group.name] <- as.numeric(meta.info[,group.name])
   }
 
-  if (is.null(time)) {
-    for (i in unique(groups)) {
-      if (any(rowSums(is.na(data[, which(groups == i)])) >=
-              length(which(groups == i)) - 1)) {
-        if (is.null(groups.levels)) {
-          target <- i
-        }
-        else {
-          target <- groups.levels[i]
-        }
-        stop(sprintf("The data matrix of group %s contains rows with less than two non-missing values, please remove these rows." , target))
-      }
+  groups <- meta.info[,group.name]
+
+  if(survival  == TRUE){
+    if(all(c("time", "event") %in% colnames(meta.info))){
+      stop("meta.info must have two columns time and event. Also, group.name must be time")
     }
+    event <- meta.info[,"event"]
+    groups <- meta.info[,"time"]
   }
+
+
+
+
+  if (is.null(K)) {
+    K <- floor(nrow(data)/4)
+    if (verbose)
+      message(sprintf("No top list size K given, using %s",
+                      K))
+  }
+
 
   cl <- groups + (1 - min(groups))
 
@@ -220,9 +206,6 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
     message("Bootstrapping samples")
 
 
-  # if(n.ROTS == TRUE){
-  #   meta.info = NULL
-  # }
 
   if(n.ROTS == FALSE)
     {
@@ -365,6 +348,12 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
   gc()
 
   if (is.null(a1) | is.null(a2)) {
+
+    ssq <- c((0:20)/100, (11:50)/50, (6:25)/5)
+    N <- c((1:20) * 5, (11:50) * 10, (21:40) * 25, (11:1000) *
+             100)
+    K <- min(K, nrow(data))
+    N <- N[N < K]
 
     optimized.parameters <- Optimizing(B, ssq, N, D, S, pD, pS,
                            verbose, progress)
