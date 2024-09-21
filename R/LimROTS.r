@@ -23,7 +23,7 @@
 #' @param paired Logical, indicating whether the data represent paired samples. Default is FALSE.
 #' @param n.ROTS Default is FALSE. If TRUE, all parameters related to LimROTS will be ignored, and the normal ROTS analysis will run.
 #'
-#' @return A list of class `"LimROTS"` with the following elements:
+#' @return A list of class `"list"` with the following elements:
 #' \item{data}{The original data matrix.}
 #' \item{B}{The number of bootstrap samples used.}
 #' \item{d}{Differential expression statistics for each feature.}
@@ -243,16 +243,12 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
 
   }
 
-
-
-
   D <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
   S <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
   pD <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
   pS <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
 
   pb <- txtProgressBar(min = 0, max = 100, style = 3)
-
 
   if(is.null(cluster)){
     cluster <- makeCluster(2)
@@ -309,7 +305,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
                               pFit <- testStatSurvivalOptimized(lapply(pSamples.R, function(x) data[, x]), cl, event)
                             }else if(!is.null(meta.info)){
 
-                              pFit <- testStatistic_with_covariates_permutating(data = lapply(pSamples.R, function(x) data[, x]),
+                              pFit <- testStatistic_with_covariates_permutating(data = lapply(split(1:length(cl),cl), function(x) data[, x]),
                                                                     group.name = group.name,
                                                                     meta.info = meta.info,
                                                                     formula.str = formula.str,
@@ -365,71 +361,19 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
     close(pb)
   rm(samples, pSamples)
   gc()
+
   if (is.null(a1) | is.null(a2)) {
-    if (verbose)
-      message("Optimizing parameters")
-    reprotable <- matrix(nrow = length(ssq) + 1, ncol = length(N))
-    colnames(reprotable) <- N
-    row.names(reprotable) <- c(ssq, "slr")
-    reprotable.P <- matrix(nrow = length(ssq) + 1, ncol = length(N))
-    colnames(reprotable.P) <- N
-    row.names(reprotable.P) <- c(ssq, "slr")
-    reprotable.sd <- matrix(nrow = length(ssq) + 1, ncol = length(N))
-    colnames(reprotable.sd) <- N
-    row.names(reprotable.sd) <- c(ssq, "slr")
-    if (progress)
-      pb <- txtProgressBar(min = 0, max = length(ssq),
-                           style = 3)
-    for (i in 1:length(ssq)) {
-      overlaps <- matrix(0, nrow = B, ncol = length(N))
-      overlaps.P <- matrix(0, nrow = B, ncol = length(N))
-      cResults = calOverlaps(D, S, pD, pS, nrow(D),
-                                    as.integer(N), length(N), ssq[i], as.integer(B),
-                                    overlaps, overlaps.P)
-      reprotable[i, ] <- colMeans(cResults[["overlaps"]])
-      reprotable.P[i, ] <- colMeans(cResults[["overlaps_P"]])
-      reprotable.sd[i, ] <- sqrt(rowSums((t(cResults[["overlaps"]]) -
-                                            reprotable[i, ])^2)/(nrow(cResults[["overlaps"]]) -
-                                                                   1))
-      if (progress)
-        setTxtProgressBar(pb, i)
-    }
-    if (progress)
-      close(pb)
-    i <- length(ssq) + 1
-    overlaps <- matrix(0, nrow = B, ncol = length(N))
-    overlaps.P <- matrix(0, nrow = B, ncol = length(N))
-    cResults = calOverlaps.slr(D, pD, nrow(D), as.integer(N),
-                                  length(N), as.integer(B), overlaps, overlaps.P)
-    rm(D, S)
-    gc()
-    reprotable[i, ] <- colMeans(cResults[["overlaps"]])
-    reprotable.P[i, ] <- colMeans(cResults[["overlaps_P"]])
-    reprotable.sd[i, ] <- sqrt(rowSums((t(cResults[["overlaps"]]) -
-                                          reprotable[i, ])^2)/(nrow(cResults[["overlaps"]]) -
-                                                                 1))
-    rm(overlaps, overlaps.P, cResults)
-    gc()
-    ztable <- (reprotable - reprotable.P)/reprotable.sd
-    rm(reprotable.P, reprotable.sd)
-    gc()
-    sel <- which(ztable == max(ztable[is.finite(ztable)]),
-                 arr.ind = TRUE)
-    if (length(sel) > 2)
-      sel <- sel[1, ]
-    if (sel[1] < nrow(reprotable)) {
-      a1 <- as.numeric(row.names(reprotable)[sel[1]])
-      a2 <- 1
-    }
-    if (sel[1] == nrow(reprotable)) {
-      a1 <- 1
-      a2 <- 0
-    }
-    k <- as.numeric(colnames(reprotable)[sel[2]])
-    R <- reprotable[sel[1], sel[2]]
-    Z <- ztable[sel[1], sel[2]]
-    rm(reprotable)
-    gc()
+
+    optimized.parameters <- Optimizing(ssq, N, D, S, pD, pS,
+                           verbose, progress)
+
+
+    a1 <- optimized.parameters$a1
+    a2 <- optimized.parameters$a2
+    k <- optimized.parameters$k
+    R <- optimized.parameters$R
+    Z <- optimized.parameters$Z
+
     if (!is.null(time)) {
       fit <- testStatSurvivalOptimized(lapply(split(1:length(cl),
                                              cl), function(x) data[, x]), cl, event)
@@ -452,6 +396,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
                   pool = TRUE)
     if (verbose)
       message("Calculating FDR")
+
     FDR <- calculateFalseDiscoveryRate(d, pD, progress)
     corrected.logfc <- fit$corrected.logfc
     rm(pD)
@@ -497,6 +442,5 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
                         R = NULL, Z = NULL, cl = cl , corrected.logfc = corrected.logfc,
                         q_values = q_values , BH.pvalue = BH.pvalue)
   }
-  class(ROTS.output) <- "LimROTS"
   return(ROTS.output)
 }
