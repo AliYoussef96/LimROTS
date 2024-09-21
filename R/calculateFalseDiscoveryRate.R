@@ -16,7 +16,7 @@ calculateFalseDiscoveryRate <- function(observedValues, permutedValues, showProg
 
   for (permIndex in seq_len(numPermutations)) {
     sortedPermuted <- sort(permutedAbs[, permIndex], decreasing = TRUE, na.last = TRUE)
-    numLarger <- biggerN(sortedObserved, sortedPermuted)
+    numLarger <- whichisbigger(sortedObserved, sortedPermuted)
     FDRmatrix[orderedIndices, permIndex] <- numLarger / seq_along(sortedObserved)
 
     if (showProgress) {
@@ -36,4 +36,10 @@ calculateFalseDiscoveryRate <- function(observedValues, permutedValues, showProg
   }))
 
   return(falseDiscoveryRate)
+}
+
+#' @export
+#'
+whichisbigger <- function(observed, permuted) {
+  sapply(observed, function(x) sum(permuted >= x))
 }

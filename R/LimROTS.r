@@ -228,14 +228,15 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
     {
     if (ncol(meta.info) > 1){
     samples <- bootstrapSamples.limRots(data = data, B = 2 * B, meta.info = meta.info, group.name =  group.name )
+    pSamples <- NULL
     }else{
       paired <- FALSE
-      samples <- bootstrapS(2 * B, meta.info , paired)
-
+      samples <- bootstrapS(2 * B, meta.info ,group.name, paired)
+      pSamples <- NULL
     }
 
   }else{
-    samples <- bootstrapS(2 * B, meta.info , paired)
+    samples <- bootstrapS(2 * B, meta.info , group.name, paired)
     pSamples <- permutatedS(meta.info, 2 * B)
 
   }
@@ -364,7 +365,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
 
   if (is.null(a1) | is.null(a2)) {
 
-    optimized.parameters <- Optimizing(ssq, N, D, S, pD, pS,
+    optimized.parameters <- Optimizing(B, ssq, N, D, S, pD, pS,
                            verbose, progress)
 
 

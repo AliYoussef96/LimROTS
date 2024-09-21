@@ -1,7 +1,7 @@
 
 #' @export
 
-bootstrapS <- function (B, meta.info, paired)
+bootstrapS <- function (B, meta.info, group.name ,paired)
 {
   groups <- meta.info[,group.name]
   bootsamples <- matrix(nrow = B, ncol = length(groups))

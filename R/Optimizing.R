@@ -1,5 +1,5 @@
 #' @export
-Optimizing <- function(ssq, N, D, S, pD, pS,
+Optimizing <- function(B, ssq, N, D, S, pD, pS,
                        verbose, progress){
 
 
