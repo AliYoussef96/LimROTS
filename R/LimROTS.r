@@ -66,7 +66,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
                                    verbose = TRUE, meta.info = NULL, cluster = NULL ,
                                   group.name = NULL , formula.str = NULL, trend = TRUE, robust = TRUE,
                                   time = NULL, event = NULL, paired = FALSE,
-                     n.ROTS = FALSE)
+                     n.ROTS = FALSE, seed.cl = 1234)
 {
 
 
@@ -256,6 +256,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
     registerDoParallel(cluster)
   }
 
+  clusterSetRNGStream(cluster, iseed = seed.cl)
   clusterExport(cluster, varlist = c( "pb", "samples" , "pSamples" , "D", "data",
                                      "S" , "pD" , "pS", "time", "formula.str", "group.name" ,
                                      "cl", "event", "meta.info",
@@ -266,7 +267,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
   if (progress) {
     setTxtProgressBar(pb, 50)
   }
-  results_list <- foreach(i = seq_len(nrow(samples)), .combine = "c", .options.RNG = 1234,
+  results_list <- foreach(i = seq_len(nrow(samples)), .combine = "c", .options.RNG = seed.cl,
                           .packages = c("utils", "dplyr" , "stringr", "stats" ,"LimROTS")) %dorng% {
 
                             samples.R <- split(samples[i, ], cl)

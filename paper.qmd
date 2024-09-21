@@ -7,6 +7,10 @@ editor: visual
 
 ## 
 
+clusterSetRNGStream VIMVIM to use
+
+<https://stackoverflow.com/questions/58631433/how-to-set-seeds-when-using-parallel-package-in-r>
+
 # UPS1-spiked DataSet
 
 ## UPS1 Case Study 0
@@ -974,3 +978,4 @@ ggplot(plot_data.melt, aes(x = Alpha, y = FDR, color = Method , size =size)) +
     axis.ticks = element_line(color = "black")
   )
 ```
+
