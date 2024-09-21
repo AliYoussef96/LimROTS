@@ -76,7 +76,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
                           survival = survival, paired = paired,
                           n.ROTS = n.ROTS, seed.cl = 1234)
 
-  SanityChecK.list
+
   meta.info <-  SanityChecK.list$meta.info
   data <-  SanityChecK.list$data
   groups <-  SanityChecK.list$groups
@@ -290,7 +290,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
     q_values <- qvalue(p, pi0.method = "bootstrap", lambda = seq(0.01,0.95, 0.01))
     BH.pvalue <- p.adjust(p, method = "BH")
 
-    ROTS.output <- list(data = data, B = B, d = d, logfc = logfc,
+    LimROTS.output <- list(data = data, B = B, d = d, logfc = logfc,
                         pvalue = p, FDR = FDR, a1 = a1, a2 = a2, k = k,
                         R = R, Z = Z, ztable = ztable, groups = groups , corrected.logfc = corrected.logfc,
                         q_values = q_values , BH.pvalue = BH.pvalue)
@@ -322,10 +322,10 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
     corrected.logfc <- fit$corrected.logfc
     q_values <-  qvalue(p, pi0.method = "bootstrap", lambda = seq(0.01,0.95, 0.01))
     BH.pvalue <- p.adjust(p, method = "BH")
-    ROTS.output <- list(data = data, B = B, d = d, logfc = logfc ,
+    LimROTS.output <- list(data = data, B = B, d = d, logfc = logfc ,
                         pvalue = p, FDR = FDR, a1 = a1, a2 = a2, k = NULL,
                         R = NULL, Z = NULL, groups = groups , corrected.logfc = corrected.logfc,
                         q_values = q_values , BH.pvalue = BH.pvalue)
   }
-  return(ROTS.output)
+  return(LimROTS.output)
 }
