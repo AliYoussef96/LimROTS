@@ -383,7 +383,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
     for (i in 1:length(ssq)) {
       overlaps <- matrix(0, nrow = B, ncol = length(N))
       overlaps.P <- matrix(0, nrow = B, ncol = length(N))
-      cResults = calculateOverlaps1(D, S, pD, pS, nrow(D),
+      cResults = calOverlaps(D, S, pD, pS, nrow(D),
                                     as.integer(N), length(N), ssq[i], as.integer(B),
                                     overlaps, overlaps.P)
       reprotable[i, ] <- colMeans(cResults[["overlaps"]])
@@ -399,7 +399,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
     i <- length(ssq) + 1
     overlaps <- matrix(0, nrow = B, ncol = length(N))
     overlaps.P <- matrix(0, nrow = B, ncol = length(N))
-    cResults = calculateOverlaps2(D, pD, nrow(D), as.integer(N),
+    cResults = calOverlaps.slr(D, pD, nrow(D), as.integer(N),
                                   length(N), as.integer(B), overlaps, overlaps.P)
     rm(D, S)
     gc()
