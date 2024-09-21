@@ -228,17 +228,15 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
     {
     if (ncol(meta.info) > 1){
     samples <- bootstrapSamples.limRots(data = data, B = 2 * B, meta.info = meta.info, group.name =  group.name )
-    pSamples <- samples
     }else{
       paired <- FALSE
-      samples <- bootstrapSamples(data, 2 * B, cl, paired)
-      pSamples <- samples
+      samples <- bootstrapS(data, 2 * B, cl, paired)
 
     }
 
   }else{
-    samples <- bootstrapSamples(data, 2 * B, cl, paired)
-    pSamples <- permutatedSamples(data, nrow(samples), cl)
+    samples <- bootstrapS(data, 2 * B, cl, paired)
+    pSamples <- permutatedS(data, nrow(samples), cl)
 
   }
 
@@ -271,7 +269,6 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
                           .packages = c("utils", "dplyr" , "stringr", "stats" ,"LimROTS")) %dorng% {
 
                             samples.R <- split(samples[i, ], cl)
-                            pSamples.R <- split(pSamples[i, ], cl)
 
                             # Initialize placeholders for results
                             d_result <- s_result <- pd_result <- ps_result <- NULL
@@ -279,6 +276,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
                             # Compute D and S if conditions are met
                             if (is.null(a1) | is.null(a2)) {
                               if (!is.null(time)) {
+
                                 fit <- testStatSurvivalOptimized(lapply(samples.R, function(x) data[, x]), cl, event)
 
                               }else if(!is.null(meta.info)){
@@ -301,6 +299,8 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
 
                             # Compute pD and pS
                             if (!is.null(time)) {
+                              pSamples.R <- split(pSamples[i, ], cl)
+
                               pFit <- testStatSurvivalOptimized(lapply(pSamples.R, function(x) data[, x]), cl, event)
                             }else if(!is.null(meta.info)){
 
@@ -310,6 +310,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
                                                                     formula.str = formula.str,
                                                                     trend=trend, robust=robust)
                             }else{
+                              pSamples.R <- split(pSamples[i, ], cl)
 
                               pFit <- testStatOptimized(paired, lapply(pSamples.R,
                                                                    function(x) data[, x]))
