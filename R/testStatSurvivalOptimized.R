@@ -1,3 +1,5 @@
+#' @export
+
 testStatSurvivalOptimized <- function(sampleGroups, survivalTime, survivalEvent) {
   allSamples <- do.call("cbind", sampleGroups)
   uniqueTimes <- unique(survivalTime[survivalEvent == 1])

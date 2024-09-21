@@ -1,3 +1,5 @@
+#' @export
+
 testStatOptimized <- function(isPaired, sampleGroups) {
   if (length(sampleGroups) == 2) {
     groupA <- sampleGroups[[1]]

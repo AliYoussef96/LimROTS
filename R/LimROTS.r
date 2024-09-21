@@ -59,7 +59,6 @@
 #' @import utils
 #' @import SummarizedExperiment
 #' @importFrom doParallel registerDoParallel
-#' @useDynLib LimROTS, .registration = TRUE
 #' @export
 
 LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,

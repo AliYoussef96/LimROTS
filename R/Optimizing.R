@@ -1,3 +1,4 @@
+#' @export
 Optimizing <- function(ssq, N, D, S, pD, pS,
                        verbose, progress){
 

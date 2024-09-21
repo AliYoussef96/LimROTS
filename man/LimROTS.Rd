@@ -64,7 +64,7 @@ The values should be log-transformed \code{log}, or a SummarizedExperiment objec
 \item{n.ROTS}{Default is FALSE. If TRUE, all parameters related to LimROTS will be ignored, and the normal ROTS analysis will run.}
 }
 \value{
-A list of class \code{"LimROTS"} with the following elements:
+A list of class \code{"list"} with the following elements:
 \item{data}{The original data matrix.}
 \item{B}{The number of bootstrap samples used.}
 \item{d}{Differential expression statistics for each feature.}

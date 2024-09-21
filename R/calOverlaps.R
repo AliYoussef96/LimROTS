@@ -1,3 +1,4 @@
+#' @export
 calOverlaps <- function(D, S, pD, pS, nrow, N, N_len, ssq, B, overlaps, overlaps_P) {
 
   # sort based on one vector and operate on another

@@ -1,4 +1,6 @@
 
+#' @export
+
 bootstrapS <- function (B, meta.info, paired)
 {
   groups <- meta.info[,group.name]
@@ -23,7 +25,7 @@ bootstrapS <- function (B, meta.info, paired)
 }
 
 
-
+#' @export
 permutatedS <- function (meta.info, B)
 {
   persamples <- matrix(nrow = B, ncol = nrow(meta.info))
@@ -35,7 +37,7 @@ permutatedS <- function (meta.info, B)
 
 
 
-
+#' @export
 bootstrapSamples.limRots <- function (data, B, meta.info ,group.name)
 {
   labels <- as.numeric( meta.info[,group.name] )

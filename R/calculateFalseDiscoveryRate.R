@@ -1,3 +1,5 @@
+#' @export
+#'
 calculateFalseDiscoveryRate <- function(observedValues, permutedValues, showProgress) {
   observedAbs <- abs(observedValues)
   permutedAbs <- abs(permutedValues)
