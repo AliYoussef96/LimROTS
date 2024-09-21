@@ -230,13 +230,13 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
     samples <- bootstrapSamples.limRots(data = data, B = 2 * B, meta.info = meta.info, group.name =  group.name )
     }else{
       paired <- FALSE
-      samples <- bootstrapS(data, 2 * B, cl, paired)
+      samples <- bootstrapS(2 * B, meta.info , paired)
 
     }
 
   }else{
-    samples <- bootstrapS(data, 2 * B, cl, paired)
-    pSamples <- permutatedS(data, nrow(samples), cl)
+    samples <- bootstrapS(2 * B, meta.info , paired)
+    pSamples <- permutatedS(meta.info, 2 * B)
 
   }
 
