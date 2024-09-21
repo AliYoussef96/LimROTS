@@ -18,10 +18,10 @@
 #' @param formula.str An optional formula string used when covariates are present in `meta.info` for modeling.
 #' @param trend Logical, indicating whether to include trend fitting in the differential expression analysis. Default is TRUE.
 #' @param robust Logical, indicating whether robust fitting should be used. Default is TRUE.
-#' @param time A numeric vector representing survival times, if survival analysis is used.
-#' @param event A numeric vector indicating the survival event status (1 = event occurred, 0 = censored) corresponding to `time`.
 #' @param paired Logical, indicating whether the data represent paired samples. Default is FALSE.
 #' @param n.ROTS Default is FALSE. If TRUE, all parameters related to LimROTS will be ignored, and the normal ROTS analysis will run.
+#' @param survival description
+#'
 #'
 #' @return A list of class `"list"` with the following elements:
 #' \item{data}{The original data matrix.}
@@ -165,9 +165,22 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
     }
     event <- meta.info[,"event"]
     groups <- meta.info[,"time"]
+  }else{
+    event = NULL
+    groups = NULL
   }
 
+  groups <- groups + (1 - min(groups))
 
+  ### paired
+
+  if (paired) {
+    for (i in unique(groups)[-1]) {
+      if (length(which(groups == 1)) != length(which(groups ==
+                                                 i)))
+        stop("Uneven number of samples for paired test.")
+    }
+  }
 
 
   if (is.null(K)) {
@@ -177,38 +190,27 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
                       K))
   }
 
+  #### FC
 
-  cl <- groups + (1 - min(groups))
+  if (length(unique(groups)) == 2 && survival == FALSE) {
+    group1_data <- data[, groups == 1]
+    group2_data <- data[, groups == 2]
 
-
-  if (paired) {
-    for (i in unique(cl)[-1]) {
-      if (length(which(cl == 1)) != length(which(cl ==
-                                                 i)))
-        stop("Uneven number of samples for paired test.")
-    }
-  }
-  if (length(unique(cl)) == 2 && is.null(time)) {
     if (log) {
-      logfc <- rowMeans(data[, which(cl == 1)], na.rm = TRUE) -
-        rowMeans(data[, which(cl == 2)], na.rm = TRUE)
+      logfc <- rowMeans(group1_data, na.rm = TRUE) - rowMeans(group2_data, na.rm = TRUE)
+    } else {
+      logfc <- rowMeans(log2(group1_data + 1), na.rm = TRUE) - rowMeans(log2(group2_data + 1), na.rm = TRUE)
     }
-    else {
-      logfc <- rowMeans(log2(data[, which(cl == 1)] +
-                               1), na.rm = TRUE) - rowMeans(log2(data[, which(cl ==
-                                                                                2)] + 1), na.rm = TRUE)
-    }
-  }
-  else {
+  } else {
     logfc <- rep(NA, nrow(data))
   }
+
+
   if (verbose)
     message("Bootstrapping samples")
 
 
-
-  if(n.ROTS == FALSE)
-    {
+  if(n.ROTS == FALSE){
     if (ncol(meta.info) > 1){
     samples <- bootstrapSamples.limRots(data = data, B = 2 * B, meta.info = meta.info, group.name =  group.name )
     pSamples <- NULL
@@ -217,11 +219,9 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
       samples <- bootstrapS(2 * B, meta.info ,group.name, paired)
       pSamples <- NULL
     }
-
   }else{
     samples <- bootstrapS(2 * B, meta.info , group.name, paired)
     pSamples <- permutatedS(meta.info, 2 * B)
-
   }
 
   D <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
@@ -242,8 +242,8 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
   clusterSetRNGStream(cluster, iseed = seed.cl)
   clusterExport(cluster, varlist = c( "pb", "samples" , "pSamples" , "D", "data",
                                      "S" , "pD" , "pS", "time", "formula.str", "group.name" ,
-                                     "cl", "event", "meta.info",
-                                     "a1" , "a2", "trend", "robust" )  ,envir = environment())
+                                     "groups", "event", "meta.info",
+                                     "a1" , "a2", "trend", "robust" , "n.ROTS", "survival" )  ,envir = environment())
 
 
 
@@ -253,16 +253,16 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
   results_list <- foreach(i = seq_len(nrow(samples)), .combine = "c", .options.RNG = seed.cl,
                           .packages = c("utils", "dplyr" , "stringr", "stats" ,"LimROTS")) %dorng% {
 
-                            samples.R <- split(samples[i, ], cl)
+                            samples.R <- split(samples[i, ], groups)
 
                             # Initialize placeholders for results
                             d_result <- s_result <- pd_result <- ps_result <- NULL
 
                             # Compute D and S if conditions are met
                             if (is.null(a1) | is.null(a2)) {
-                              if (!is.null(time)) {
+                              if (survival == TRUE) {
 
-                                fit <- testStatSurvivalOptimized(lapply(samples.R, function(x) data[, x]), cl, event)
+                                fit <- testStatSurvivalOptimized(lapply(samples.R, function(x) data[, x]), groups, event)
 
                               }else if(n.ROTS == FALSE){
 
@@ -283,19 +283,19 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
                             }
 
                             # Compute pD and pS
-                            if (!is.null(time)) {
-                              pSamples.R <- split(pSamples[i, ], cl)
+                            if (survival == TRUE) {
+                              pSamples.R <- split(pSamples[i, ], groups)
 
-                              pFit <- testStatSurvivalOptimized(lapply(pSamples.R, function(x) data[, x]), cl, event)
+                              pFit <- testStatSurvivalOptimized(lapply(pSamples.R, function(x) data[, x]), groups, event)
                             }else if(n.ROTS == FALSE){
 
-                              pFit <- testStatistic_with_covariates_permutating(data = lapply(split(1:length(cl),cl), function(x) data[, x]),
+                              pFit <- testStatistic_with_covariates_permutating(data = lapply(split(1:length(groups),groups), function(x) data[, x]),
                                                                     group.name = group.name,
                                                                     meta.info = meta.info,
                                                                     formula.str = formula.str,
                                                                     trend=trend, robust=robust)
                             }else{
-                              pSamples.R <- split(pSamples[i, ], cl)
+                              pSamples.R <- split(pSamples[i, ], groups)
 
                               pFit <- testStatOptimized(paired, lapply(pSamples.R,
                                                                    function(x) data[, x]))
@@ -366,17 +366,17 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
     Z <- optimized.parameters$Z
     ztable <- optimized.parameters$ztable
 
-    if (!is.null(time)) {
-      fit <- testStatSurvivalOptimized(lapply(split(1:length(cl),
-                                             cl), function(x) data[, x]), cl, event)
+    if (survival == TRUE) {
+      fit <- testStatSurvivalOptimized(lapply(split(1:length(groups),
+                                             groups), function(x) data[, x]), groups, event)
     }else if(n.ROTS == FALSE){
-      fit <- testStatistic_with_covariates_Fit(data = lapply(split(1:length(cl),cl), function(x) data[, x]),
+      fit <- testStatistic_with_covariates_Fit(data = lapply(split(1:length(groups),groups), function(x) data[, x]),
                                            group.name = group.name , meta.info = meta.info,
                                            formula.str = formula.str,
                                            trend=trend, robust=robust)
     }else{
-      fit <- testStatOptimized(paired, lapply(split(1:length(cl),
-                                                cl), function(x) data[, x]))
+      fit <- testStatOptimized(paired, lapply(split(1:length(groups),
+                                                groups), function(x) data[, x]))
     }
     d <- fit$d/(a1 + a2 * fit$s)
     pD <- pD/(a1 + a2 * pS)
@@ -399,22 +399,22 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
 
     ROTS.output <- list(data = data, B = B, d = d, logfc = logfc,
                         pvalue = p, FDR = FDR, a1 = a1, a2 = a2, k = k,
-                        R = R, Z = Z, ztable = ztable, cl = cl , corrected.logfc = corrected.logfc,
+                        R = R, Z = Z, ztable = ztable, groups = groups , corrected.logfc = corrected.logfc,
                         q_values = q_values , BH.pvalue = BH.pvalue)
   }
   else {
-    if (!is.null(time)) {
-      fit <- testStatSurvivalOptimized(lapply(split(1:length(cl),
-                                             cl), function(x) data[, x]), cl, event)
+    if (survival == TRUE) {
+      fit <- testStatSurvivalOptimized(lapply(split(1:length(groups),
+                                             groups), function(x) data[, x]), groups, event)
     }else if(n.ROTS == FALSE){
-      fit <- testStatistic_with_covariates_Fit(data = lapply(split(1:length(cl),
-                                               cl), function(x) data[, x]),
+      fit <- testStatistic_with_covariates_Fit(data = lapply(split(1:length(groups),
+                                               groups), function(x) data[, x]),
                                                group.name = group.name , meta.info = meta.info ,
                                                formula.str = formula.str,
                                                trend=trend, robust=robust)
     }else{
-      fit <- testStatOptimized(paired,  lapply(split(1:length(cl),
-                                                cl), function(x) data[, x]))
+      fit <- testStatOptimized(paired,  lapply(split(1:length(groups),
+                                                groups), function(x) data[, x]))
     }
 
     d <- fit$d/(a1 + a2 * fit$s)
@@ -431,7 +431,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
     BH.pvalue <- p.adjust(p, method = "BH")
     ROTS.output <- list(data = data, B = B, d = d, logfc = logfc ,
                         pvalue = p, FDR = FDR, a1 = a1, a2 = a2, k = NULL,
-                        R = NULL, Z = NULL, cl = cl , corrected.logfc = corrected.logfc,
+                        R = NULL, Z = NULL, groups = groups , corrected.logfc = corrected.logfc,
                         q_values = q_values , BH.pvalue = BH.pvalue)
   }
   return(ROTS.output)
