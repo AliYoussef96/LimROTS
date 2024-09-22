@@ -5,12 +5,6 @@ format: docx
 editor: visual
 ---
 
-## 
-
-clusterSetRNGStream VIMVIM to use
-
-<https://stackoverflow.com/questions/58631433/how-to-set-seeds-when-using-parallel-package-in-r>
-
 # UPS1-spiked DataSet
 
 ## UPS1 Case Study 0
@@ -43,6 +37,7 @@ limrots.result <- LimROTS(data.exp = UPS1.Case0,
                           B = B, K = K, meta.info = meta.info, 
                           cluster = cluster, group.name = group.name, 
                           formula.str = formula.str, trend = TRUE, robust = TRUE)
+
 saveRDS(limrots.result, "../LimROTS paper/UPS1.Case0.LimROTS.rds")
 ```
 
@@ -270,7 +265,7 @@ formula.str <- "~ 0 + Conc.+ inj + Conc.*inj"  # Formula for group comparison + 
 limrots.result <- LimROTS(data.exp = UPS1.Case1, 
                           B = B, K = K, meta.info = meta.info, 
                           cluster = cluster, group.name = group.name, 
-                          formula.str = formula.str, trend = TRUE, robust = TRUE)
+                          formula.str = formula.str, trend = TRUE, robust = TRUE, progress = TRUE)
 saveRDS(limrots.result, "../LimROTS paper/UPS1.Case1.LimROTS.rds")
 ```
 
@@ -978,4 +973,3 @@ ggplot(plot_data.melt, aes(x = Alpha, y = FDR, color = Method , size =size)) +
     axis.ticks = element_line(color = "black")
   )
 ```
-
