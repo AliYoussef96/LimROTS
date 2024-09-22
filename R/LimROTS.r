@@ -20,8 +20,8 @@
 #' @param robust Logical, indicating whether robust fitting should be used. Default is TRUE.
 #' @param paired Logical, indicating whether the data represent paired samples. Default is FALSE.
 #' @param n.ROTS Default is FALSE. If TRUE, all parameters related to LimROTS will be ignored, and the normal ROTS analysis will run.
-#' @param survival description
-#'
+#' @param survival To enable survival analysis, If TRUE then `meta.info` should contains time and event
+#' @param seed.cl A seed should be set for randomization; if not, the default is 1234
 #'
 #' @return A list of class `"list"` with the following elements:
 #' \item{data}{The original data matrix.}
