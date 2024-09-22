@@ -27,4 +27,4 @@ devtools::build(vignettes = FALSE)
 devtools::build_vignettes()
 
 library(BiocCheck)
-BiocCheck()
+BiocCheck(`new-package`=TRUE)
