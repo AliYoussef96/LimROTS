@@ -15,7 +15,8 @@ SanityChecK(
   formula.str = NULL,
   survival = FALSE,
   paired = FALSE,
-  n.ROTS = FALSE
+  n.ROTS = FALSE,
+  verbose = TRUE
 )
 }
 \arguments{

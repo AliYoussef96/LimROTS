@@ -2,9 +2,13 @@
 % Please edit documentation in R/calculateFalseDiscoveryRate.R
 \name{calculateFalseDiscoveryRate}
 \alias{calculateFalseDiscoveryRate}
-\title{Calculate False Discovery Rate (FDR) Using Permuted Values}
+\title{Calculate False Discovery Rate (FDR) Using Permuted Values (Optimized)}
 \usage{
-calculateFalseDiscoveryRate(observedValues, permutedValues, showProgress)
+calculateFalseDiscoveryRate(
+  observedValues,
+  permutedValues,
+  showProgress = FALSE
+)
 }
 \arguments{
 \item{observedValues}{Numeric vector. The observed test statistics or values to be evaluated for significance.}
@@ -19,9 +23,4 @@ A numeric vector of the same length as \code{observedValues}, containing the est
 \description{
 This function calculates the false discovery rate (FDR) by comparing observed values to permuted values.
 The function sorts observed values, compares them against permuted data, and computes FDR using the median of permutation results.
-}
-\details{
-This function computes the FDR by comparing the magnitude of observed values against permuted values in a sorted order.
-The FDR is calculated as the median ratio of the number of permuted values greater than or equal to the observed values.
-The results are adjusted to ensure that FDR values are non-increasing, as required for multiple testing procedures.
 }

@@ -2,14 +2,14 @@
 % Please edit documentation in R/calculateFalseDiscoveryRate.R
 \name{countLargerThan}
 \alias{countLargerThan}
-\title{Count Larger Permuted Values}
+\title{Count Larger Permuted Values (Optimized)}
 \usage{
 countLargerThan(x, y)
 }
 \arguments{
-\item{observed}{Numeric vector. The observed values.}
+\item{x}{Numeric vector. The observed values.}
 
-\item{permuted}{Numeric vector. The permuted values to compare against the observed values.}
+\item{y}{Numeric vector. The permuted values to compare against the observed values.}
 }
 \value{
 A numeric vector containing the counts of permuted values greater than or equal to the corresponding observed values.

@@ -8,6 +8,7 @@
 #' @param showProgress Logical. If `TRUE`, a progress bar will be shown during the computation.
 #'
 #' @return A numeric vector of the same length as `observedValues`, containing the estimated FDR for each observed value.
+#' @importFrom stats median
 #'
 #' @export
 
