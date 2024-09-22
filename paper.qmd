@@ -38,7 +38,7 @@ limrots.result <- LimROTS(data.exp = UPS1.Case0,
                           cluster = cluster, group.name = group.name, 
                           formula.str = formula.str, trend = TRUE, robust = TRUE)
 
-saveRDS(limrots.result, "../LimROTS paper/UPS1.Case0.LimROTS.rds")
+saveRDS(limrots.result, "paperdata/UPS1.Case0.LimROTS.rds")
 ```
 
 ### Run ROTS
@@ -66,7 +66,7 @@ rots.result <- LimROTS(data.exp = UPS1.Case0,
                           B = B, K = K, meta.info = meta.info, 
                           cluster = cluster, group.name = group.name, 
                           formula.str = formula.str, trend = TRUE, robust = TRUE, n.ROTS = TRUE)
-saveRDS(rots.result, "../LimROTS paper/UPS1.Case0.ROTS.rds")
+saveRDS(rots.result, "paperdata/UPS1.Case0.ROTS.rds")
 ```
 
 ### Run limma
@@ -86,7 +86,7 @@ cont_matrix <- makeContrasts("Conc.1-Conc.2",  levels=design.matrix)
 fit2 <- contrasts.fit(fit, cont_matrix)
 fit.ebayes <- eBayes(fit2, trend=TRUE, robust=TRUE)
 limma.result <- topTable(fit.ebayes, coef="Conc.1-Conc.2" , number = "Inf")
-saveRDS(limma.result, "../LimROTS paper/UPS1.Case0.limma.rds")
+saveRDS(limma.result, "paperdata/UPS1.Case0.limma.rds")
 ```
 
 ### Run t-test
@@ -257,7 +257,7 @@ meta.info <- c("Conc." , "inj")
 B <- 1000  # Number of bootstrap samples
 K <- dim(UPS1.Case1)[1]/4 # Set the value for K based on the data size
 K <- floor(K) 
-num_cores <- 50  # Number of cores for parallel processing
+num_cores <- 10  # Number of cores for parallel processing
 cluster <- makeCluster(num_cores)  # Create a parallel cluster
 group.name <- "Conc."
 formula.str <- "~ 0 + Conc.+ inj + Conc.*inj"  # Formula for group comparison + injections
@@ -265,8 +265,8 @@ formula.str <- "~ 0 + Conc.+ inj + Conc.*inj"  # Formula for group comparison + 
 limrots.result <- LimROTS(data.exp = UPS1.Case1, 
                           B = B, K = K, meta.info = meta.info, 
                           cluster = cluster, group.name = group.name, 
-                          formula.str = formula.str, trend = TRUE, robust = TRUE, progress = TRUE)
-saveRDS(limrots.result, "../LimROTS paper/UPS1.Case1.LimROTS.rds")
+                          formula.str = formula.str, trend = TRUE, robust = TRUE)
+saveRDS(limrots.result, "paperdata/UPS1.Case1.LimROTS.rds")
 ```
 
 ### Run ROTS
@@ -294,7 +294,7 @@ rots.result <- LimROTS(data.exp = UPS1.Case1,
                           B = B, K = K, meta.info = meta.info, 
                           cluster = cluster, group.name = group.name, 
                           formula.str = formula.str, trend = TRUE, robust = TRUE, n.ROTS = TRUE)
-saveRDS(rots.result, "../LimROTS paper/UPS1.Case1.ROTS.rds")
+saveRDS(rots.result, "paperdata/UPS1.Case1.ROTS.rds")
 ```
 
 ### Run limma
@@ -314,7 +314,7 @@ cont_matrix <- makeContrasts("Conc.1-Conc.2",  levels=design.matrix)
 fit2 <- contrasts.fit(fit, cont_matrix)
 fit.ebayes <- eBayes(fit2, trend=TRUE, robust=TRUE)
 limma.result <- topTable(fit.ebayes, coef="Conc.1-Conc.2" , number = "Inf")
-saveRDS(limma.result, "../LimROTS paper/UPS1.Case1.limma.rds")
+saveRDS(limma.result, "paperdata/UPS1.Case1.limma.rds")
 ```
 
 ### Run ANCOVA
@@ -338,7 +338,7 @@ for(i in 1:nrow(data)){
   ancova.result <- rbind(ancova.result, data.frame(protein = row.names(data)[i], p.value =significant_groups[, 5] ))
 }
 ancova.result$FDR <- p.adjust(ancova.result$p.value, method = "fdr")
-saveRDS(ancova.result, "../LimROTS paper/UPS1.Case1.ancova.rds")
+saveRDS(ancova.result, "paperdatar/UPS1.Case1.ancova.rds")
 ```
 
 ### Run samr
@@ -445,7 +445,7 @@ meta.info <- c("Conc." , "tool" , "fake.batch")
 B <- 1000  # Number of bootstrap samples
 K <- dim(UPS1.Case4)[1]/4 # Set the value for K based on the data size
 K <- floor(K) 
-num_cores <- 30  # Number of cores for parallel processing
+num_cores <- 10  # Number of cores for parallel processing
 cluster <- makeCluster(num_cores)  # Create a parallel cluster
 group.name <- "Conc."
 formula.str <- "~ 0 + Conc. + tool + fake.batch"  # Formula for group comparison
@@ -454,8 +454,8 @@ formula.str <- "~ 0 + Conc. + tool + fake.batch"  # Formula for group comparison
 limrots.result <- LimROTS(data.exp = UPS1.Case4, 
                           B = B, K = K, meta.info = meta.info, 
                           cluster = cluster, group.name = group.name, 
-                          formula.str = formula.str, trend = TRUE, robust = TRUE)
-saveRDS(limrots.result, "../LimROTS paper/UPS1.Case2.LimROTS.rds")
+                          formula.str = formula.str, trend = TRUE, robust = TRUE, progress = TRUE)
+saveRDS(limrots.result, "paperdata/UPS1.Case2.LimROTS.rds")
 ```
 
 ### Run limma
@@ -475,7 +475,7 @@ cont_matrix <- makeContrasts("Conc.1-Conc.2",  levels=design.matrix)
 fit2 <- contrasts.fit(fit, cont_matrix)
 fit.ebayes <- eBayes(fit2, trend=TRUE, robust=TRUE)
 limma.result <- topTable(fit.ebayes, coef="Conc.1-Conc.2" , number = "Inf")
-saveRDS(limma.result, "../LimROTS paper/UPS1.Case2.limma.rds")
+saveRDS(limma.result, "paperdata/UPS1.Case2.limma.rds")
 ```
 
 ### Run ANCOVA
@@ -498,7 +498,7 @@ for(i in 1:nrow(data)){
   ancova.result <- rbind(ancova.result, data.frame(protein = row.names(data)[i], p.value =significant_groups[, 5] ))
 }
 ancova.result$FDR <- p.adjust(ancova.result$p.value, method = "fdr")
-saveRDS(ancova.result, "../LimROTS paper/UPS1.Case2.ancova.rds")
+saveRDS(ancova.result, "paperdata/UPS1.Case2.ancova.rds")
 
 ```
 
@@ -612,7 +612,7 @@ formula.str <- "~ 0 + mixing.ratio"  # Formula for group comparison
 limrots.result <- LimROTS(data.exp = BM21.Case0, 
                           B = B, K = K, meta.info = meta.info, 
                           cluster = cluster, group.name = group.name, 
-                          formula.str = formula.str, trend = TRUE, robust = TRUE)
+                          formula.str = formula.str, trend = TRUE, robust = TRUE, progress = TRUE)
 
 saveRDS(limrots.result , "paperdata/BM21.Case0.limrots.rds")
 ```
@@ -795,7 +795,7 @@ meta.info <- "mixing.ratio"
 B <- 1000  # Number of bootstrap samples
 K <- dim(BM21.Case1)[1]/4  # Set the value for K based on the data size
 K <- floor(K) 
-num_cores <- 30   # Number of cores for parallel processing
+num_cores <- 10   # Number of cores for parallel processing
 cluster <- makeCluster(num_cores)  # Create a parallel cluster
 group.name <- "mixing.ratio"
 formula.str <- "~ 0 + mixing.ratio"  # Formula for group comparison
@@ -896,7 +896,7 @@ ancova.result$FDR <- p.adjust(ancova.result$p.value, method = "fdr")
 saveRDS(ancova.result, "paperdata/BM21.Case1.anova.rds")
 ```
 
-Run samr
+### Run samr
 
 ```{r}
 library(samr)
