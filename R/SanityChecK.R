@@ -63,6 +63,7 @@ SanityChecK <- function(data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
 
   }else{
     data <- data.exp
+    groups <- meta.info[,group.name]
   }
 
 
