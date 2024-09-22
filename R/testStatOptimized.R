@@ -15,6 +15,9 @@
 #'   \item \code{s}: Standard deviations (pooled or paired).
 #' }
 #'
+#' @examples
+#' # example code
+#'
 #' set.seed(123)
 #' groupA <- matrix(rnorm(20), nrow = 5)
 #' groupB <- matrix(rnorm(20), nrow = 5)

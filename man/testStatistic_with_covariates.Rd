@@ -47,6 +47,22 @@ computes contrasts between groups, and applies empirical Bayes moderation. For t
 function returns log-fold changes and associated statistics. In multi-group settings with a single covariate,
 it calculates pairwise contrasts and moderated F-statistics.
 }
+\examples{
+# example code
+
+ data <- list(group1 = t(matrix(rnorm(400), nrow = 10)),
+ group2 = t(matrix(rnorm(400), nrow = 10)))
+ data[[1]] <- data.frame(data[[1]])
+ colnames(data[[1]]) <- paste0("sample", 1:10)
+ data[[2]] <- data.frame(data[[2]])
+ colnames(data[[2]]) <- paste0("sample", 11:20)
+ meta.info <- data.frame(
+ row.names  = c(paste0("sample", 1:10), paste0("sample", 11:20)),
+ group = as.factor( c(rep(1, 10), rep(2, 10)) ))
+ formula.str <- "~ 0 + group"
+ result <- testStatistic_with_covariates(data, "group", meta.info, formula.str, trend = FALSE, robust = FALSE)
+
+}
 \seealso{
 \code{\link[limma]{lmFit}}, \code{\link[limma]{eBayes}}, \code{\link[limma]{topTable}},
 \code{\link[limma]{makeContrasts}}

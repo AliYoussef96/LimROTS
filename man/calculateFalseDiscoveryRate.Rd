@@ -24,3 +24,13 @@ A numeric vector of the same length as \code{observedValues}, containing the est
 This function calculates the false discovery rate (FDR) by comparing observed values to permuted values.
 The function sorts observed values, compares them against permuted data, and computes FDR using the median of permutation results.
 }
+\examples{
+# example code
+
+observedValues <- c(2.5, 1.8, 3.1, 0.7, 2.9)
+set.seed(123)
+permutedValues <- matrix(rnorm(5 * 5, mean = 2, sd = 1), nrow = 5)
+fdr <- calculateFalseDiscoveryRate(observedValues, permutedValues, showProgress = FALSE)
+print(fdr)
+
+}

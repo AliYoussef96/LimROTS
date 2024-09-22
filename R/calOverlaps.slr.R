@@ -18,8 +18,6 @@
 #'
 #' @return A list containing two matrices: \code{overlaps} for observed data and \code{overlaps_P} for permuted data.
 #'
-#' @export
-
 
 
 calOverlaps.slr <- function(D,

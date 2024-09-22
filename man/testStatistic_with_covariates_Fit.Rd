@@ -52,6 +52,20 @@ computes contrasts between the two groups and applies empirical Bayes moderation
 multi-group analysis with a single covariate, pairwise contrasts are computed, and the
 moderated F-statistic is calculated for each feature.
 }
+\examples{
+# example code
+
+data <- list(group1 = t(matrix(rnorm(400), nrow = 10)),
+group2 = t(matrix(rnorm(400), nrow = 10))   )
+meta.info <- data.frame(
+  sample_id = c(paste0("sample", 1:10), paste0("sample", 11:20)),
+  group = as.factor( c(rep(1, 10), rep(2, 10)) ))
+formula.str <- "~ 0 + group"
+result <- testStatistic_with_covariates_Fit(data, "group", meta.info, formula.str, trend = FALSE, robust = FALSE)
+
+
+
+}
 \seealso{
 \code{\link[limma]{lmFit}}, \code{\link[limma]{eBayes}}, \code{\link[limma]{topTable}},
 \code{\link[limma]{makeContrasts}}

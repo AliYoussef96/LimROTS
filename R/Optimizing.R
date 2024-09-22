@@ -28,7 +28,7 @@
 #'   \item \code{ztable}: Matrix of z-scores for all evaluated parameters.
 #' }
 #'
-#' @export
+#'
 #'
 
 

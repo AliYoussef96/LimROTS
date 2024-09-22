@@ -26,7 +26,7 @@
 #'   \item \code{K}: Top list size to be used in the analysis.
 #' }
 #'
-#' @export
+#'
 
 
 SanityChecK <- function(data.exp,
