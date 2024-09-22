@@ -96,24 +96,6 @@ SanityChecK <- function(data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
 
   }
 
-
-  ### Groups
-
-
-
-  if(!inherits(meta.info[,group.name], "character")){
-    meta.info[,group.name] <- factor(meta.info[,group.name])
-    groups.levels <- levels(groups)
-    meta.info[,group.name] <- as.numeric(meta.info[,group.name])
-  }else if(!inherits(meta.info[,group.name], "factor")){
-    meta.info[,group.name] <- as.numeric(meta.info[,group.name])
-    groups <- as.numeric( meta.info[,group.name] )
-  }else{
-    meta.info[,group.name] <- as.numeric(meta.info[,group.name])
-    groups <- as.numeric( meta.info[,group.name] )
-  }
-
-
   ### Sort
 
   if (nrow(meta.info) != ncol(data)) {
@@ -130,6 +112,22 @@ SanityChecK <- function(data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
   meta.info$temp <- NULL
 
 
+  ### Groups
+
+  if(inherits(meta.info[,group.name], "character")){
+    meta.info[,group.name] <- factor(meta.info[,group.name])
+    groups.levels <- levels(groups)
+    meta.info[,group.name] <- as.numeric(meta.info[,group.name])
+  }else if(inherits(meta.info[,group.name], "factor")){
+    groups <- as.numeric( meta.info[,group.name] )
+  }else{
+    meta.info[,group.name] <- as.numeric(meta.info[,group.name])
+    groups <- as.numeric( meta.info[,group.name] )
+  }
+
+
+
+
 
   if(survival  == TRUE){
     if(all(c("time", "event") %in% colnames(meta.info))){
@@ -138,8 +136,8 @@ SanityChecK <- function(data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
     event <- meta.info[,"event"]
     groups <- meta.info[,"time"]
   }else{
-    event = NULL
-    groups = NULL
+    event <- NULL
+    time <- NULL
   }
 
   groups <- groups + (1 - min(groups))
