@@ -16,10 +16,14 @@
 #' for each time point by comparing samples that experienced the event against those at risk.
 #' It calculates the standard deviation based on the variation among at-risk samples.
 #'
+#' @export
+#'
 
 
 
-testStatSurvivalOptimized <- function(sampleGroups, survivalTime, survivalEvent) {
+testStatSurvivalOptimized <- function(sampleGroups,
+                                      survivalTime,
+                                      survivalEvent) {
   allSamples <- do.call("cbind", sampleGroups)
   uniqueTimes <- unique(survivalTime[survivalEvent == 1])
 
@@ -31,8 +35,10 @@ testStatSurvivalOptimized <- function(sampleGroups, survivalTime, survivalEvent)
     eventIndices <- indicesEvent[which(survivalEvent[indicesEvent] == 1)]
 
     if (length(indicesAtRisk) > 1) {
-      meanDifference <- meanDifference + (rowSums(as.data.frame(allSamples[, eventIndices]), na.rm = TRUE) -
-                                            length(eventIndices) * rowMeans(allSamples[, indicesAtRisk], na.rm = TRUE))
+      meanDifference <- meanDifference + (
+        rowSums(as.data.frame(allSamples[, eventIndices]), na.rm = TRUE) -
+          length(eventIndices) * rowMeans(allSamples[, indicesAtRisk], na.rm = TRUE)
+      )
     }
   }
 
@@ -45,8 +51,10 @@ testStatSurvivalOptimized <- function(sampleGroups, survivalTime, survivalEvent)
 
     if (length(indicesAtRisk) > 1) {
       survivalSD <- survivalSD + ((length(eventIndices) / length(indicesAtRisk)) *
-                                    rowSums((allSamples[, indicesAtRisk] -
-                                               rowMeans(allSamples[, indicesAtRisk], na.rm = TRUE))^2, na.rm = TRUE))
+                                    rowSums((
+                                      allSamples[, indicesAtRisk] -
+                                        rowMeans(allSamples[, indicesAtRisk], na.rm = TRUE)
+                                    ) ^ 2, na.rm = TRUE))
     }
   }
 

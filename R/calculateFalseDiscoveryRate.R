@@ -9,46 +9,46 @@
 #'
 #' @return A numeric vector of the same length as `observedValues`, containing the estimated FDR for each observed value.
 #' @importFrom stats median
-#'
+#' @examples
+#' observedValues <- c(2.5, 1.8, 3.1, 0.7, 2.9)
+#' set.seed(123)
+#' permutedValues <- matrix(rnorm(5 * 5, mean = 2, sd = 1), nrow = 5)
+#' fdr <- calculateFalseDiscoveryRate(observedValues, permutedValues, showProgress = FALSE)
+#' print(fdr)
 #' @export
+#'
+#'
 
-calculateFalseDiscoveryRate <- function(observedValues, permutedValues, showProgress = FALSE) {
+calculateFalseDiscoveryRate <- function(observedValues,
+                                        permutedValues,
+                                        showProgress = FALSE) {
   observedAbs <- abs(observedValues)
   permutedAbs <- abs(permutedValues)
-
   ord <- order(observedAbs, decreasing = TRUE, na.last = TRUE)
   a <- observedAbs[ord]
-
   numPermutations <- ncol(permutedValues)
   FDRmatrix <- matrix(NA, nrow = length(a), ncol = numPermutations)
-
   if (showProgress) {
-    progressBar <- txtProgressBar(min = 0, max = numPermutations, style = 3)
+    progressBar <- txtProgressBar(min = 0,
+                                  max = numPermutations,
+                                  style = 3)
   }
-
   for (i in seq_len(numPermutations)) {
     a.rand <- sort(permutedAbs[, i], decreasing = TRUE, na.last = TRUE)
-
     n.bigger <- countLargerThan(a, a.rand)
-
     FDRmatrix[, i] <- n.bigger / seq_along(a)
-
     if (showProgress) {
       setTxtProgressBar(progressBar, i)
     }
   }
-
   if (showProgress) {
     close(progressBar)
   }
-
   falseDiscoveryRate <- apply(FDRmatrix, 1, median)
   falseDiscoveryRate[falseDiscoveryRate > 1] <- 1
-
   for (i in length(falseDiscoveryRate):1) {
     falseDiscoveryRate[i] <- min(falseDiscoveryRate[i:length(falseDiscoveryRate)])
   }
-
   return(falseDiscoveryRate)
 }
 
@@ -61,19 +61,17 @@ calculateFalseDiscoveryRate <- function(observedValues, permutedValues, showProg
 #'
 #' @return A numeric vector containing the counts of permuted values greater than or equal to the corresponding observed values.
 #'
-#' @export
+#'
 
 countLargerThan <- function(x, y) {
   n <- length(x)
   counts <- numeric(n)
   j <- 1  # Index for y
-
   for (i in seq_len(n)) {
     while (j <= length(y) && y[j] >= x[i]) {
       j <- j + 1
     }
     counts[i] <- j - 1
   }
-
   return(counts)
 }

@@ -4,17 +4,16 @@ Version: 0.99.0
 Authors@R: 
     person("Ali", "Youssef", , "aliali.mostafa99@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-5201-387X"))
-Description: Perform reproducibility-optimized test statistic (ROTS) analysis considering covariates.
-License: GPL-3
+Description: This function extends the ROTS (Reproducibility Optimized Test Statistic) method by integrating functionality from `limma` for differential expression analysis with optional covariates, survival data, and paired samples. It allows the user to specify additional covariates and models complex experimental designs.
+License: Artistic-2.0
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1
 Depends: R (>= 4.3.0)
 biocViews: Software, GeneExpression, DifferentialExpression,
-        Microarray, RNASeq, Proteomics, ImmunoOncology
+        Microarray, RNASeq, Proteomics, ImmunoOncology, Metabolomics
 URL: https://github.com/AliYoussef96/LimROTS
 BugReports: https://github.com/AliYoussef96/LimROTS/issues
-LazyData: true
 VignetteBuilder: 
     quarto
 Imports: 

@@ -15,6 +15,13 @@
 #'   \item \code{s}: Standard deviations (pooled or paired).
 #' }
 #'
+#' set.seed(123)
+#' groupA <- matrix(rnorm(20), nrow = 5)
+#' groupB <- matrix(rnorm(20), nrow = 5)
+#' sampleGroups <- list(groupA, groupB)
+#' result <- testStatOptimized(isPaired = FALSE, sampleGroups = sampleGroups)
+#' print(result)
+#'
 #' @export
 
 
@@ -26,8 +33,8 @@ testStatOptimized <- function(isPaired, sampleGroups) {
     meanA <- rowMeans(groupA, na.rm = TRUE)
     meanB <- rowMeans(groupB, na.rm = TRUE)
 
-    sumSqA <- rowSums((groupA - meanA)^2, na.rm = TRUE)
-    sumSqB <- rowSums((groupB - meanB)^2, na.rm = TRUE)
+    sumSqA <- rowSums((groupA - meanA) ^ 2, na.rm = TRUE)
+    sumSqB <- rowSums((groupB - meanB) ^ 2, na.rm = TRUE)
 
     if (!isPaired) {
       nonNAcountA <- rowSums(!is.na(groupA))
@@ -37,7 +44,8 @@ testStatOptimized <- function(isPaired, sampleGroups) {
       pooledSD <- sqrt(((sumSqA + sumSqB) / (nonNAcountA + nonNAcountB - 2)) *
                          (1 / nonNAcountA + 1 / nonNAcountB))
 
-      insufficientSamples <- which(nonNAcountA < 2 | nonNAcountB < 2)
+      insufficientSamples <- which(nonNAcountA < 2 |
+                                     nonNAcountB < 2)
       meanDiff[insufficientSamples] <- 0
       pooledSD[insufficientSamples] <- 1
 
@@ -66,7 +74,9 @@ testStatOptimized <- function(isPaired, sampleGroups) {
       factorScaling <- sum(sapply(sampleGroups, ncol)) / prod(sapply(sampleGroups, ncol))
 
       rowVariance <- rowSums(sapply(sampleGroups, function(group)
-        (rowMeans(group, na.rm = TRUE) - rowMeans(allSamples, na.rm = TRUE))^2))
+        (
+          rowMeans(group, na.rm = TRUE) - rowMeans(allSamples, na.rm = TRUE)
+        ) ^ 2))
 
       meanDiff <- sqrt(factorScaling * rowVariance)
 
@@ -74,7 +84,9 @@ testStatOptimized <- function(isPaired, sampleGroups) {
         sum(1 / sapply(sampleGroups, ncol))
 
       totalVariance <- rowSums(sapply(sampleGroups, function(group)
-        rowSums((group - rowMeans(group, na.rm = TRUE))^2, na.rm = TRUE)))
+        rowSums((
+          group - rowMeans(group, na.rm = TRUE)
+        ) ^ 2, na.rm = TRUE)))
 
       standardDev <- sqrt(scalingFactor * totalVariance)
 

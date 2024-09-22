@@ -21,6 +21,8 @@ devtools::check(vignettes = FALSE)
 
 devtools::check(vignettes = TRUE)
 
+devtools::test()
+
 devtools::build(vignettes = FALSE)
 devtools::build_vignettes()
 
