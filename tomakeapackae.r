@@ -7,8 +7,10 @@ usethis::create_package(".")
 
 roxygen2::roxygenize()
 
-Rcpp::compileAttributes()
+#Rcpp::compileAttributes()
 
+
+usethis::use_testthat()
 
 library(devtools)
 #test()

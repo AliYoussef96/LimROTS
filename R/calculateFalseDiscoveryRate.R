@@ -15,6 +15,8 @@
 #'
 #' @return A numeric vector of the same length as `observedValues`, containing the estimated FDR for each observed value.
 #'
+#' @importFrom stats median
+#'
 #' @export
 #'
 
@@ -61,8 +63,8 @@ calculateFalseDiscoveryRate <- function(observedValues, permutedValues, showProg
 #'
 #' This helper function compares observed values against permuted values and counts the number of permuted values that are greater than or equal to each observed value.
 #'
-#' @param observed Numeric vector. The observed values.
-#' @param permuted Numeric vector. The permuted values to compare against the observed values.
+#' @param x Numeric vector. The observed values.
+#' @param y Numeric vector. The permuted values to compare against the observed values.
 #'
 #' @return A numeric vector containing the counts of permuted values greater than or equal to the corresponding observed values.
 #'

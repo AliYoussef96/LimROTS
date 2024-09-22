@@ -52,7 +52,7 @@
 #' @importFrom limma voom lmFit eBayes
 #' @importFrom stats model.matrix formula p.adjust
 #' @importFrom dplyr bind_cols
-#' @importFrom parallel makeCluster clusterSetRNGStream clusterExport
+#' @importFrom parallel makeCluster clusterSetRNGStream clusterExport stopCluster
 #' @importFrom doParallel registerDoParallel
 #' @importFrom foreach foreach
 #' @import doRNG
@@ -66,7 +66,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
                                    verbose = TRUE, meta.info = NULL, cluster = NULL ,
                                   group.name = NULL , formula.str = NULL,
                      survival = FALSE, paired = FALSE,
-                     n.ROTS = FALSE, seed.cl = 1234)
+                     n.ROTS = FALSE, seed.cl = 1234, robust = TRUE, trend = TRUE)
 {
 
 
@@ -74,7 +74,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
                                   meta.info = meta.info,
                           group.name = group.name , formula.str = formula.str,
                           survival = survival, paired = paired,
-                          n.ROTS = n.ROTS, seed.cl = 1234)
+                          n.ROTS = n.ROTS, verbose = verbose)
 
 
   meta.info <-  SanityChecK.list$meta.info

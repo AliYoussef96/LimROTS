@@ -12,7 +12,6 @@
 #' @param survival Logical. If TRUE, survival analysis is used, requiring `time` and `event` columns in `meta.info`. Default is FALSE.
 #' @param paired Logical. If TRUE, indicates paired test setup. Default is FALSE.
 #' @param n.ROTS Logical. If TRUE, uses the ROTS method instead of LimROTS. Default is FALSE.
-#' @param seed.cl Integer. Random seed for reproducibility. Default is 1234.
 #'
 #' @details
 #' This function checks whether the input data and metadata are in the correct format, processes metadata from a `SummarizedExperiment` object if provided, and ensures that group information is correctly specified. If no top list size (`K`) is provided, it defaults to a quarter of the number of rows in the data.
@@ -33,7 +32,7 @@ SanityChecK <- function(data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
                        meta.info = NULL,
                        group.name = NULL , formula.str = NULL,
                        survival = FALSE, paired = FALSE,
-                       n.ROTS = FALSE, seed.cl = 1234){
+                       n.ROTS = FALSE, verbose = TRUE){
 
 
   ### SummarizedExperiment

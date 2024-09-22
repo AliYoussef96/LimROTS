@@ -15,8 +15,7 @@ SanityChecK(
   formula.str = NULL,
   survival = FALSE,
   paired = FALSE,
-  n.ROTS = FALSE,
-  seed.cl = 1234
+  n.ROTS = FALSE
 )
 }
 \arguments{
@@ -39,8 +38,6 @@ SanityChecK(
 \item{paired}{Logical. If TRUE, indicates paired test setup. Default is FALSE.}
 
 \item{n.ROTS}{Logical. If TRUE, uses the ROTS method instead of LimROTS. Default is FALSE.}
-
-\item{seed.cl}{Integer. Random seed for reproducibility. Default is 1234.}
 }
 \value{
 A list containing:
