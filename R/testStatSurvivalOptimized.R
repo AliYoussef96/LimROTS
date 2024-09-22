@@ -1,4 +1,23 @@
-#' @export
+#' @title Test Statistics for Survival Data
+#' @description This function calculates mean differences and standard deviations for survival data
+#' across different sample groups, considering at-risk samples at each unique event time.
+#'
+#' @param sampleGroups A list of matrices or data frames, where each element represents a group of samples
+#' (columns) with the same set of features (rows).
+#' @param survivalTime A numeric vector containing the survival times for each sample.
+#' @param survivalEvent A binary vector indicating the occurrence of an event (1 for event, 0 for censored)
+#' for each sample.
+#'
+#' @return A list containing:
+#' \item{d}{A numeric vector of mean differences for each feature across the groups.}
+#' \item{s}{A numeric vector of standard deviations for the mean differences.}
+#'
+#' @details The function identifies unique times from the survival data and computes the mean difference
+#' for each time point by comparing samples that experienced the event against those at risk.
+#' It calculates the standard deviation based on the variation among at-risk samples.
+#'
+
+
 
 testStatSurvivalOptimized <- function(sampleGroups, survivalTime, survivalEvent) {
   allSamples <- do.call("cbind", sampleGroups)

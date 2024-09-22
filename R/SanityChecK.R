@@ -1,3 +1,34 @@
+#' Sanity Check for Input Data and Parameters
+#'
+#' This function performs a series of checks and initial setups for input data, metadata, and parameters, ensuring everything is correctly formatted for downstream analysis.
+#'
+#' @param data.exp A matrix-like object or a `SummarizedExperiment` containing the data to be analyzed.
+#' @param B Integer. Number of bootstrap samples or resampling iterations. Default is 1000.
+#' @param K Integer. Top list size. If NULL, it will be set to a quarter of the number of rows in the data matrix. Default is NULL.
+#' @param a1,a2 Optional numeric parameters related to optimization.
+#' @param meta.info Data frame. Metadata associated with the samples (columns of `data.exp`). If `data.exp` is a `SummarizedExperiment`, `meta.info` can be a vector of `colData` column names to use.
+#' @param group.name Character. Column name in `meta.info` that defines the groups or conditions for comparison.
+#' @param formula.str Optional character string representing the formula for the model.
+#' @param survival Logical. If TRUE, survival analysis is used, requiring `time` and `event` columns in `meta.info`. Default is FALSE.
+#' @param paired Logical. If TRUE, indicates paired test setup. Default is FALSE.
+#' @param n.ROTS Logical. If TRUE, uses the ROTS method instead of LimROTS. Default is FALSE.
+#' @param seed.cl Integer. Random seed for reproducibility. Default is 1234.
+#'
+#' @details
+#' This function checks whether the input data and metadata are in the correct format, processes metadata from a `SummarizedExperiment` object if provided, and ensures that group information is correctly specified. If no top list size (`K`) is provided, it defaults to a quarter of the number of rows in the data.
+#'
+#' @return A list containing:
+#' \itemize{
+#'   \item \code{meta.info}: Processed metadata.
+#'   \item \code{data}: Processed data matrix.
+#'   \item \code{groups}: Numeric or factor vector indicating group assignments.
+#'   \item \code{event}: Event data for survival analysis (if applicable).
+#'   \item \code{K}: Top list size to be used in the analysis.
+#' }
+#'
+#' @export
+
+
 SanityChecK <- function(data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
                        meta.info = NULL,
                        group.name = NULL , formula.str = NULL,

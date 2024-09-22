@@ -1,4 +1,26 @@
+#' Calculate Overlaps for Single-Label Replicates (SLR)
+#'
+#' This function computes the overlap between two sets of observed and permuted values for single-label replicates (SLR).
+#' It calculates the proportion of overlap between pairs of vectors (res1/res2 and pres1/pres2) after sorting them.
+#'
+#' @param D Numeric vector. Observed data values (e.g., differences).
+#' @param pD Numeric vector. Permuted data values.
+#' @param nrow Integer. Number of rows in each block of data.
+#' @param N Integer vector. Number of top values to consider for overlap calculation.
+#' @param N_len Integer. Length of the `N` vector.
+#' @param B Integer. Number of bootstrap samples or resampling iterations.
+#' @param overlaps Numeric matrix. Matrix to store overlap results for observed data.
+#' @param overlaps_P Numeric matrix. Matrix to store overlap results for permuted data.
+#'
+#' @details
+#' The function calculates the overlap for two sets of comparisons: one for observed data (`res1`/`res2`) and one for permuted data (`pres1`/`pres2`).
+#' For each bootstrap sample, the function orders the two vectors being compared, then computes the proportion of overlap for the top `N` values.
+#'
+#' @return A list containing two matrices: \code{overlaps} for observed data and \code{overlaps_P} for permuted data.
+#'
 #' @export
+
+
 
 calOverlaps.slr <- function(D, pD, nrow, N, N_len, B, overlaps, overlaps_P) {
 

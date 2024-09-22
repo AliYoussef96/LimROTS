@@ -1,4 +1,30 @@
+#' Calculate Overlaps Between Observed and Permuted Data
+#'
+#' This function calculates the overlap between observed and permuted data for two sets of comparisons.
+#' It computes the ratio of overlap between pairs of vectors (res1/res2 and pres1/pres2) after sorting the values.
+#'
+#' @param D Numeric vector. Observed data values (e.g., differences).
+#' @param S Numeric vector. Standard errors or related values associated with the observed data.
+#' @param pD Numeric vector. Permuted data values (e.g., differences).
+#' @param pS Numeric vector. Standard errors or related values associated with the permuted data.
+#' @param nrow Integer. Number of rows in each block of data.
+#' @param N Integer vector. Number of top values to consider for overlap calculation.
+#' @param N_len Integer. Length of the `N` vector.
+#' @param ssq Numeric. A small constant added to standard errors for stability.
+#' @param B Integer. Number of bootstrap samples or resampling iterations.
+#' @param overlaps Numeric matrix. Matrix to store overlap results for observed data.
+#' @param overlaps_P Numeric matrix. Matrix to store overlap results for permuted data.
+#'
+#' @details
+#' The function calculates overlaps for two sets of comparisons: one for observed data (res1/res2) and one for permuted data (pres1/pres2).
+#' For each bootstrap sample, the function orders the two vectors being compared, then calculates the proportion of overlap for the top `N` values.
+#'
+#' @return A list containing two matrices: \code{overlaps} for observed data and \code{overlaps_P} for permuted data.
+#'
 #' @export
+
+
+
 calOverlaps <- function(D, S, pD, pS, nrow, N, N_len, ssq, B, overlaps, overlaps_P) {
 
   # sort based on one vector and operate on another

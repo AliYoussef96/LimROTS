@@ -17,12 +17,10 @@ LimROTS(
   cluster = NULL,
   group.name = NULL,
   formula.str = NULL,
-  trend = TRUE,
-  robust = TRUE,
-  time = NULL,
-  event = NULL,
+  survival = FALSE,
   paired = FALSE,
-  n.ROTS = FALSE
+  n.ROTS = FALSE,
+  seed.cl = 1234
 )
 }
 \arguments{
@@ -51,17 +49,15 @@ The values should be log-transformed \code{log}, or a SummarizedExperiment objec
 
 \item{formula.str}{An optional formula string used when covariates are present in \code{meta.info} for modeling.}
 
-\item{trend}{Logical, indicating whether to include trend fitting in the differential expression analysis. Default is TRUE.}
-
-\item{robust}{Logical, indicating whether robust fitting should be used. Default is TRUE.}
-
-\item{time}{A numeric vector representing survival times, if survival analysis is used.}
-
-\item{event}{A numeric vector indicating the survival event status (1 = event occurred, 0 = censored) corresponding to \code{time}.}
+\item{survival}{description}
 
 \item{paired}{Logical, indicating whether the data represent paired samples. Default is FALSE.}
 
 \item{n.ROTS}{Default is FALSE. If TRUE, all parameters related to LimROTS will be ignored, and the normal ROTS analysis will run.}
+
+\item{trend}{Logical, indicating whether to include trend fitting in the differential expression analysis. Default is TRUE.}
+
+\item{robust}{Logical, indicating whether robust fitting should be used. Default is TRUE.}
 }
 \value{
 A list of class \code{"list"} with the following elements:

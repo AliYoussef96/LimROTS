@@ -52,13 +52,13 @@
 #' @importFrom limma voom lmFit eBayes
 #' @importFrom stats model.matrix formula p.adjust
 #' @importFrom dplyr bind_cols
-#' @import parallel
-#' @import foreach
+#' @importFrom parallel makeCluster clusterSetRNGStream clusterExport
+#' @importFrom doParallel registerDoParallel
+#' @importFrom foreach foreach
 #' @import doRNG
 #' @importFrom qvalue empPvals qvalue
 #' @import utils
 #' @import SummarizedExperiment
-#' @importFrom doParallel registerDoParallel
 #' @export
 
 LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
