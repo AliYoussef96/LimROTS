@@ -13,7 +13,7 @@ Authors@R:
     comment = c(ORCID = "0009-0007-1347-7552")),
     person(given = "Eleanor", family = "Coffey", role = c("aut", "ths"),
     email = "elecof@utu.fi",
-    comment = c(ORCID = "0000-0002-9717-5610"))
+    comment = c(ORCID = "0000-0002-9717-5610")))
 Description: This function extends the ROTS (Reproducibility Optimized Test Statistic) method by integrating functionality from `limma` for differential expression analysis with optional covariates, survival data, and paired samples. It allows the user to specify additional covariates and models complex experimental designs.
 License: Artistic-2.0
 Encoding: UTF-8
