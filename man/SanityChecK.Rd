@@ -16,7 +16,8 @@ SanityChecK(
   survival = FALSE,
   paired = FALSE,
   n.ROTS = FALSE,
-  verbose = TRUE
+  verbose = TRUE,
+  log = TRUE
 )
 }
 \arguments{
