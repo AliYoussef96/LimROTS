@@ -24,9 +24,7 @@
 #'
 
 
-calculateFalseDiscoveryRate <- function(observedValues,
-                                        permutedValues,
-                                        showProgress = FALSE) {
+calculateFalseDiscoveryRate <- function(observedValues, permutedValues, showProgress = FALSE) {
     observedAbs <- abs(observedValues)
     permutedAbs <- abs(permutedValues)
     ord <- order(observedAbs, decreasing = TRUE, na.last = TRUE)

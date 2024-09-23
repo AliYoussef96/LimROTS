@@ -32,10 +32,8 @@ testStatOptimized <- function(isPaired, sampleGroups) {
             nonNAcountA <- rowSums(!is.na(groupA))
             nonNAcountB <- rowSums(!is.na(groupB))
             meanDiff <- meanB - meanA
-            pooledSD <- sqrt(((sumSqA + sumSqB) / (nonNAcountA + nonNAcountB - 2)) *
-                                 (1 / nonNAcountA + 1 / nonNAcountB))
-            insufficientSamples <- which(nonNAcountA < 2 |
-                                             nonNAcountB < 2)
+            pooledSD <- sqrt(((sumSqA + sumSqB) / (nonNAcountA + nonNAcountB - 2)) * (1 / nonNAcountA + 1 / nonNAcountB))
+            insufficientSamples <- which(nonNAcountA < 2 | nonNAcountB < 2)
             meanDiff[insufficientSamples] <- 0
             pooledSD[insufficientSamples] <- 1
             return(list(d = meanDiff, s = pooledSD))
@@ -43,8 +41,7 @@ testStatOptimized <- function(isPaired, sampleGroups) {
             covarianceAB <- rowSums((groupA - meanA) * (groupB - meanB), na.rm = TRUE)
             pairedCount <- rowSums(!is.na(groupA * groupB))
             meanDiff <- meanB - meanA
-            pairedSD <- sqrt(((sumSqA + sumSqB) / (2 * pairedCount - 2)) * (2 / pairedCount) -
-                                 2 / (pairedCount * (pairedCount - 1)) * covarianceAB)
+            pairedSD <- sqrt(((sumSqA + sumSqB) / (2 * pairedCount - 2)) * (2 / pairedCount) - 2 / (pairedCount * (pairedCount - 1)) * covarianceAB)
             insufficientSamples <- which(pairedCount < 2)
             meanDiff[insufficientSamples] <- 0
             pairedSD[insufficientSamples] <- 1
@@ -62,9 +59,7 @@ testStatOptimized <- function(isPaired, sampleGroups) {
             scalingFactor <- 1 / sum(sapply(sampleGroups, ncol) - 1) *
                 sum(1 / sapply(sampleGroups, ncol))
             totalVariance <- rowSums(sapply(sampleGroups, function(group)
-                rowSums((
-                    group - rowMeans(group, na.rm = TRUE)
-                ) ^ 2, na.rm = TRUE)))
+                rowSums(( group - rowMeans(group, na.rm = TRUE) ) ^ 2, na.rm = TRUE)))
             standardDev <- sqrt(scalingFactor * totalVariance)
         } else {
             stop("Multiple paired groups are not supported!")

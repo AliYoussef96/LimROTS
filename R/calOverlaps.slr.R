@@ -22,14 +22,7 @@
 
 
 
-calOverlaps.slr <- function(D,
-                            pD,
-                            nrow,
-                            N,
-                            N_len,
-                            B,
-                            overlaps,
-                            overlaps_P) {
+calOverlaps.slr <- function(D, pD, nrow, N, N_len, B, overlaps, overlaps_P) {
     sort2_1R <- function(a, b) {
         order_a <- order(a, b, decreasing = TRUE)
         a <- a[order_a]

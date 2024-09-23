@@ -31,19 +31,8 @@
 
 
 
-SanityChecK <- function(data.exp,
-                        B = 1000,
-                        K = NULL,
-                        a1 = NULL,
-                        a2 = NULL,
-                        meta.info = NULL,
-                        group.name = NULL ,
-                        formula.str = NULL,
-                        survival = FALSE,
-                        paired = FALSE,
-                        n.ROTS = FALSE,
-                        verbose = TRUE,
-                        log = TRUE) {
+SanityChecK <- function(data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL, meta.info = NULL, group.name = NULL ,
+                        formula.str = NULL, survival = FALSE, paired = FALSE, n.ROTS = FALSE, verbose = TRUE, log = TRUE) {
     if (survival == TRUE) {
         if (n.ROTS == FALSE) {
             stop(
