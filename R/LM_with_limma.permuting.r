@@ -51,8 +51,6 @@
 #' @import utils
 #' @importFrom stringr str_split_fixed fixed
 #'
-#' @export
-#'
 #'
 
 testStatistic_with_covariates_permutating <- function(data,
