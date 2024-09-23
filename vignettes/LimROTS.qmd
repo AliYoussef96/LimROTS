@@ -1,7 +1,9 @@
 ---
 title: "LimROTS Analysis"
 author: "Ali Youssef"
-format: html
+format: 
+  html:
+    toc: TRUE
 editor: visual
 vignette: >
   %\VignetteIndexEntry{LimROTS Analysis}

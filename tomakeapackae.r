@@ -23,8 +23,11 @@ devtools::check(vignettes = TRUE)
 
 devtools::test()
 
+usethis::use_vignette("LimROTS2")
+
 devtools::build(vignettes = FALSE)
-devtools::build_vignettes()
+
+devtools::build_vignettes(quiet = FALSE)
 
 library(BiocCheck)
 BiocCheck(`new-package`=TRUE)
