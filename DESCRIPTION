@@ -3,17 +3,17 @@ Title: Linear model Reproducibility Optimized Test Statistic
 Version: 0.99.0
 Authors@R: 
     c(person(given = "Ali", family = "Youssef", role = c("aut", "cre"), 
-           email= "aliali.mostafa99@gmail.com",
-           comment = c(ORCID = "0000-0002-5201-387X")),
-      person(given = "Leo", family = "Lahti", role = c("aut", "cre" ,"ths"),
-             email = "leo.lahti@iki.fi",
-             comment = c(ORCID = "0000-0001-5537-637X")),
-      person(given = "Akewak", family = "Jeba", role = c("aut", "cre"),
-             email = "akewak.k.jeba@utu.fi",
-             comment = c(ORCID = "0009-0007-1347-7552")),
-      person(given = "Eleanor", family = "Coffey", role = c("aut", "ths"),
-             email = "elecof@utu.fi",
-             comment = c(ORCID = "0000-0002-9717-5610"))
+    email= "aliali.mostafa99@gmail.com",
+    comment = c(ORCID = "0000-0002-5201-387X")),
+    person(given = "Leo", family = "Lahti", role = c("aut", "cre" ,"ths"),
+    email = "leo.lahti@iki.fi",
+    comment = c(ORCID = "0000-0001-5537-637X")),
+    person(given = "Akewak", family = "Jeba", role = c("aut", "cre"),
+    email = "akewak.k.jeba@utu.fi",
+    comment = c(ORCID = "0009-0007-1347-7552")),
+    person(given = "Eleanor", family = "Coffey", role = c("aut", "ths"),
+    email = "elecof@utu.fi",
+    comment = c(ORCID = "0000-0002-9717-5610"))
 Description: This function extends the ROTS (Reproducibility Optimized Test Statistic) method by integrating functionality from `limma` for differential expression analysis with optional covariates, survival data, and paired samples. It allows the user to specify additional covariates and models complex experimental designs.
 License: Artistic-2.0
 Encoding: UTF-8
