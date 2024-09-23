@@ -25,14 +25,3 @@ This function calculates the test statistic (mean differences and standard devia
 The function supports comparison between two groups or multiple groups of samples. For two groups, it computes the mean differences and pooled standard deviations for unpaired samples, or paired standard deviations for paired samples.
 When comparing more than two groups, it calculates the mean differences and standard deviations across all groups. For unpaired samples, a scaling factor based on sample size is used. Paired comparisons are only supported for two groups.
 }
-\examples{
-# example code
-
-set.seed(123)
-groupA <- matrix(rnorm(20), nrow = 5)
-groupB <- matrix(rnorm(20), nrow = 5)
-sampleGroups <- list(groupA, groupB)
-result <- testStatOptimized(isPaired = FALSE, sampleGroups = sampleGroups)
-print(result)
-
-}

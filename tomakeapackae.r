@@ -30,4 +30,4 @@ devtools::build(vignettes = FALSE)
 devtools::build_vignettes(quiet = FALSE)
 
 library(BiocCheck)
-BiocCheck(`new-package`=TRUE)
+BiocCheck(checkDir = "../LimROTS paper/")

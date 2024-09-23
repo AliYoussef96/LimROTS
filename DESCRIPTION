@@ -32,5 +32,5 @@ Suggests:
     ggplot2,
     devtools,
     testthat (>= 3.0.0),
-    Quarto
+    quarto
 Config/testthat/edition: 3

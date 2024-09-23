@@ -13,6 +13,7 @@
 #' @param paired Logical. If TRUE, indicates paired test setup. Default is FALSE.
 #' @param n.ROTS Logical. If TRUE, uses the ROTS method instead of LimROTS. Default is FALSE.
 #' @param verbose Logical, indicating whether to display messages during the function's execution. Default is TRUE.
+#' @param log Logical, indicating whether the data is already log-transformed. Default is TRUE.
 #'
 #' @details
 #' This function checks whether the input data and metadata are in the correct format, processes metadata from a `SummarizedExperiment` object if provided, and ensures that group information is correctly specified. If no top list size (`K`) is provided, it defaults to a quarter of the number of rows in the data.

@@ -42,6 +42,8 @@ SanityChecK(
 \item{n.ROTS}{Logical. If TRUE, uses the ROTS method instead of LimROTS. Default is FALSE.}
 
 \item{verbose}{Logical, indicating whether to display messages during the function's execution. Default is TRUE.}
+
+\item{log}{Logical, indicating whether the data is already log-transformed. Default is TRUE.}
 }
 \value{
 A list containing:
