@@ -19,11 +19,11 @@ roxygen2::roxygenize()
 
 devtools::check(vignettes = FALSE)
 
-devtools::check(vignettes = TRUE)
-
 devtools::test()
 
-usethis::use_vignette("LimROTS2")
+
+devtools::check(vignettes = TRUE)
+
 
 devtools::build(vignettes = FALSE)
 
