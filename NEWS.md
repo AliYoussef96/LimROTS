@@ -1,2 +1,4 @@
-Changes in version 0.99.0
-+ Submitted to Bioconductor
+# Changelog
+
+## 0.99.0
+- Submitted to Bioconductor
