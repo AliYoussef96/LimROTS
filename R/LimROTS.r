@@ -328,7 +328,7 @@ LimROTS <- function (data.exp,
         robust = robust
       )
     } else{
-      fit <- testStatOptimized(paired, lapply(split(1:length(groups), groups), function(x)
+      fit <- testStatOptimized(paired, lapply(split(seq_len(length(groups)), groups), function(x)
         data[, x]))
     }
     d <- fit$d / (a1 + a2 * fit$s)
