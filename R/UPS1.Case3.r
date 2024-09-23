@@ -1,10 +1,10 @@
 #' Spectronaut and ScaffoldDIA UPS1 Spiked Dataset case 3
 #'
-#' A `SummarizedExperiment` object containing DIA proteomics data from a UPS1-spiked E. coli proteins, processed using both Spectronaut and ScaffoldDIA separately, then merged.
+#' A \code{\link[SummarizedExperiment:SummarizedExperiment-class]{SummarizedExperiment}} object containing DIA proteomics data from a UPS1-spiked E. coli proteins, processed using both Spectronaut and ScaffoldDIA separately, then merged.
 #'
 #' @name UPS1.Case3
 #' @docType data
-#' @format An instance of the `SummarizedExperiment` class with the following assays:
+#' @format An instance of the \code{\link[SummarizedExperiment:SummarizedExperiment-class]{SummarizedExperiment}} class with the following assays:
 #' \describe{
 #'   \item{norm}{This assay includes log2 protein intensities calculated by averaging the peptides derived from the same protein}
 #' }
@@ -17,7 +17,7 @@
 #' The `colData` contains the following columns:
 #' \describe{
 #'   \item{SampleID}{Unique identifier for each sample.}
-#'   \item{Conc.}{Experimental condition or group for each sample , representing different conc. of UPS1-spiked proteins.}
+#'   \item{Conc}{Experimental condition or group for each sample , representing different conc. of UPS1-spiked proteins.}
 #'   \item{tool}{software tool used, Spectronaut or ScaffoldDIA.}
 #'   \item{inj}{MS injections (analytical replicates) number.}
 #' }

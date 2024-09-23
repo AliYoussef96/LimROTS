@@ -5,7 +5,7 @@
 \alias{UPS1.Case1}
 \title{Spectronaut UPS1 Spiked Dataset case 1}
 \format{
-An instance of the \code{SummarizedExperiment} class with the following assays:
+An instance of the \code{\link[SummarizedExperiment:SummarizedExperiment-class]{SummarizedExperiment}} class with the following assays:
 \describe{
 \item{norm}{This assay includes log2 protein intensities calculated by averaging the peptides derived from the same protein}
 }
@@ -18,7 +18,7 @@ The object also contains colData and rowData:
 The \code{colData} contains the following columns:
 \describe{
 \item{SampleID}{Unique identifier for each sample.}
-\item{Conc.}{Experimental condition or group for each sample , representing different conc. of UPS1-spiked proteins.}
+\item{Conc}{Experimental condition or group for each sample , representing different conc. of UPS1-spiked proteins.}
 \item{inj}{MS injections (analytical replicates) number.}
 }
 }
@@ -26,7 +26,7 @@ The \code{colData} contains the following columns:
 Generated with Spectronaut using a mixed mode acquisition method and FASTA mode for demonstration purposes.
 }
 \description{
-A \code{SummarizedExperiment} object containing DIA proteomics data from a UPS1-spiked E. coli proteins, processed using Spectronaut, with the UPS1-spiked proteins subsequently removed.
+A \code{\link[SummarizedExperiment:SummarizedExperiment-class]{SummarizedExperiment}} object containing DIA proteomics data from a UPS1-spiked E. coli proteins, processed using Spectronaut, with the UPS1-spiked proteins subsequently removed.
 }
 \references{
 Gotti, C., Roux-Dalvai, F., Joly-Beauparlant, C., Mangnier, L., Leclercq, M., & Droit, A. (2022). DIA proteomics data from a UPS1-spiked E.coli protein mixture processed with six software tools. In Data in Brief (Vol. 41, p. 107829). Elsevier BV. https://doi.org/10.1016/j.dib.2022.107829

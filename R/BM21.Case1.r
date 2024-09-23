@@ -1,10 +1,10 @@
 #' BM21 Dataset case 1
 #'
-#' A `SummarizedExperiment` object with a dataset was obtained from the Metabolomics Workbench (ST002454). Different matrix ratios of human plasma and vegetable juice were analyzed, This dataset contains three different mixing ratios, each with three technical replicates.
+#' A \code{\link[SummarizedExperiment:SummarizedExperiment-class]{SummarizedExperiment}} object with a dataset was obtained from the Metabolomics Workbench (ST002454). Different matrix ratios of human plasma and vegetable juice were analyzed, This dataset contains three different mixing ratios, each with three technical replicates.
 #'
 #' @name BM21.Case1
 #' @docType data
-#' @format An instance of the `SummarizedExperiment` class with the following assays:
+#' @format An instance of the \code{\link[SummarizedExperiment:SummarizedExperiment-class]{SummarizedExperiment}} class with the following assays:
 #' \describe{
 #'   \item{log2}{This assay includes log2 metabolites peaks}
 #' }
@@ -17,7 +17,7 @@
 #' The `colData` contains the following columns:
 #' \describe{
 #'   \item{SampleID}{Unique identifier for each sample.}
-#'   \item{mixing.ratio}{Experimental condition or group for each sample , representing different different mixing ratios of human plasma and vegetable juice .}
+#'   \item{mixingratio}{Experimental condition or group for each sample , representing different different mixing ratios of human plasma and vegetable juice .}
 #' }
 #'
 #' @source Bloody Mary (BM21)- Serial mixtures of vegetable juice/water and human plasma, Metabolomics Workbench (ST002454).
