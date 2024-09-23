@@ -82,7 +82,6 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL, log = T
         log = log
     )
 
-
     meta.info <-  SanityChecK.list$meta.info
     data <-  SanityChecK.list$data
     groups <-  SanityChecK.list$groups
