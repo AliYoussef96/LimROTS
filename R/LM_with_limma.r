@@ -50,7 +50,6 @@
 #' @importFrom stringr str_split_fixed fixed
 #' @importFrom limma makeContrasts lmFit contrasts.fit eBayes topTable
 #'
-#' @export
 #'
 
 

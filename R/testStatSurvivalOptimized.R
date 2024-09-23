@@ -16,7 +16,6 @@
 #' for each time point by comparing samples that experienced the event against those at risk.
 #' It calculates the standard deviation based on the variation among at-risk samples.
 #'
-#' @export
 #'
 
 
