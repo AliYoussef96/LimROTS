@@ -92,7 +92,8 @@ LimROTS <- function (data.exp,
     survival = survival,
     paired = paired,
     n.ROTS = n.ROTS,
-    verbose = verbose
+    verbose = verbose,
+    log = log
   )
 
 

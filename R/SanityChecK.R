@@ -40,7 +40,29 @@ SanityChecK <- function(data.exp,
                         survival = FALSE,
                         paired = FALSE,
                         n.ROTS = FALSE,
-                        verbose = TRUE) {
+                        verbose = TRUE,
+                        log = TRUE) {
+
+
+  if(survival == TRUE){
+    if(n.ROTS == FALSE){
+      stop("survival is TRUE, Survival analysis is only available through the old ROTS implementation. To enable this, please set n.ROTS to TRUE.")
+    }
+  }
+
+  if(paired == TRUE){
+    if(n.ROTS == FALSE){
+      stop("paired if TRUE, Paired analysis is only available through the old ROTS implementation. To enable this, please set n.ROTS to TRUE.")
+    }
+  }
+
+  if(log == FALSE){
+    if(n.ROTS == FALSE){
+      stop("log is FALSE, Unlogged values can only be handled through the old ROTS implementation. To enable this, please set n.ROTS to TRUE.")
+
+    }
+  }
+
   ### SummarizedExperiment
   if (inherits(data.exp, "SummarizedExperiment")) {
     message("Data is SummarizedExperiment object")
