@@ -15,6 +15,8 @@ usethis::use_testthat()
 library(devtools)
 #test()
 
+
+
 roxygen2::roxygenize()
 
 devtools::check(vignettes = FALSE)

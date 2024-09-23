@@ -427,3 +427,7 @@ limrots.result.df <- limrots.result.df[limrots.result.df$q.value < 0.01,]
 
 dim(limrots.result.df)
 ```
+
+```{r}
+sessionInfo()
+```

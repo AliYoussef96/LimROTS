@@ -23,37 +23,40 @@
 #'
 #'
 
+
 calculateFalseDiscoveryRate <- function(observedValues,
                                         permutedValues,
                                         showProgress = FALSE) {
-  observedAbs <- abs(observedValues)
-  permutedAbs <- abs(permutedValues)
-  ord <- order(observedAbs, decreasing = TRUE, na.last = TRUE)
-  a <- observedAbs[ord]
-  numPermutations <- ncol(permutedValues)
-  FDRmatrix <- matrix(NA, nrow = length(a), ncol = numPermutations)
-  if (showProgress) {
-    progressBar <- txtProgressBar(min = 0,
-                                  max = numPermutations,
-                                  style = 3)
-  }
-  for (i in seq_len(numPermutations)) {
-    a.rand <- sort(permutedAbs[, i], decreasing = TRUE, na.last = TRUE)
-    n.bigger <- countLargerThan(a, a.rand)
-    FDRmatrix[, i] <- n.bigger / seq_along(a)
+    observedAbs <- abs(observedValues)
+    permutedAbs <- abs(permutedValues)
+    ord <- order(observedAbs, decreasing = TRUE, na.last = TRUE)
+    a <- observedAbs[ord]
+    numPermutations <- ncol(permutedValues)
+    FDRmatrix <- matrix(NA, nrow = length(a), ncol = numPermutations)
     if (showProgress) {
-      setTxtProgressBar(progressBar, i)
+        progressBar <- txtProgressBar(min = 0,
+                                      max = numPermutations,
+                                      style = 3)
     }
-  }
-  if (showProgress) {
-    close(progressBar)
-  }
-  falseDiscoveryRate <- apply(FDRmatrix, 1, median)
-  falseDiscoveryRate[falseDiscoveryRate > 1] <- 1
-  for (i in length(falseDiscoveryRate):1) {
-    falseDiscoveryRate[i] <- min(falseDiscoveryRate[i:length(falseDiscoveryRate)])
-  }
-  return(falseDiscoveryRate)
+    for (i in seq_len(numPermutations)) {
+        a.rand <- sort(permutedAbs[, i],
+                       decreasing = TRUE,
+                       na.last = TRUE)
+        n.bigger <- countLargerThan(a, a.rand)
+        FDRmatrix[, i] <- n.bigger / seq_along(a)
+        if (showProgress) {
+            setTxtProgressBar(progressBar, i)
+        }
+    }
+    if (showProgress) {
+        close(progressBar)
+    }
+    falseDiscoveryRate <- apply(FDRmatrix, 1, median)
+    falseDiscoveryRate[falseDiscoveryRate > 1] <- 1
+    for (i in length(falseDiscoveryRate):1) {
+        falseDiscoveryRate[i] <- min(falseDiscoveryRate[i:length(falseDiscoveryRate)])
+    }
+    return(falseDiscoveryRate)
 }
 
 #' Count Larger Permuted Values (Optimized)
@@ -67,15 +70,16 @@ calculateFalseDiscoveryRate <- function(observedValues,
 #'
 #'
 
+
 countLargerThan <- function(x, y) {
-  n <- length(x)
-  counts <- numeric(n)
-  j <- 1  # Index for y
-  for (i in seq_len(n)) {
-    while (j <= length(y) && y[j] >= x[i]) {
-      j <- j + 1
+    n <- length(x)
+    counts <- numeric(n)
+    j <- 1  # Index for y
+    for (i in seq_len(n)) {
+        while (j <= length(y) && y[j] >= x[i]) {
+            j <- j + 1
+        }
+        counts[i] <- j - 1
     }
-    counts[i] <- j - 1
-  }
-  return(counts)
+    return(counts)
 }

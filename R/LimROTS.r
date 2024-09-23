@@ -61,6 +61,7 @@
 #' @import SummarizedExperiment
 #' @export
 
+
 LimROTS <- function (data.exp,
                      B = 1000,
                      K = NULL,
@@ -80,349 +81,370 @@ LimROTS <- function (data.exp,
                      robust = TRUE,
                      trend = TRUE)
 {
-  SanityChecK.list <- SanityChecK(
-    data.exp,
-    B = B,
-    K = K,
-    a1 = a1,
-    a2 = a2,
-    meta.info = meta.info,
-    group.name = group.name ,
-    formula.str = formula.str,
-    survival = survival,
-    paired = paired,
-    n.ROTS = n.ROTS,
-    verbose = verbose,
-    log = log
-  )
+    SanityChecK.list <- SanityChecK(
+        data.exp,
+        B = B,
+        K = K,
+        a1 = a1,
+        a2 = a2,
+        meta.info = meta.info,
+        group.name = group.name ,
+        formula.str = formula.str,
+        survival = survival,
+        paired = paired,
+        n.ROTS = n.ROTS,
+        verbose = verbose,
+        log = log
+    )
 
 
-  meta.info <-  SanityChecK.list$meta.info
-  data <-  SanityChecK.list$data
-  groups <-  SanityChecK.list$groups
-  event <-  SanityChecK.list$event
-  K <-  SanityChecK.list$K
+    meta.info <-  SanityChecK.list$meta.info
+    data <-  SanityChecK.list$data
+    groups <-  SanityChecK.list$groups
+    event <-  SanityChecK.list$event
+    K <-  SanityChecK.list$K
 
-  #### FC
+    #### FC
 
-  if (length(unique(groups)) == 2 && survival == FALSE) {
-    group1_data <- data[, groups == 1]
-    group2_data <- data[, groups == 2]
+    if (length(unique(groups)) == 2 && survival == FALSE) {
+        group1_data <- data[, groups == 1]
+        group2_data <- data[, groups == 2]
 
-    if (log) {
-      logfc <- rowMeans(group1_data, na.rm = TRUE) - rowMeans(group2_data, na.rm = TRUE)
+        if (log) {
+            logfc <- rowMeans(group1_data, na.rm = TRUE) - rowMeans(group2_data, na.rm = TRUE)
+        } else {
+            logfc <- rowMeans(log2(group1_data + 1), na.rm = TRUE) - rowMeans(log2(group2_data + 1), na.rm = TRUE)
+        }
     } else {
-      logfc <- rowMeans(log2(group1_data + 1), na.rm = TRUE) - rowMeans(log2(group2_data + 1), na.rm = TRUE)
+        logfc <- rep(NA, nrow(data))
     }
-  } else {
-    logfc <- rep(NA, nrow(data))
-  }
 
 
-  if (verbose)
-    message("Bootstrapping samples")
+    if (verbose)
+        message("Bootstrapping samples")
 
 
-  if (n.ROTS == FALSE) {
-    if (ncol(meta.info) > 1) {
-      samples <- bootstrapSamples.limRots(
-        data = data,
-        B = 2 * B,
-        meta.info = meta.info,
-        group.name =  group.name
-      )
-      pSamples <- NULL
+    if (n.ROTS == FALSE) {
+        if (ncol(meta.info) > 1) {
+            samples <- bootstrapSamples.limRots(
+                data = data,
+                B = 2 * B,
+                meta.info = meta.info,
+                group.name =  group.name
+            )
+            pSamples <- NULL
+        } else{
+            paired <- FALSE
+            samples <- bootstrapS(2 * B, meta.info , group.name, paired)
+            pSamples <- NULL
+        }
     } else{
-      paired <- FALSE
-      samples <- bootstrapS(2 * B, meta.info , group.name, paired)
-      pSamples <- NULL
+        samples <- bootstrapS(2 * B, meta.info , group.name, paired)
+        pSamples <- permutatedS(meta.info, 2 * B)
     }
-  } else{
-    samples <- bootstrapS(2 * B, meta.info , group.name, paired)
-    pSamples <- permutatedS(meta.info, 2 * B)
-  }
 
-  D <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
-  S <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
-  pD <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
-  pS <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
+    D <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
+    S <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
+    pD <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
+    pS <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
 
-  pb <- txtProgressBar(min = 0, max = 100, style = 3)
+    pb <- txtProgressBar(min = 0,
+                         max = 100,
+                         style = 3)
 
-  if (is.null(cluster)) {
-    cluster <- makeCluster(2)
-    registerDoParallel(cluster)
-    message("No cluster found; only two cores will be used!")
-  } else{
-    registerDoParallel(cluster)
-  }
+    if (is.null(cluster)) {
+        cluster <- makeCluster(2)
+        registerDoParallel(cluster)
+        message("No cluster found; only two cores will be used!")
+    } else{
+        registerDoParallel(cluster)
+    }
 
-  clusterSetRNGStream(cluster, iseed = seed.cl)
-  clusterExport(
-    cluster,
-    varlist = c(
-      "pb",
-      "samples" ,
-      "pSamples" ,
-      "D",
-      "data",
-      "S" ,
-      "pD" ,
-      "pS",
-      "time",
-      "formula.str",
-      "group.name" ,
-      "groups",
-      "event",
-      "meta.info",
-      "a1" ,
-      "a2",
-      "trend",
-      "robust" ,
-      "n.ROTS",
-      "survival"
-    )  ,
-    envir = environment()
-  )
+    clusterSetRNGStream(cluster, iseed = seed.cl)
+    clusterExport(
+        cluster,
+        varlist = c(
+            "pb",
+            "samples" ,
+            "pSamples" ,
+            "D",
+            "data",
+            "S" ,
+            "pD" ,
+            "pS",
+            "time",
+            "formula.str",
+            "group.name" ,
+            "groups",
+            "event",
+            "meta.info",
+            "a1" ,
+            "a2",
+            "trend",
+            "robust" ,
+            "n.ROTS",
+            "survival"
+        )  ,
+        envir = environment()
+    )
 
 
 
-  if (progress) {
-    setTxtProgressBar(pb, 50)
-  }
-  results_list <- foreach(
-    i = seq_len(nrow(samples)),
-    .combine = "c",
-    .options.RNG = seed.cl,
-    .packages = c("utils", "dplyr" , "stringr", "stats" , "LimROTS")
-  ) %dorng% {
-    samples.R <- split(samples[i, ], groups)
+    if (progress) {
+        setTxtProgressBar(pb, 50)
+    }
+    results_list <- foreach(
+        i = seq_len(nrow(samples)),
+        .combine = "c",
+        .options.RNG = seed.cl,
+        .packages = c("utils", "dplyr" , "stringr", "stats" , "LimROTS")
+    ) %dorng% {
+        samples.R <- split(samples[i, ], groups)
 
-    # Initialize placeholders for results
-    d_result <- s_result <- pd_result <- ps_result <- NULL
+        # Initialize placeholders for results
+        d_result <- s_result <- pd_result <- ps_result <- NULL
 
-    # Compute D and S if conditions are met
+        # Compute D and S if conditions are met
+        if (is.null(a1) | is.null(a2)) {
+            if (survival == TRUE) {
+                fit <- testStatSurvivalOptimized(lapply(samples.R, function(x)
+                    data[, x]),
+                    groups,
+                    event)
+
+            } else if (n.ROTS == FALSE) {
+                fit <- testStatistic_with_covariates(
+                    data = lapply(samples.R, function(x)
+                        data[, x]),
+                    group.name = group.name,
+                    meta.info = meta.info,
+                    formula.str = formula.str,
+                    trend =
+                        trend,
+                    robust = robust
+                )
+
+            } else{
+                fit <- testStatOptimized(paired, lapply(samples.R, function(x)
+                    data[, x]))
+            }
+            d_result <- fit$d
+            s_result <- fit$s
+
+            df1 <- data.frame(d_result = d_result , s_result = s_result)
+        }
+
+        # Compute pD and pS
+        if (survival == TRUE) {
+            pSamples.R <- split(pSamples[i, ], groups)
+
+            pFit <- testStatSurvivalOptimized(lapply(pSamples.R, function(x)
+                data[, x]), groups, event)
+        } else if (n.ROTS == FALSE) {
+            pFit <- testStatistic_with_covariates_permutating(
+                data = lapply(split(seq_len(
+                    length(groups)
+                ), groups), function(x)
+                    data[, x]),
+                group.name = group.name,
+                meta.info = meta.info,
+                formula.str = formula.str,
+                trend =
+                    trend,
+                robust = robust
+            )
+        } else{
+            pSamples.R <- split(pSamples[i, ], groups)
+
+            pFit <- testStatOptimized(paired, lapply(pSamples.R, function(x)
+                data[, x]))
+        }
+        pd_result <- pFit$d
+        ps_result <- pFit$s
+
+        df2 <- data.frame(pd_result = pd_result , ps_result = ps_result)
+
+
+        # Return results for this iteration as a data frame
+        list(ds = df1, pdps = df2)
+    }
+
+    stopCluster(cluster)
+
+    if (progress) {
+        setTxtProgressBar(pb, 80)
+    }
+
+    names(results_list) <- paste0(names(results_list) , seq(1, length(names(results_list))))
+
+    j <-  0
+    q <-  0
+    # Populate matrices D, S, pD, pS from results
+    for (i in seq_along(results_list)) {
+        if (grepl("ds", names(results_list)[i], fixed = TRUE)) {
+            j <- j + 1
+            D[, j] <- results_list[[names(results_list)[i]]]$d_result
+            S[, j] <- results_list[[names(results_list)[i]]]$s_result
+        } else{
+            q <- q + 1
+            pD[, q] <- results_list[[names(results_list)[i]]]$pd_result
+            pS[, q] <- results_list[[names(results_list)[i]]]$ps_result
+        }
+
+    }
+
+
+    if (progress) {
+        setTxtProgressBar(pb, 100)
+    }
+
+
+    if (progress)
+        close(pb)
+    rm(samples, pSamples)
+    gc()
+
     if (is.null(a1) | is.null(a2)) {
-      if (survival == TRUE) {
-        fit <- testStatSurvivalOptimized(lapply(samples.R, function(x)
-          data[, x]), groups, event)
+        ssq <- c(seq(0, 20) / 100, seq(11, 50) / 50, seq(6, 25) / 5)
+        N <- c(seq(1, 20) * 5,
+               seq(11, 50) * 10,
+               seq(21, 40) * 25,
+               seq(11, 1000) *
+                   100)
+        K <- min(K, nrow(data))
+        N <- N[N < K]
 
-      } else if (n.ROTS == FALSE) {
-        fit <- testStatistic_with_covariates(
-          data = lapply(samples.R, function(x)
-            data[, x]),
-          group.name = group.name,
-          meta.info = meta.info,
-          formula.str = formula.str,
-          trend =
-            trend,
-          robust = robust
+        optimized.parameters <- Optimizing(B, ssq, N, D, S, pD, pS, verbose, progress)
+
+
+        a1 <- optimized.parameters$a1
+        a2 <- optimized.parameters$a2
+        k <- optimized.parameters$k
+        R <- optimized.parameters$R
+        Z <- optimized.parameters$Z
+        ztable <- optimized.parameters$ztable
+
+        if (survival == TRUE) {
+            fit <- testStatSurvivalOptimized(lapply(split(seq_len(
+                length(groups)
+            ), groups), function(x)
+                data[, x]), groups, event)
+        } else if (n.ROTS == FALSE) {
+            fit <- testStatistic_with_covariates_Fit(
+                data = lapply(split(seq_len(
+                    length(groups)
+                ), groups), function(x)
+                    data[, x]),
+                group.name = group.name ,
+                meta.info = meta.info,
+                formula.str = formula.str,
+                trend = trend,
+                robust = robust
+            )
+        } else{
+            fit <- testStatOptimized(paired, lapply(split(seq_len(
+                length(groups)
+            ), groups), function(x)
+                data[, x]))
+        }
+        d <- fit$d / (a1 + a2 * fit$s)
+        pD <- pD / (a1 + a2 * pS)
+        rm(pS)
+        gc()
+        if (verbose)
+            message("Calculating p-values")
+        p <- empPvals(stat = d,
+                      stat0 = pD,
+                      pool = TRUE)
+        if (verbose)
+            message("Calculating FDR")
+
+        FDR <- calculateFalseDiscoveryRate(d, pD, progress)
+        corrected.logfc <- fit$corrected.logfc
+        rm(pD)
+        gc()
+
+        q_values <- qvalue(p,
+                           pi0.method = "bootstrap",
+                           lambda = seq(0.01, 0.95, 0.01))
+        BH.pvalue <- p.adjust(p, method = "BH")
+
+        LimROTS.output <- list(
+            data = data,
+            B = B,
+            d = d,
+            logfc = logfc,
+            pvalue = p,
+            FDR = FDR,
+            a1 = a1,
+            a2 = a2,
+            k = k,
+            R = R,
+            Z = Z,
+            ztable = ztable,
+            groups = groups ,
+            corrected.logfc = corrected.logfc,
+            q_values = q_values ,
+            BH.pvalue = BH.pvalue
         )
-
-      } else{
-        fit <- testStatOptimized(paired, lapply(samples.R, function(x)
-          data[, x]))
-      }
-      d_result <- fit$d
-      s_result <- fit$s
-
-      df1 <- data.frame(d_result = d_result , s_result = s_result)
     }
+    else {
+        if (survival == TRUE) {
+            fit <- testStatSurvivalOptimized(lapply(split(seq_len(
+                length(groups)
+            ), groups), function(x)
+                data[, x]), groups, event)
+        } else if (n.ROTS == FALSE) {
+            fit <- testStatistic_with_covariates_Fit(
+                data = lapply(split(seq_len(
+                    length(groups)
+                ), groups), function(x)
+                    data[, x]),
+                group.name = group.name ,
+                meta.info = meta.info ,
+                formula.str = formula.str,
+                trend = trend,
+                robust = robust
+            )
+        } else{
+            fit <- testStatOptimized(paired, lapply(split(seq_len(
+                length(groups)
+            ), groups), function(x)
+                data[, x]))
+        }
 
-    # Compute pD and pS
-    if (survival == TRUE) {
-      pSamples.R <- split(pSamples[i, ], groups)
-
-      pFit <- testStatSurvivalOptimized(lapply(pSamples.R, function(x)
-        data[, x]), groups, event)
-    } else if (n.ROTS == FALSE) {
-      pFit <- testStatistic_with_covariates_permutating(
-        data = lapply(split(seq_len(length(groups)), groups), function(x)
-          data[, x]),
-        group.name = group.name,
-        meta.info = meta.info,
-        formula.str = formula.str,
-        trend =
-          trend,
-        robust = robust
-      )
-    } else{
-      pSamples.R <- split(pSamples[i, ], groups)
-
-      pFit <- testStatOptimized(paired, lapply(pSamples.R, function(x)
-        data[, x]))
+        d <- fit$d / (a1 + a2 * fit$s)
+        pD <- pD / (a1 + a2 * pS)
+        if (verbose)
+            message("Calculating p-values")
+        p <- empPvals(stat = d,
+                      stat0 = pD,
+                      pool = TRUE)
+        if (verbose)
+            message("Calculating FDR")
+        FDR <- calculateFalseDiscoveryRate(d, pD, progress)
+        corrected.logfc <- fit$corrected.logfc
+        q_values <-  qvalue(p,
+                            pi0.method = "bootstrap",
+                            lambda = seq(0.01, 0.95, 0.01))
+        BH.pvalue <- p.adjust(p, method = "BH")
+        LimROTS.output <- list(
+            data = data,
+            B = B,
+            d = d,
+            logfc = logfc ,
+            pvalue = p,
+            FDR = FDR,
+            a1 = a1,
+            a2 = a2,
+            k = NULL,
+            R = NULL,
+            Z = NULL,
+            groups = groups ,
+            corrected.logfc = corrected.logfc,
+            q_values = q_values ,
+            BH.pvalue = BH.pvalue
+        )
     }
-    pd_result <- pFit$d
-    ps_result <- pFit$s
-
-    df2 <- data.frame(pd_result = pd_result , ps_result = ps_result)
-
-
-    # Return results for this iteration as a data frame
-    list(ds = df1, pdps = df2)
-  }
-
-  stopCluster(cluster)
-
-  if (progress) {
-    setTxtProgressBar(pb, 80)
-  }
-
-  names(results_list) <- paste0(names(results_list) , seq(1, length(names(results_list))))
-
-  j <-  0
-  q <-  0
-  # Populate matrices D, S, pD, pS from results
-  for (i in seq_along(results_list)) {
-    if (grepl("ds", names(results_list)[i], fixed = TRUE)) {
-      j <- j + 1
-      D[, j] <- results_list[[names(results_list)[i]]]$d_result
-      S[, j] <- results_list[[names(results_list)[i]]]$s_result
-    } else{
-      q <- q + 1
-      pD[, q] <- results_list[[names(results_list)[i]]]$pd_result
-      pS[, q] <- results_list[[names(results_list)[i]]]$ps_result
-    }
-
-  }
-
-
-  if (progress) {
-    setTxtProgressBar(pb, 100)
-  }
-
-
-  if (progress)
-    close(pb)
-  rm(samples, pSamples)
-  gc()
-
-  if (is.null(a1) | is.null(a2)) {
-    ssq <- c(seq(0,20) / 100, seq(11,50) / 50, seq(6,25) / 5)
-    N <- c(seq(1,20) * 5, seq(11,50) * 10, seq(21,40) * 25, seq(11,1000) *
-             100)
-    K <- min(K, nrow(data))
-    N <- N[N < K]
-
-    optimized.parameters <- Optimizing(B, ssq, N, D, S, pD, pS, verbose, progress)
-
-
-    a1 <- optimized.parameters$a1
-    a2 <- optimized.parameters$a2
-    k <- optimized.parameters$k
-    R <- optimized.parameters$R
-    Z <- optimized.parameters$Z
-    ztable <- optimized.parameters$ztable
-
-    if (survival == TRUE) {
-      fit <- testStatSurvivalOptimized(lapply(split(seq_len(length(groups)), groups), function(x)
-        data[, x]), groups, event)
-    } else if (n.ROTS == FALSE) {
-      fit <- testStatistic_with_covariates_Fit(
-        data = lapply(split(seq_len(length(groups)), groups), function(x)
-          data[, x]),
-        group.name = group.name ,
-        meta.info = meta.info,
-        formula.str = formula.str,
-        trend = trend,
-        robust = robust
-      )
-    } else{
-      fit <- testStatOptimized(paired, lapply(split(seq_len(length(groups)), groups), function(x)
-        data[, x]))
-    }
-    d <- fit$d / (a1 + a2 * fit$s)
-    pD <- pD / (a1 + a2 * pS)
-    rm(pS)
-    gc()
-    if (verbose)
-      message("Calculating p-values")
-    p <- empPvals(stat = d,
-                  stat0 = pD,
-                  pool = TRUE)
-    if (verbose)
-      message("Calculating FDR")
-
-    FDR <- calculateFalseDiscoveryRate(d, pD, progress)
-    corrected.logfc <- fit$corrected.logfc
-    rm(pD)
-    gc()
-
-    q_values <- qvalue(p,
-                       pi0.method = "bootstrap",
-                       lambda = seq(0.01, 0.95, 0.01))
-    BH.pvalue <- p.adjust(p, method = "BH")
-
-    LimROTS.output <- list(
-      data = data,
-      B = B,
-      d = d,
-      logfc = logfc,
-      pvalue = p,
-      FDR = FDR,
-      a1 = a1,
-      a2 = a2,
-      k = k,
-      R = R,
-      Z = Z,
-      ztable = ztable,
-      groups = groups ,
-      corrected.logfc = corrected.logfc,
-      q_values = q_values ,
-      BH.pvalue = BH.pvalue
-    )
-  }
-  else {
-    if (survival == TRUE) {
-      fit <- testStatSurvivalOptimized(lapply(split(seq_len(length(groups)), groups), function(x)
-        data[, x]), groups, event)
-    } else if (n.ROTS == FALSE) {
-      fit <- testStatistic_with_covariates_Fit(
-        data = lapply(split(seq_len(length(groups)), groups), function(x)
-          data[, x]),
-        group.name = group.name ,
-        meta.info = meta.info ,
-        formula.str = formula.str,
-        trend = trend,
-        robust = robust
-      )
-    } else{
-      fit <- testStatOptimized(paired, lapply(split(seq_len(length(groups)), groups), function(x)
-        data[, x]))
-    }
-
-    d <- fit$d / (a1 + a2 * fit$s)
-    pD <- pD / (a1 + a2 * pS)
-    if (verbose)
-      message("Calculating p-values")
-    p <- empPvals(stat = d,
-                  stat0 = pD,
-                  pool = TRUE)
-    if (verbose)
-      message("Calculating FDR")
-    FDR <- calculateFalseDiscoveryRate(d, pD, progress)
-    corrected.logfc <- fit$corrected.logfc
-    q_values <-  qvalue(p,
-                        pi0.method = "bootstrap",
-                        lambda = seq(0.01, 0.95, 0.01))
-    BH.pvalue <- p.adjust(p, method = "BH")
-    LimROTS.output <- list(
-      data = data,
-      B = B,
-      d = d,
-      logfc = logfc ,
-      pvalue = p,
-      FDR = FDR,
-      a1 = a1,
-      a2 = a2,
-      k = NULL,
-      R = NULL,
-      Z = NULL,
-      groups = groups ,
-      corrected.logfc = corrected.logfc,
-      q_values = q_values ,
-      BH.pvalue = BH.pvalue
-    )
-  }
-  return(LimROTS.output)
+    return(LimROTS.output)
 }
