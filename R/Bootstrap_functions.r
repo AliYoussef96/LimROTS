@@ -121,9 +121,8 @@ bootstrapSamples.limRots <- function (data, B, meta.info , group.name)
             meta.info.factors <- c()
             for (j in seq_len(ncol(meta.info))) {
                 if (is.factor(meta.info.pos[, j])) {
-                    meta.info.factors <- c(meta.info.factors,
-                                           colnames(meta.info.pos)[j])
-                }
+                    meta.info.factors <- c(meta.info.factors,colnames(meta.info.pos)[j])
+                    }
             }
             if (is.null(meta.info.factors)) {
                 samples <-  bootstrapS(

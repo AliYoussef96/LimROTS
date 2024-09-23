@@ -62,24 +62,9 @@
 #' @export
 
 
-LimROTS <- function (data.exp,
-                     B = 1000,
-                     K = NULL,
-                     a1 = NULL,
-                     a2 = NULL,
-                     log = TRUE,
-                     progress = FALSE,
-                     verbose = TRUE,
-                     meta.info = NULL,
-                     cluster = NULL ,
-                     group.name = NULL ,
-                     formula.str = NULL,
-                     survival = FALSE,
-                     paired = FALSE,
-                     n.ROTS = FALSE,
-                     seed.cl = 1234,
-                     robust = TRUE,
-                     trend = TRUE)
+LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL, log = TRUE, progress = FALSE,
+                     verbose = TRUE, meta.info = NULL, cluster = NULL , group.name = NULL , formula.str = NULL,
+                     survival = FALSE, paired = FALSE, n.ROTS = FALSE, seed.cl = 1234, robust = TRUE, trend = TRUE)
 {
     SanityChecK.list <- SanityChecK(
         data.exp,
