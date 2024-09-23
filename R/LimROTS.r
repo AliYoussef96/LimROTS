@@ -237,7 +237,7 @@ LimROTS <- function (data.exp,
         data[, x]), groups, event)
     } else if (n.ROTS == FALSE) {
       pFit <- testStatistic_with_covariates_permutating(
-        data = lapply(split(1:length(groups), groups), function(x)
+        data = lapply(split(seq_len(length(groups)), groups), function(x)
           data[, x]),
         group.name = group.name,
         meta.info = meta.info,
@@ -298,8 +298,8 @@ LimROTS <- function (data.exp,
   gc()
 
   if (is.null(a1) | is.null(a2)) {
-    ssq <- c((0:20) / 100, (11:50) / 50, (6:25) / 5)
-    N <- c((1:20) * 5, (11:50) * 10, (21:40) * 25, (11:1000) *
+    ssq <- c(seq(0,20) / 100, seq(11,50) / 50, seq(6,25) / 5)
+    N <- c(seq(1,20) * 5, seq(11,50) * 10, seq(21,40) * 25, seq(11,1000) *
              100)
     K <- min(K, nrow(data))
     N <- N[N < K]
@@ -315,11 +315,11 @@ LimROTS <- function (data.exp,
     ztable <- optimized.parameters$ztable
 
     if (survival == TRUE) {
-      fit <- testStatSurvivalOptimized(lapply(split(1:length(groups), groups), function(x)
+      fit <- testStatSurvivalOptimized(lapply(split(seq_len(length(groups)), groups), function(x)
         data[, x]), groups, event)
     } else if (n.ROTS == FALSE) {
       fit <- testStatistic_with_covariates_Fit(
-        data = lapply(split(1:length(groups), groups), function(x)
+        data = lapply(split(seq_len(length(groups)), groups), function(x)
           data[, x]),
         group.name = group.name ,
         meta.info = meta.info,
@@ -374,11 +374,11 @@ LimROTS <- function (data.exp,
   }
   else {
     if (survival == TRUE) {
-      fit <- testStatSurvivalOptimized(lapply(split(1:length(groups), groups), function(x)
+      fit <- testStatSurvivalOptimized(lapply(split(seq_len(length(groups)), groups), function(x)
         data[, x]), groups, event)
     } else if (n.ROTS == FALSE) {
       fit <- testStatistic_with_covariates_Fit(
-        data = lapply(split(1:length(groups), groups), function(x)
+        data = lapply(split(seq_len(length(groups)), groups), function(x)
           data[, x]),
         group.name = group.name ,
         meta.info = meta.info ,
@@ -387,7 +387,7 @@ LimROTS <- function (data.exp,
         robust = robust
       )
     } else{
-      fit <- testStatOptimized(paired, lapply(split(1:length(groups), groups), function(x)
+      fit <- testStatOptimized(paired, lapply(split(seq_len(length(groups)), groups), function(x)
         data[, x]))
     }
 

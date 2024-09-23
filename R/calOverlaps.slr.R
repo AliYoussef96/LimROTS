@@ -49,7 +49,7 @@ calOverlaps.slr <- function(D,
     r3_res <- sort(res2, decreasing = TRUE)
     for (i in seq_len(N_len)) {
       N_i <- N[i]
-      sum_overlap <- sum(res2[1:N_i] >= r3_res[N_i])
+      sum_overlap <- sum(res2[seq_len(N_i)] >= r3_res[N_i])
       overlaps[b, i] <- sum_overlap / N_i
     }
     sorted_pres <- sort2_1R(pres1, pres2)
@@ -58,7 +58,7 @@ calOverlaps.slr <- function(D,
     r3_pres <- sort(pres2, decreasing = TRUE)
     for (i in seq_len(N_len)) {
       N_i <- N[i]
-      sum_overlap <- sum(pres2[1:N_i] >= r3_pres[N_i])
+      sum_overlap <- sum(pres2[seq_len(N_i)] >= r3_pres[N_i])
       overlaps_P[b, i] <- sum_overlap / N_i
     }
   }
