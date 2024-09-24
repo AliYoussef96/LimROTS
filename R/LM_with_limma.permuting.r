@@ -65,16 +65,16 @@ testStatistic_with_covariates_permutating <- function(data, group.name, meta.inf
     row.names(covariates.p) <- NULL
     design.matrix <- model.matrix(formula(formula.str), data = covariates.p)
     colnames(design.matrix) <- make.names(colnames(design.matrix))
-    fit <- limma::lmFit(combined_data, design.matrix)
+    fit <- lmFit(combined_data, design.matrix)
     if (length(data) == 2) {
         pairwise_contrasts <- paste0(group.name , unique(covariates.p[, group.name]))
         pairwise_contrasts <- combn(pairwise_contrasts, 2, function(x)
             paste(x[1], "-", x[2]))
-        cont_matrix <- limma::makeContrasts(contrasts = pairwise_contrasts, levels =
+        cont_matrix <- makeContrasts(contrasts = pairwise_contrasts, levels =
                                                 design.matrix)
-        fit2 <- limma::contrasts.fit(fit, cont_matrix)
-        fit.ebayes <- limma::eBayes(fit2, trend = trend, robust = robust)
-        d_values <- limma::topTable(
+        fit2 <- contrasts.fit(fit, cont_matrix)
+        fit.ebayes <- eBayes(fit2, trend = trend, robust = robust)
+        d_values <- topTable(
             fit.ebayes,
             coef = pairwise_contrasts ,
             number = "Inf" ,
@@ -87,9 +87,9 @@ testStatistic_with_covariates_permutating <- function(data, group.name, meta.inf
         pairwise_contrasts <- paste0(group.name , unique(covariates.p[, group.name]))
         pairwise_contrasts <- combn(pairwise_contrasts, 2, function(x)
             paste(x[1], "-", x[2]))
-        cont_matrix <- limma::makeContrasts(contrasts = pairwise_contrasts, levels = design.matrix)
-        fit2 <- limma::contrasts.fit(fit, cont_matrix)
-        fit.ebayes <- limma::eBayes(fit2, trend = trend, robust = robust)
+        cont_matrix <- makeContrasts(contrasts = pairwise_contrasts, levels = design.matrix)
+        fit2 <- contrasts.fit(fit, cont_matrix)
+        fit.ebayes <- eBayes(fit2, trend = trend, robust = robust)
         msr <- fit.ebayes$F * fit.ebayes$s2.post
         return(list(d = msr, s = fit.ebayes$s2.post))
     }

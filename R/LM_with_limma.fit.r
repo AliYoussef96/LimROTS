@@ -59,16 +59,16 @@ testStatistic_with_covariates_Fit <- function(data, group.name, meta.info , form
     combined_data <- combined_data[, -1]
     design.matrix <- model.matrix(formula(formula.str), data = meta.info)
     colnames(design.matrix) <- make.names(colnames(design.matrix))
-    fit <- limma::lmFit(combined_data, design.matrix)
+    fit <- lmFit(combined_data, design.matrix)
     if (length(data) == 2) {
         pairwise_contrasts <- paste0(group.name , unique(meta.info[, group.name]))
         pairwise_contrasts <- combn(pairwise_contrasts, 2, function(x)
             paste(x[1], "-", x[2]))
-        cont_matrix <- limma::makeContrasts(contrasts = pairwise_contrasts, levels =
+        cont_matrix <- makeContrasts(contrasts = pairwise_contrasts, levels =
                                                 design.matrix)
-        fit2 <- limma::contrasts.fit(fit, cont_matrix)
-        fit.ebayes <- limma::eBayes(fit2, trend = trend, robust = robust)
-        d_values <- limma::topTable(
+        fit2 <- contrasts.fit(fit, cont_matrix)
+        fit.ebayes <- eBayes(fit2, trend = trend, robust = robust)
+        d_values <- topTable(
             fit.ebayes,
             coef = pairwise_contrasts ,
             number = "Inf",
@@ -86,9 +86,9 @@ testStatistic_with_covariates_Fit <- function(data, group.name, meta.info , form
         pairwise_contrasts <- paste0(group.name , unique(meta.info[, group.name]))
         pairwise_contrasts <- combn(pairwise_contrasts, 2, function(x)
             paste(x[1], "-", x[2]))
-        cont_matrix <- limma::makeContrasts(contrasts = pairwise_contrasts, levels = design.matrix)
-        fit2 <- limma::contrasts.fit(fit, cont_matrix)
-        fit.ebayes <- limma::eBayes(fit2, trend = trend, robust = robust)
+        cont_matrix <- makeContrasts(contrasts = pairwise_contrasts, levels = design.matrix)
+        fit2 <- contrasts.fit(fit, cont_matrix)
+        fit.ebayes <- eBayes(fit2, trend = trend, robust = robust)
         msr <- fit.ebayes$F * fit.ebayes$s2.post
         corrected.logfc <- fit.ebayes$coefficients
         return(list(
