@@ -983,15 +983,20 @@ ggplot(plot_data.melt, aes(x = Alpha, y = FDR, color = Method , size =size)) +
 library(LimROTS)
 library(parallel)
 # Load the dataset
-#data("Columbia.RealCase")
+data("Columbia.RealCase")
 print(Columbia.RealCase)
+
+set.seed(1234, kind = "default")
+
+data.assay <- assay(Columbia.RealCase)
+data.assay <- preprocessCore::normalize.quantiles(as.matrix(data.assay))
 
 # Set metadata and formula for LimROTS analysis
 meta.info <- c("groups" , "Age" , "gender" , "LRRK2.status" , "GBA.status")
 B <- 1000  # Number of bootstrap samples
-K <- dim(Columbia.RealCase)[1]/2  # Set the value for K based on the data size
+K <- dim(Columbia.RealCase)[1]/4  # Set the value for K based on the data size
 K <- floor(K) 
-num_cores <- 30  # Number of cores for parallel processing
+num_cores <- 10  # Number of cores for parallel processing
 cluster <- makeCluster(num_cores)  # Create a parallel cluster
 group.name <- "groups"
 formula.str <- "~ 0 + groups + Age + gender + LRRK2.status + GBA.status"  # Formula for group comparison
@@ -1012,6 +1017,8 @@ saveRDS(limrots.result, "inst/extdata/paperdata/Columbia.RealCase.LimROTS.rds")
 ```{r}
 plot(limrots.result$q_values)
 hist(limrots.result$q_values)
+hist(limrots.result$q_values$qvalues)
+
 summary(limrots.result$q_values)
 ```
 
@@ -1025,13 +1032,13 @@ limrots.result.df <- data.frame(proteins = row.names(limrots.result$data),
                                 q.value = limrots.result$q_values$pvalues)
 
 # Create a volcano plot
-ggplot(limrots.result.df, aes(x = limrots.result$corrected.logfc, y = -log10(limrots.result$pvalue) )) +
+ggplot(limrots.result.df, aes(x = limrots.result$corrected.logfc, y = -log10(limrots.result$q_values$qvalues) )) +
   geom_point(alpha = 0.8) +
   theme_bw() +
   labs(title = "Volcano Plot", x = "Log Fold Change", y = "-Log10 q.value", color = "True Positive") +
   scale_color_manual(values = c("grey", "red"))+
   geom_hline(yintercept=-log10(0.05), linetype="dashed", color = "blue")+
-  geom_hline(yintercept=-log10(0.01), linetype="dashed", color = "black")
+  geom_hline(yintercept=-log10(0.01), linetype="dashed", color = "black") 
 ```
 
 ```{r}
@@ -1050,9 +1057,30 @@ fit2 <- contrasts.fit(fit, cont_matrix)
 fit.ebayes <- eBayes(fit2, trend=TRUE, robust=TRUE)
 limma.result <- topTable(fit.ebayes, coef="groups1-groups2" , number = "Inf")
 
+volcanoplot(fit.ebayes)
+plotMD(fit.ebayes)
 
 # Create a volcano plot
 ggplot(limma.result, aes(x = logFC, y = -log10(P.Value))) +
+  geom_point(alpha = 0.8) +
+  theme_bw() +
+  labs(title = "Volcano Plot", x = "Log Fold Change", y = "-Log10 q.value", color = "True Positive") +
+  scale_color_manual(values = c("grey", "red"))+
+  geom_hline(yintercept=-log10(0.05), linetype="dashed", color = "blue")+
+  geom_hline(yintercept=-log10(0.01), linetype="dashed", color = "black")
+```
+
+```{r}
+library(ROTS)
+
+rots <- ROTS(data, groups = as.numeric(meta.info$groups), B = 1000, progress = TRUE,
+             K = 600, a1= 5, a2 = 1)
+```
+
+```{r}
+rots.df <- data.frame(p = rots$pvalue, f = rots$logfc)
+
+ggplot(rots.df, aes(x = f, y = -log10(p))) +
   geom_point(alpha = 0.8) +
   theme_bw() +
   labs(title = "Volcano Plot", x = "Log Fold Change", y = "-Log10 q.value", color = "True Positive") +
