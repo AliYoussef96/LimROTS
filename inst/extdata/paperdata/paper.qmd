@@ -983,33 +983,29 @@ ggplot(plot_data.melt, aes(x = Alpha, y = FDR, color = Method , size =size)) +
 library(LimROTS)
 library(parallel)
 # Load the dataset
-data("Columbia.RealCase")
-print(Columbia.RealCase)
+load("D:\\MJFF\\MJFF V2 10.30.2023\\proteogenomic study\\soma.rda")
+print(soma)
 
 set.seed(1234, kind = "default")
 
-data.assay <- assay(Columbia.RealCase)
-data.assay <- preprocessCore::normalize.quantiles(as.matrix(data.assay))
 
 # Set metadata and formula for LimROTS analysis
-meta.info <- c("groups" , "Age" , "gender" , "LRRK2.status" , "GBA.status")
+meta.info <- c("group_comp" , "gender" , "AGE") 
 B <- 1000  # Number of bootstrap samples
-K <- dim(Columbia.RealCase)[1]/4  # Set the value for K based on the data size
+K <- dim(soma)[1]/4  # Set the value for K based on the data size
 K <- floor(K) 
 num_cores <- 10  # Number of cores for parallel processing
 cluster <- makeCluster(num_cores)  # Create a parallel cluster
-group.name <- "groups"
-formula.str <- "~ 0 + groups + Age + gender + LRRK2.status + GBA.status"  # Formula for group comparison
+group.name <- "group_comp"
+formula.str <- "~ 0 + group_comp + gender + AGE"  # Formula for group comparison
 # Run LimROTS analysis with trend and robust settings enabled
 
-trace(LimROTS, edit = T)
-
-limrots.result <- LimROTS(data.exp = Columbia.RealCase, 
+limrots.result <- LimROTS(data.exp = soma, 
                           B = B, K = K, meta.info = meta.info, 
                           cluster = cluster, group.name = group.name, 
                           formula.str = formula.str, trend = TRUE, robust = TRUE, progress = TRUE, seed.cl = 1234)
 
-saveRDS(limrots.result, "inst/extdata/paperdata/Columbia.RealCase.LimROTS.rds")
+saveRDS(limrots.result, "inst/extdata/paperdata/soma.LimROTS.rds")
 ```
 
 ### Q Plot
@@ -1028,17 +1024,26 @@ summary(limrots.result$q_values)
 library(ggplot2)
 # Create a data frame from the LimROTS results
 limrots.result.df <- data.frame(proteins = row.names(limrots.result$data),
-                                LimROTS.FC = limrots.result$logfc,
-                                q.value = limrots.result$q_values$pvalues)
+                                LimROTS.FC = limrots.result$corrected.logfc,
+                                p.value = limrots.result$q_values$pvalues)
 
 # Create a volcano plot
-ggplot(limrots.result.df, aes(x = limrots.result$corrected.logfc, y = -log10(limrots.result$q_values$qvalues) )) +
+ggplot(limrots.result.df, aes(x = LimROTS.FC, y = -log10(p.value) )) +
   geom_point(alpha = 0.8) +
   theme_bw() +
   labs(title = "Volcano Plot", x = "Log Fold Change", y = "-Log10 q.value", color = "True Positive") +
   scale_color_manual(values = c("grey", "red"))+
   geom_hline(yintercept=-log10(0.05), linetype="dashed", color = "blue")+
   geom_hline(yintercept=-log10(0.01), linetype="dashed", color = "black") 
+```
+
+```{r}
+library(SomaScan.db)
+soma@NAMES
+
+select(SomaScan.db, keys = "9073-35", columns = c("SYMBOL", "UNIPROT"))
+
+
 ```
 
 ```{r}
