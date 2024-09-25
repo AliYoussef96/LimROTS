@@ -987,17 +987,18 @@ data("proteogenomicPD")
 print(soma)
 
 set.seed(1234, kind = "default")
-
+keep_samples <- colData(soma)$CNO != 12
+soma <- soma[, keep_samples]
 
 # Set metadata and formula for LimROTS analysis
-meta.info <- names(soma@colData@listData)
+meta.info <- names(soma@colData@listData)[1:6]
 B <- 1000  # Number of bootstrap samples
 K <- dim(soma)[1]/2  # Set the value for K based on the data size
 K <- floor(K) 
 num_cores <- 30  # Number of cores for parallel processing
 cluster <- makeCluster(num_cores)  # Create a parallel cluster
 group.name <- "group_comp"
-formula.str <- "~ 0 + group_comp + gender + AGE + CNO + pc1 + pc2 + pc3 + pc4"  # Formula for group comparison
+formula.str <- "~ 0 + group_comp + gender + AGE + CNO + pc1 + pc2"  # Formula for group comparison
 # Run LimROTS analysis with trend and robust settings enabled
 
 soma@colData@listData[["CNO"]] <- paste0("CNO" , soma@colData@listData[["CNO"]])
