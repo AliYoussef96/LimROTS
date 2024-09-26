@@ -143,11 +143,11 @@ library(caret, quietly = T, warn.conflicts = T)
 
 data(UPS1.Case0)
 
-limrots.result <- readRDS("paperdata/UPS1.Case0.LimROTS.rds")
-rots.result <- readRDS("paperdata/UPS1.Case0.ROTS.rds")
-limma.result <- readRDS("paperdata/UPS1.Case0.limma.rds")
-t.test.result <- readRDS("paperdata/UPS1.Case0.t.test.rds")
-samr.result <- readRDS("paperdata/UPS1.Case0.samr.rds")
+#limrots.result <- readRDS("paperdata/UPS1.Case0.LimROTS.rds")
+rots.result <- readRDS("../../extdata/paperdata/UPS1.Case0.ROTS.rds")
+limma.result <- readRDS("../../extdata/paperdata/UPS1.Case0.limma.rds")
+t.test.result <- readRDS("../../extdata/paperdata/UPS1.Case0.t.test.rds")
+samr.result <- readRDS("../../extdata/paperdata/UPS1.Case0.samr.rds")
 
 
 TP <- UPS1.Case0@elementMetadata@listData[["GeneID"]]
@@ -982,6 +982,7 @@ ggplot(plot_data.melt, aes(x = Alpha, y = FDR, color = Method , size =size)) +
 # Load necessary packages
 library(LimROTS)
 library(parallel)
+library(SummarizedExperiment)
 # Load the dataset
 data("proteogenomicPD")
 print(soma)
@@ -991,14 +992,14 @@ keep_samples <- colData(soma)$CNO != 12
 soma <- soma[, keep_samples]
 
 # Set metadata and formula for LimROTS analysis
-meta.info <- names(soma@colData@listData)[1:6]
-B <- 1000  # Number of bootstrap samples
+meta.info <- names(soma@colData@listData)
+B <- 2000  # Number of bootstrap samples
 K <- dim(soma)[1]/2  # Set the value for K based on the data size
 K <- floor(K) 
 num_cores <- 30  # Number of cores for parallel processing
 cluster <- makeCluster(num_cores)  # Create a parallel cluster
 group.name <- "group_comp"
-formula.str <- "~ 0 + group_comp + gender + AGE + CNO + pc1 + pc2"  # Formula for group comparison
+formula.str <- "~ 0 + group_comp + gender + AGE + CNO + pc1 + pc2 + pc3 + pc4"  # Formula for group comparison
 # Run LimROTS analysis with trend and robust settings enabled
 
 soma@colData@listData[["CNO"]] <- paste0("CNO" , soma@colData@listData[["CNO"]])
@@ -1062,7 +1063,7 @@ select(SomaScan.db, keys = "9073-35", columns = c("SYMBOL", "UNIPROT"))
 ```{r}
 library(limma)
 library(SummarizedExperiment, quietly = T, warn.conflicts = T)
-data("soma")
+
 data <- assay(soma)
 formula.str <- "~ 0 + group_comp + gender + AGE + CNO + pc1 + pc2 + pc3 + pc4"
 meta.info <- data.frame(colData(soma), check.names = FALSE, row.names = row.names(colData(soma)))
@@ -1079,7 +1080,7 @@ limma.result <- topTable(fit.ebayes, coef="group_comp1-group_comp2" , number = "
 volcanoplot(fit.ebayes)
 plotMD(fit.ebayes)
 
-length(which(limma.result$adj.P.Val < 0.05))
+length(which(limma.result$adj.P.Val < 0.01))
 
 # Create a volcano plot
 ggplot(limma.result, aes(x = logFC, y = -log10(P.Value))) +
