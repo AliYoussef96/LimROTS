@@ -1055,13 +1055,58 @@ limrots.result.df <- limrots.result.df[limrots.result.df$q < 0.05,]
 ```
 
 ```{r}
+{r}
+# Load necessary packages
+library(LimROTS)
+library(parallel)
+library(SummarizedExperiment)
+# Load the dataset
+data("proteogenomicPD")
+print(soma)
+
+set.seed(1234, kind = "default")
+keep_samples <- colData(soma)$CNO != 12
+soma <- soma[, keep_samples]
+
+# Set metadata and formula for LimROTS analysis
+meta.info <- names(soma@colData@listData)
+B <- 1000  # Number of bootstrap samples
+K <- dim(soma)[1]/4  # Set the value for K based on the data size
+K <- floor(K) 
+num_cores <- 30  # Number of cores for parallel processing
+cluster <- makeCluster(num_cores)  # Create a parallel cluster
+group.name <- "group_comp"
+formula.str <- "~ 0 + group_comp + gender + AGE + CNO"  # Formula for group comparison
+# Run LimROTS analysis with trend and robust settings enabled
+
+soma@colData@listData[["CNO"]] <- paste0("CNO" , soma@colData@listData[["CNO"]])
+
+soma@colData@listData[["CNO"]] <- as.factor(soma@colData@listData[["CNO"]])
+
+limrots.result <- LimROTS(data.exp = soma, 
+                          B = B, K = K, meta.info = meta.info, 
+                          cluster = cluster, group.name = group.name, 
+                          formula.str = formula.str, trend = TRUE, robust = TRUE, progress = TRUE, seed.cl = 1234)
+
+# saveRDS(limrots.result, "inst/extdata/paperdata/proteogenomicPD.LimROTS.rds")
+```
+
+```{r}
+plot(limrots.result2$q_values)
+hist(limrots.result2$q_values)
+hist(limrots.result2$q_values$qvalues)
+hist(limrots.result2$FDR)
+
+summary(limrots.result$q_values)
+```
+
+```{r}
 set.seed(1234, kind = "default")
 
-soma0.5 <- soma[, sample(1:262, 262) , drop = FALSE]
+soma0.5 <- soma[, sample(1:524, 393) , drop = FALSE]
 
-set.seed(1234, kind = "default")
-keep_samples <- colData(soma0.5)$CNO != 12
-soma0.5 <- soma0.5[, keep_samples]
+keep_samples <- colData(soma0.5)$CNO %in% names(which(table(colData(soma0.5)$CNO) <= 2))
+soma0.5 <- soma0.5[, !keep_samples]
 
 # Set metadata and formula for LimROTS analysis
 meta.info <- names(soma0.5@colData@listData)
@@ -1078,11 +1123,20 @@ soma0.5@colData@listData[["CNO"]] <- paste0("CNO" , soma0.5@colData@listData[["C
 
 soma0.5@colData@listData[["CNO"]] <- as.factor(soma0.5@colData@listData[["CNO"]])
 
-limrots.result2 <- LimROTS(data.exp = soma0.5, 
+soma0.5 <- LimROTS(data.exp = soma0.5, 
                           B = B, K = K, meta.info = meta.info, 
                           cluster = cluster, group.name = group.name, 
                           formula.str = formula.str, trend = TRUE, robust = TRUE, progress = TRUE, seed.cl = 1234)
 
+```
+
+```{r}
+plot(soma0.5$q_values)
+hist(soma0.5$q_values)
+hist(soma0.5$q_values$qvalues)
+hist(soma0.5$FDR)
+
+summary(soma0.5$q_values)
 ```
 
 ```{r}
