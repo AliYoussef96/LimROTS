@@ -180,7 +180,6 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL, log = T
     results_list <- foreach(
         i = seq_len(nrow(samples)),
         .combine = "c",
-        .options.RNG = seed.cl,
         .packages = c("utils", "dplyr" , "stringr", "stats" , "LimROTS")
     ) %dorng% {
         samples.R <- split(samples[i, ], groups)
