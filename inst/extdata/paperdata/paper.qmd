@@ -1055,7 +1055,7 @@ limrots.result.df <- limrots.result.df[limrots.result.df$q < 0.05,]
 ```
 
 ```{r}
-{r}
+
 # Load necessary packages
 library(LimROTS)
 library(parallel)
@@ -1088,14 +1088,16 @@ limrots.result <- LimROTS(data.exp = soma,
                           cluster = cluster, group.name = group.name, 
                           formula.str = formula.str, trend = TRUE, robust = TRUE, progress = TRUE, seed.cl = 1234)
 
-# saveRDS(limrots.result, "inst/extdata/paperdata/proteogenomicPD.LimROTS.rds")
+
+saveRDS(limrots.result, "D:/LimROTS/inst/extdata/paperdata/Soma.noPCs.LimROTS.rds")
+
 ```
 
 ```{r}
-plot(limrots.result2$q_values)
-hist(limrots.result2$q_values)
-hist(limrots.result2$q_values$qvalues)
-hist(limrots.result2$FDR)
+plot(limrots.result$q_values)
+hist(limrots.result$q_values)
+hist(limrots.result$q_values$qvalues)
+hist(limrots.result$FDR)
 
 summary(limrots.result$q_values)
 ```
@@ -1116,17 +1118,17 @@ K <- floor(K)
 num_cores <- 30  # Number of cores for parallel processing
 cluster <- makeCluster(num_cores)  # Create a parallel cluster
 group.name <- "group_comp"
-formula.str <- "~ 0 + group_comp + gender + AGE + CNO + pc1 + pc2 + pc3 + pc4"  # Formula for group comparison
+formula.str <- "~ 0 + group_comp + gender + AGE + CNO"  # Formula for group comparison
 # Run LimROTS analysis with trend and robust settings enabled
 
-soma0.5@colData@listData[["CNO"]] <- paste0("CNO" , soma0.5@colData@listData[["CNO"]])
-
-soma0.5@colData@listData[["CNO"]] <- as.factor(soma0.5@colData@listData[["CNO"]])
 
 soma0.5 <- LimROTS(data.exp = soma0.5, 
                           B = B, K = K, meta.info = meta.info, 
                           cluster = cluster, group.name = group.name, 
                           formula.str = formula.str, trend = TRUE, robust = TRUE, progress = TRUE, seed.cl = 1234)
+
+saveRDS(soma0.5, "D:/LimROTS/inst/extdata/paperdata/Soma0.5.noPCs.LimROTS.rds")
+
 
 ```
 
