@@ -1105,7 +1105,7 @@ summary(limrots.result$q_values)
 ```{r}
 set.seed(1234, kind = "default")
 
-soma0.5 <- soma[, sample(1:524, 393) , drop = FALSE]
+soma0.5 <- soma[, sample(1:524, 262) , drop = FALSE]
 
 keep_samples <- colData(soma0.5)$CNO %in% names(which(table(colData(soma0.5)$CNO) <= 2))
 soma0.5 <- soma0.5[, !keep_samples]
@@ -1113,7 +1113,7 @@ soma0.5 <- soma0.5[, !keep_samples]
 # Set metadata and formula for LimROTS analysis
 meta.info <- names(soma0.5@colData@listData)
 B <- 1000  # Number of bootstrap samples
-K <- dim(soma0.5)[1]/4  # Set the value for K based on the data size
+K <- dim(soma0.5)[1]/2  # Set the value for K based on the data size
 K <- floor(K) 
 num_cores <- 30  # Number of cores for parallel processing
 cluster <- makeCluster(num_cores)  # Create a parallel cluster
@@ -1127,18 +1127,31 @@ soma0.5 <- LimROTS(data.exp = soma0.5,
                           cluster = cluster, group.name = group.name, 
                           formula.str = formula.str, trend = TRUE, robust = TRUE, progress = TRUE, seed.cl = 1234)
 
-saveRDS(soma0.5, "D:/LimROTS/inst/extdata/paperdata/Soma0.5.noPCs.LimROTS.rds")
+saveRDS(soma0.5, "../paperdata/Soma0.5.noPCs.LimROTS.rds")
 
 
 ```
 
 ```{r}
+soma0.5 <- readRDS("Soma0.5.noPCs.LimROTS.rds")
+
 plot(soma0.5$q_values)
 hist(soma0.5$q_values)
 hist(soma0.5$q_values$qvalues)
 hist(soma0.5$FDR)
 
 summary(soma0.5$q_values)
+```
+
+```{r}
+
+soma.limrots <- readRDS("Soma.noPCs.LimROTS.rds")
+soma0.5.limrots <- readRDS("Soma0.5.noPCs.LimROTS.rds")
+
+soma.limrots <- row.names(soma.limrots$data)[which(soma.limrots$q_values$qvalues < 0.05)]
+soma0.5.limrots <- row.names(soma0.5.limrots$data)[which(soma0.5.limrots$q_values$qvalues < 0.05)]
+
+length(intersect(soma.sig, soma0.5.sig))
 ```
 
 ```{r}
@@ -1154,8 +1167,45 @@ select(SomaScan.db, keys = "9073-35", columns = c("SYMBOL", "UNIPROT"))
 library(limma)
 library(SummarizedExperiment, quietly = T, warn.conflicts = T)
 
+soma0.5 <- soma[, sample(1:524, 262) , drop = FALSE]
+
+keep_samples <- colData(soma0.5)$CNO %in% names(which(table(colData(soma0.5)$CNO) <= 2))
+soma0.5 <- soma0.5[, !keep_samples]
+
+data <- assay(soma0.5)
+
+
+formula.str <- "~ 0 + group_comp + gender + AGE + CNO"
+meta.info <- data.frame(colData(soma0.5), check.names = FALSE, row.names = row.names(colData(soma0.5)))
+meta.info$sample.id <- NULL
+meta.info$CNO <- as.factor(meta.info$CNO)
+design.matrix <- model.matrix(formula(formula.str), data = meta.info)
+colnames(design.matrix) <- make.names(colnames(design.matrix))
+fit <- lmFit(data, design.matrix)
+cont_matrix <- makeContrasts("group_comp1-group_comp2",  levels=design.matrix)
+fit2 <- contrasts.fit(fit, cont_matrix)
+fit.ebayes <- eBayes(fit2, trend=TRUE, robust=TRUE)
+limma.result.0.5 <- topTable(fit.ebayes, coef="group_comp1-group_comp2" , number = "Inf")
+
+volcanoplot(fit.ebayes)
+plotMD(fit.ebayes)
+
+length(which(limma.result.0.5$adj.P.Val < 0.05))
+
+
+```
+
+```{r}
+library(limma)
+library(SummarizedExperiment, quietly = T, warn.conflicts = T)
+
+keep_samples <- colData(soma)$CNO != 12
+soma <- soma[, keep_samples]
+
 data <- assay(soma)
-formula.str <- "~ 0 + group_comp + gender + AGE + CNO + pc1 + pc2 + pc3 + pc4"
+
+
+formula.str <- "~ 0 + group_comp + gender + AGE + CNO"
 meta.info <- data.frame(colData(soma), check.names = FALSE, row.names = row.names(colData(soma)))
 meta.info$sample.id <- NULL
 meta.info$CNO <- as.factor(meta.info$CNO)
@@ -1170,16 +1220,10 @@ limma.result <- topTable(fit.ebayes, coef="group_comp1-group_comp2" , number = "
 volcanoplot(fit.ebayes)
 plotMD(fit.ebayes)
 
-length(which(limma.result$adj.P.Val < 0.01))
+length(which(limma.result$adj.P.Val < 0.05))
 
-# Create a volcano plot
-ggplot(limma.result, aes(x = logFC, y = -log10(P.Value))) +
-  geom_point(alpha = 0.8) +
-  theme_bw() +
-  labs(title = "Volcano Plot", x = "Log Fold Change", y = "-Log10 q.value", color = "True Positive") +
-  scale_color_manual(values = c("grey", "red"))+
-  geom_hline(yintercept=-log10(0.05), linetype="dashed", color = "blue")+
-  geom_hline(yintercept=-log10(0.01), linetype="dashed", color = "black")
+
+length(intersect(which(limma.result.0.5$adj.P.Val < 0.05) , which(limma.result$adj.P.Val < 0.05)))
 ```
 
 ```{r}
