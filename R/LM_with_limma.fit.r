@@ -4,7 +4,7 @@
 #' in the model fitting process. It is designed to handle both two-group comparisons and
 #' multi-group settings with covariates.
 #'
-#' @param data A list containing two or more data matrices where rows represent features
+#' @param x A list containing two or more data matrices where rows represent features
 #' (e.g., genes, proteins) and columns represent samples. The list should contain at least
 #' two matrices for pairwise group comparison.
 #' @param group.name A character string indicating the name of the group variable in
@@ -46,7 +46,8 @@
 
 
 
-testStatistic_with_covariates_Fit <- function(data, group.name, meta.info , formula.str, trend, robust) {
+testStatistic_with_covariates_Fit <- function(x, group.name, meta.info , formula.str, trend, robust) {
+    data <- x
     combined_data <- data.frame(
         check.rows = FALSE,
         check.names = FALSE ,
