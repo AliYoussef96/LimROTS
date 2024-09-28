@@ -3,7 +3,7 @@
 #' This function calculates the test statistic (mean differences and standard deviations) for comparing two or more groups of samples, with support for paired or unpaired samples.
 #'
 #' @param isPaired Logical. If TRUE, calculates test statistics for paired samples. If FALSE, for unpaired samples.
-#' @param sampleGroups List of matrices or data frames. Each element represents a group of samples (columns) with the same set of features (rows).
+#' @param x List of matrices or data frames. Each element represents a group of samples (columns) with the same set of features (rows).
 #'
 #' @details
 #' The function supports comparison between two groups or multiple groups of samples. For two groups, it computes the mean differences and pooled standard deviations for unpaired samples, or paired standard deviations for paired samples.
@@ -20,7 +20,8 @@
 
 
 
-testStatOptimized <- function(isPaired, sampleGroups) {
+testStatOptimized <- function(isPaired, x) {
+    sampleGroups <- x
     if (length(sampleGroups) == 2) {
         groupA <- sampleGroups[[1]]
         groupB <- sampleGroups[[2]]

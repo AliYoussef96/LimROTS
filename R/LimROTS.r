@@ -3,7 +3,7 @@
 #' The `LimROTS` function performs robust ranking of differential expression statistics for omics data,
 #' incorporating covariates from metadata and optionally integrating survival analysis, paired data, and more.
 #'
-#' @param data.exp A matrix where rows represent features (e.g., genes, proteins), and columns represent samples.
+#' @param x A matrix where rows represent features (e.g., genes, proteins), and columns represent samples.
 #'             The values should be log-transformed `log`, or a SummarizedExperiment object.
 #' @param B An integer specifying the number of bootstrap iterations. Default is 1000.
 #' @param K An optional integer representing the top list size for ranking. If not specified, it is set to one-fourth of the number of features.
@@ -62,12 +62,13 @@
 #' @export
 
 
-LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL, log = TRUE, progress = FALSE,
+LimROTS <- function (x, B = 1000, K = NULL, a1 = NULL, a2 = NULL, log = TRUE, progress = FALSE,
                      verbose = TRUE, meta.info = NULL, cluster = NULL , group.name = NULL , formula.str = NULL,
                      survival = FALSE, paired = FALSE, n.ROTS = FALSE, seed.cl = 1234, robust = TRUE, trend = TRUE)
 {
+
     SanityChecK.list <- SanityChecK(
-        data.exp,
+        x,
         B = B,
         K = K,
         a1 = a1,
@@ -111,7 +112,6 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL, log = T
     if (n.ROTS == FALSE) {
         if (ncol(meta.info) > 1) {
             samples <- bootstrapSamples.limRots(
-                data = data,
                 B = 2 * B,
                 meta.info = meta.info,
                 group.name =  group.name
@@ -197,7 +197,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL, log = T
 
             } else if (n.ROTS == FALSE) {
                 fit <- testStatistic_with_covariates(
-                    data = lapply(samples.R, function(x)
+                    x = lapply(samples.R, function(x)
                         data[, x]),
                     group.name = group.name,
                     meta.info = meta.info,
@@ -225,7 +225,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL, log = T
                 data[, x]), groups, event)
         } else if (n.ROTS == FALSE) {
             pFit <- testStatistic_with_covariates_permutating(
-                data = lapply(split(seq_len(
+                x = lapply(split(seq_len(
                     length(groups)
                 ), groups), function(x)
                     data[, x]),
@@ -314,7 +314,7 @@ LimROTS <- function (data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL, log = T
                 data[, x]), groups, event)
         } else if (n.ROTS == FALSE) {
             fit <- testStatistic_with_covariates_Fit(
-                data = lapply(split(seq_len(
+                x = lapply(split(seq_len(
                     length(groups)
                 ), groups), function(x)
                     data[, x]),

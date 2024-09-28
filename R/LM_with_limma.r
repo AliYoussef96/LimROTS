@@ -39,7 +39,8 @@
 
 
 
-testStatistic_with_covariates <- function(data, group.name, meta.info, formula.str , trend, robust) {
+testStatistic_with_covariates <- function(x, group.name, meta.info, formula.str , trend, robust) {
+    data <- x
     combined_data <- data.frame(
         check.rows = FALSE,
         check.names = FALSE ,

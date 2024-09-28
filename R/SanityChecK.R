@@ -2,7 +2,7 @@
 #'
 #' This function performs a series of checks and initial setups for input data, metadata, and parameters, ensuring everything is correctly formatted for downstream analysis.
 #'
-#' @param data.exp A matrix-like object or a `SummarizedExperiment` containing the data to be analyzed.
+#' @param x A matrix-like object or a `SummarizedExperiment` containing the data to be analyzed.
 #' @param B Integer. Number of bootstrap samples or resampling iterations. Default is 1000.
 #' @param K Integer. Top list size. If NULL, it will be set to a quarter of the number of rows in the data matrix. Default is NULL.
 #' @param a1,a2 Optional numeric parameters related to optimization.
@@ -31,8 +31,9 @@
 
 
 
-SanityChecK <- function(data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL, meta.info = NULL, group.name = NULL ,
+SanityChecK <- function(x, B = 1000, K = NULL, a1 = NULL, a2 = NULL, meta.info = NULL, group.name = NULL ,
                         formula.str = NULL, survival = FALSE, paired = FALSE, n.ROTS = FALSE, verbose = TRUE, log = TRUE) {
+    data.exp <- x
     if (survival == TRUE) {
         if (n.ROTS == FALSE) {
             stop(

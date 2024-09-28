@@ -86,7 +86,6 @@ permutatedS <- function (meta.info, B)
 #' This function generates stratified bootstrap samples based on the groupings and additional factors in the metadata.
 #' The function ensures that samples are drawn proportionally based on strata defined by the interaction of factor columns in the metadata.
 #'
-#' @param data Data frame or matrix. The input data for which the bootstrap samples will be generated.
 #' @param B Integer. The number of bootstrap samples to generate.
 #' @param meta.info Data frame. Metadata containing sample information, where each row corresponds to a sample. Factor columns in `meta.info` are used to define strata for sampling.
 #' @param group.name Character. The name of the column in `meta.info` that defines the grouping variable for the samples.
@@ -107,10 +106,10 @@ permutatedS <- function (meta.info, B)
 #'                         batch = rep(c("A", "B"), 5),
 #'                         row.names = paste0("Sample", 1:10))
 #' meta.info$batch <- as.factor(meta.info$batch)
-#' bootstrapSamples.limRots(data = NULL, B = 10, meta.info = meta.info, group.name = "group")
+#' bootstrapSamples.limRots(B = 10, meta.info = meta.info, group.name = "group")
 
 
-bootstrapSamples.limRots <- function (data, B, meta.info , group.name)
+bootstrapSamples.limRots <- function (B, meta.info , group.name)
 {
     labels <- as.numeric(meta.info[, group.name])
     samples <- matrix(nrow = B, ncol = length(labels))
