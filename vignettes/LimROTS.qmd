@@ -94,7 +94,7 @@ group.name <- "Conc."
 formula.str <- "~ 0 + Conc. + tool + fake.batch"  # Formula for group comparison
 
 # Run LimROTS analysis with trend and robust settings enabled
-limrots.result <- LimROTS(data.exp = UPS1.Case4, 
+limrots.result <- LimROTS(x = UPS1.Case4, 
                           B = B, K = K, meta.info = meta.info, 
                           cluster = cluster, group.name = group.name, 
                           formula.str = formula.str, trend = TRUE, robust = TRUE)
