@@ -60,8 +60,8 @@ testStatistic_with_covariates_permutating <- function(data, group.name, meta.inf
         df.temp$sample.id <- i
         covariates.p <- rbind(covariates.p , df.temp)
     }
-    #covariates.p <- covariates.p[sample(nrow(covariates.p)), ]
-    covariates.p[,group.name] <- sample(covariates.p[,group.name])
+    covariates.p <- covariates.p[sample(nrow(covariates.p)), ]
+    #covariates.p[,group.name] <- sample(covariates.p[,group.name])
     covariates.p$sample.id <- NULL
     row.names(covariates.p) <- NULL
     design.matrix <- model.matrix(formula(formula.str), data = covariates.p)
