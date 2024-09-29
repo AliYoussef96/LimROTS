@@ -393,7 +393,7 @@ LimROTS <- function(x,
                 data[, x]), groups, event)
         } else if (n.ROTS == FALSE) {
             fit <- testStatistic_with_covariates_Fit(
-                data = lapply(split(seq_len(
+                x = lapply(split(seq_len(
                     length(groups)
                 ), groups), function(x)
                     data[, x]),
