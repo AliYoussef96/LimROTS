@@ -19,7 +19,6 @@ require("LimROTS")
 require("parallel")
 require("devtools")
 require("ggplot2")
-
 ```
 
 # UPS1 Case Study
@@ -33,7 +32,6 @@ This scenario resembles a real-world case where the experiment involves unbalanc
 LimROTS can take a SummarizedExperiment object with all the metadata needed to run the model. In this example we importing UPS1.Case4 data available in LimROTS.
 
 ```{r}
-
 # Load the dataset
 data("UPS1.Case4")
 print(UPS1.Case4)
@@ -84,20 +82,20 @@ set.seed(1234, kind = "default")
 
 ```{r}
 # Set metadata and formula for LimROTS analysis
-meta.info <- c("Conc." , "tool" , "fake.batch")
-B <- 100  # Number of bootstrap samples
+meta.info <- c("Conc.", "tool", "fake.batch")
+B <- 100 # Number of bootstrap samples
 K <- 100 # Set the value for K based on the data size
-K <- floor(K) 
-num_cores <- 4  # Number of cores for parallel processing
-cluster <- makeCluster(num_cores)  # Create a parallel cluster
+K <- floor(K)
+num_cores <- 4 # Number of cores for parallel processing
+cluster <- makeCluster(num_cores) # Create a parallel cluster
 group.name <- "Conc."
-formula.str <- "~ 0 + Conc. + tool + fake.batch"  # Formula for group comparison
+formula.str <- "~ 0 + Conc. + tool + fake.batch" # Formula for group comparison
 
 # Run LimROTS analysis with trend and robust settings enabled
-limrots.result <- LimROTS(data.exp = UPS1.Case4, 
-                          B = B, K = K, meta.info = meta.info, 
-                          cluster = cluster, group.name = group.name, 
-                          formula.str = formula.str, trend = TRUE, robust = TRUE)
+limrots.result <- LimROTS(data.exp = UPS1.Case4,
+    B = B, K = K, meta.info = meta.info,
+    cluster = cluster, group.name = group.name,
+    formula.str = formula.str, trend = TRUE, robust = TRUE)
 ```
 
 **NOTE:** "In this instance, we configure the number of bootstrap iterations (B) and the count of top-ranked features for reproducibility optimization (K) to 100 both, in order to minimize the example's runtime. For actual analyses, it is advisable to utilize a greater number of bootstraps (e.g., 1000).
@@ -107,11 +105,11 @@ limrots.result <- LimROTS(data.exp = UPS1.Case4,
 ```{r}
 # Create a data frame from the LimROTS results
 limrots.result.df <- data.frame(proteins = row.names(limrots.result$data),
-                                LimROTS.FC = limrots.result$corrected.logf,
-                                q.value = limrots.result$q_values$qvalues)
+    LimROTS.FC = limrots.result$corrected.logf,
+    q.value = limrots.result$q_values$qvalues)
 
 # Filter for significant proteins (FDR < 0.01)
-limrots.result.df <- limrots.result.df[limrots.result.df$q.value < 0.05,]
+limrots.result.df <- limrots.result.df[limrots.result.df$q.value < 0.05, ]
 
 # Mark proteins as true positives (HUMAN UPS1 proteins)
 limrots.result.df$TP <- ifelse(grepl("HUMAN", limrots.result.df$proteins), "HUMAN_TP", "ECOLI.FP")
@@ -123,21 +121,20 @@ table(limrots.result.df$TP)
 ## Volcano Plot with ggplot2
 
 ```{r}
-
 # Create a data frame from the LimROTS results
 limrots.result.df <- data.frame(proteins = row.names(limrots.result$data),
-                                LimROTS.FC = limrots.result$corrected.logf, q.value = limrots.result$q_values$qvalues)
+    LimROTS.FC = limrots.result$corrected.logf, q.value = limrots.result$q_values$qvalues)
 # Mark proteins as true positives (HUMAN UPS1 proteins)
 limrots.result.df$TP <- ifelse(grepl("HUMAN", limrots.result.df$proteins), "HUMAN_TP", "ECOLI_FP")
 
 # Create a volcano plot
 ggplot(limrots.result.df, aes(x = LimROTS.FC, y = -log10(q.value), color = factor(TP))) +
-  geom_point(alpha = 0.8) +
-  theme_bw() +
-  labs(title = "Volcano Plot", x = "Log Fold Change", y = "-Log10 q.value", color = "True Positive") +
-  scale_color_manual(values = c("grey", "red"))+
-  geom_hline(yintercept=-log10(0.05), linetype="dashed", color = "blue")+
-  geom_hline(yintercept=-log10(0.01), linetype="dashed", color = "black")
+    geom_point(alpha = 0.8) +
+    theme_bw() +
+    labs(title = "Volcano Plot", x = "Log Fold Change", y = "-Log10 q.value", color = "True Positive") +
+    scale_color_manual(values = c("grey", "red")) +
+    geom_hline(yintercept = -log10(0.05), linetype = "dashed", color = "blue") +
+    geom_hline(yintercept = -log10(0.01), linetype = "dashed", color = "black")
 ```
 
 ## Quality Control Plots

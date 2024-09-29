@@ -27,8 +27,8 @@ testStatOptimized <- function(isPaired, x) {
         groupB <- sampleGroups[[2]]
         meanA <- rowMeans(groupA, na.rm = TRUE)
         meanB <- rowMeans(groupB, na.rm = TRUE)
-        sumSqA <- rowSums((groupA - meanA) ^ 2, na.rm = TRUE)
-        sumSqB <- rowSums((groupB - meanB) ^ 2, na.rm = TRUE)
+        sumSqA <- rowSums((groupA - meanA)^2, na.rm = TRUE)
+        sumSqB <- rowSums((groupB - meanB)^2, na.rm = TRUE)
         if (!isPaired) {
             nonNAcountA <- rowSums(!is.na(groupA))
             nonNAcountB <- rowSums(!is.na(groupB))
@@ -55,12 +55,12 @@ testStatOptimized <- function(isPaired, x) {
             rowVariance <- rowSums(sapply(sampleGroups, function(group)
                 (
                     rowMeans(group, na.rm = TRUE) - rowMeans(allSamples, na.rm = TRUE)
-                ) ^ 2))
+                )^2))
             meanDiff <- sqrt(factorScaling * rowVariance)
             scalingFactor <- 1 / sum(sapply(sampleGroups, ncol) - 1) *
                 sum(1 / sapply(sampleGroups, ncol))
             totalVariance <- rowSums(sapply(sampleGroups, function(group)
-                rowSums(( group - rowMeans(group, na.rm = TRUE) ) ^ 2, na.rm = TRUE)))
+                rowSums((group - rowMeans(group, na.rm = TRUE))^2, na.rm = TRUE)))
             standardDev <- sqrt(scalingFactor * totalVariance)
         } else {
             stop("Multiple paired groups are not supported!")

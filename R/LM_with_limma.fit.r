@@ -48,48 +48,48 @@
 
 testStatistic_with_covariates_Fit <- function(x,
                                               group.name,
-                                              meta.info ,
+                                              meta.info,
                                               formula.str,
                                               trend,
                                               robust) {
     data <- x
     combined_data <- data.frame(
         check.rows = FALSE,
-        check.names = FALSE ,
-        none = rep("none" , nrow(data[[1]]))
+        check.names = FALSE,
+        none = rep("none", nrow(data[[1]]))
     )
     for (k.list in names(data)) {
         combined_data <- cbind(combined_data,
-                               data.frame(data[[k.list]], check.rows = FALSE, check.names = FALSE))
+            data.frame(data[[k.list]], check.rows = FALSE, check.names = FALSE))
     }
     combined_data <- combined_data[, -1]
     design.matrix <- model.matrix(formula(formula.str), data = meta.info)
     colnames(design.matrix) <- make.names(colnames(design.matrix))
     fit <- lmFit(combined_data, design.matrix)
     if (length(data) == 2) {
-        pairwise_contrasts <- paste0(group.name , unique(meta.info[, group.name]))
+        pairwise_contrasts <- paste0(group.name, unique(meta.info[, group.name]))
         pairwise_contrasts <- combn(pairwise_contrasts, 2, function(x)
             paste(x[1], "-", x[2]))
         cont_matrix <- makeContrasts(contrasts = pairwise_contrasts, levels =
-                                         design.matrix)
+            design.matrix)
         fit2 <- contrasts.fit(fit, cont_matrix)
         fit.ebayes <- eBayes(fit2, trend = trend, robust = robust)
         d_values <- topTable(
             fit.ebayes,
-            coef = pairwise_contrasts ,
+            coef = pairwise_contrasts,
             number = "Inf",
             sort.by = 'none'
         )
         corrected.logfc <- d_values$logFC
         d_values <- abs(d_values$logFC)
-        s_values <- as.numeric(sqrt(fit.ebayes$s2.post)  * fit.ebayes$stdev.unscaled[, 1])
+        s_values <- as.numeric(sqrt(fit.ebayes$s2.post) * fit.ebayes$stdev.unscaled[, 1])
         return(list(
             d = d_values,
-            s = s_values ,
+            s = s_values,
             corrected.logfc = corrected.logfc
         ))
     } else if (length(data) > 2 & ncol(meta.info) == 1) {
-        pairwise_contrasts <- paste0(group.name , unique(meta.info[, group.name]))
+        pairwise_contrasts <- paste0(group.name, unique(meta.info[, group.name]))
         pairwise_contrasts <- combn(pairwise_contrasts, 2, function(x)
             paste(x[1], "-", x[2]))
         cont_matrix <- makeContrasts(contrasts = pairwise_contrasts, levels = design.matrix)
@@ -99,7 +99,7 @@ testStatistic_with_covariates_Fit <- function(x,
         corrected.logfc <- fit.ebayes$coefficients
         return(list(
             d = msr,
-            s = fit.ebayes$s2.post ,
+            s = fit.ebayes$s2.post,
             corrected.logfc = corrected.logfc
         ))
     }

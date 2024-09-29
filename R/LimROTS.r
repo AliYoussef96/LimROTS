@@ -62,24 +62,24 @@
 #' @export
 
 
-LimROTS <- function (x,
-                     B = 1000,
-                     K = NULL,
-                     a1 = NULL,
-                     a2 = NULL,
-                     log = TRUE,
-                     progress = FALSE,
-                     verbose = TRUE,
-                     meta.info = NULL,
-                     cluster = NULL ,
-                     group.name = NULL ,
-                     formula.str = NULL,
-                     survival = FALSE,
-                     paired = FALSE,
-                     n.ROTS = FALSE,
-                     seed.cl = 1234,
-                     robust = TRUE,
-                     trend = TRUE)
+LimROTS <- function(x,
+                    B = 1000,
+                    K = NULL,
+                    a1 = NULL,
+                    a2 = NULL,
+                    log = TRUE,
+                    progress = FALSE,
+                    verbose = TRUE,
+                    meta.info = NULL,
+                    cluster = NULL,
+                    group.name = NULL,
+                    formula.str = NULL,
+                    survival = FALSE,
+                    paired = FALSE,
+                    n.ROTS = FALSE,
+                    seed.cl = 1234,
+                    robust = TRUE,
+                    trend = TRUE)
 {
     SanityChecK.list <- SanityChecK(
         x,
@@ -88,7 +88,7 @@ LimROTS <- function (x,
         a1 = a1,
         a2 = a2,
         meta.info = meta.info,
-        group.name = group.name ,
+        group.name = group.name,
         formula.str = formula.str,
         survival = survival,
         paired = paired,
@@ -97,11 +97,11 @@ LimROTS <- function (x,
         log = log
     )
 
-    meta.info <-  SanityChecK.list$meta.info
-    data <-  SanityChecK.list$data
-    groups <-  SanityChecK.list$groups
-    event <-  SanityChecK.list$event
-    K <-  SanityChecK.list$K
+    meta.info <- SanityChecK.list$meta.info
+    data <- SanityChecK.list$data
+    groups <- SanityChecK.list$groups
+    event <- SanityChecK.list$event
+    K <- SanityChecK.list$K
 
     #### FC
 
@@ -128,16 +128,16 @@ LimROTS <- function (x,
             samples <- bootstrapSamples.limRots(
                 B = 2 * B,
                 meta.info = meta.info,
-                group.name =  group.name
+                group.name = group.name
             )
             pSamples <- NULL
-        } else{
+        } else {
             paired <- FALSE
-            samples <- bootstrapS(2 * B, meta.info , group.name, paired)
+            samples <- bootstrapS(2 * B, meta.info, group.name, paired)
             pSamples <- NULL
         }
-    } else{
-        samples <- bootstrapS(2 * B, meta.info , group.name, paired)
+    } else {
+        samples <- bootstrapS(2 * B, meta.info, group.name, paired)
         pSamples <- permutatedS(meta.info, 2 * B)
     }
 
@@ -147,14 +147,14 @@ LimROTS <- function (x,
     pS <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
 
     pb <- txtProgressBar(min = 0,
-                         max = 100,
-                         style = 3)
+        max = 100,
+        style = 3)
 
     if (is.null(cluster)) {
         cluster <- makeCluster(2)
         registerDoParallel(cluster)
         message("No cluster found; only two cores will be used!")
-    } else{
+    } else {
         registerDoParallel(cluster)
     }
 
@@ -163,26 +163,26 @@ LimROTS <- function (x,
         cluster,
         varlist = c(
             "pb",
-            "samples" ,
-            "pSamples" ,
+            "samples",
+            "pSamples",
             "D",
             "data",
-            "S" ,
-            "pD" ,
+            "S",
+            "pD",
             "pS",
             "time",
             "formula.str",
-            "group.name" ,
+            "group.name",
             "groups",
             "event",
             "meta.info",
-            "a1" ,
+            "a1",
             "a2",
             "trend",
-            "robust" ,
+            "robust",
             "n.ROTS",
             "survival"
-        )  ,
+        ),
         envir = environment()
     )
 
@@ -194,7 +194,7 @@ LimROTS <- function (x,
     results_list <- foreach(
         i = seq_len(nrow(samples)),
         .combine = "c",
-        .packages = c("utils", "dplyr" , "stringr", "stats" , "LimROTS")
+        .packages = c("utils", "dplyr", "stringr", "stats", "LimROTS")
     ) %dorng% {
         samples.R <- split(samples[i, ], groups)
 
@@ -206,8 +206,8 @@ LimROTS <- function (x,
             if (survival == TRUE) {
                 fit <- testStatSurvivalOptimized(lapply(samples.R, function(x)
                     data[, x]),
-                    groups,
-                    event)
+                groups,
+                event)
 
             } else if (n.ROTS == FALSE) {
                 fit <- testStatistic_with_covariates(
@@ -221,14 +221,14 @@ LimROTS <- function (x,
                     robust = robust
                 )
 
-            } else{
+            } else {
                 fit <- testStatOptimized(paired, lapply(samples.R, function(x)
                     data[, x]))
             }
             d_result <- fit$d
             s_result <- fit$s
 
-            df1 <- data.frame(d_result = d_result , s_result = s_result)
+            df1 <- data.frame(d_result = d_result, s_result = s_result)
         }
 
         # Compute pD and pS
@@ -250,7 +250,7 @@ LimROTS <- function (x,
                     trend,
                 robust = robust
             )
-        } else{
+        } else {
             pSamples.R <- split(pSamples[i, ], groups)
 
             pFit <- testStatOptimized(paired, lapply(pSamples.R, function(x)
@@ -259,7 +259,7 @@ LimROTS <- function (x,
         pd_result <- pFit$d
         ps_result <- pFit$s
 
-        df2 <- data.frame(pd_result = pd_result , ps_result = ps_result)
+        df2 <- data.frame(pd_result = pd_result, ps_result = ps_result)
 
 
         # Return results for this iteration as a data frame
@@ -272,17 +272,17 @@ LimROTS <- function (x,
         setTxtProgressBar(pb, 80)
     }
 
-    names(results_list) <- paste0(names(results_list) , seq(1, length(names(results_list))))
+    names(results_list) <- paste0(names(results_list), seq(1, length(names(results_list))))
 
-    j <-  0
-    q <-  0
+    j <- 0
+    q <- 0
     # Populate matrices D, S, pD, pS from results
     for (i in seq_along(results_list)) {
         if (grepl("ds", names(results_list)[i], fixed = TRUE)) {
             j <- j + 1
             D[, j] <- results_list[[names(results_list)[i]]]$d_result
             S[, j] <- results_list[[names(results_list)[i]]]$s_result
-        } else{
+        } else {
             q <- q + 1
             pD[, q] <- results_list[[names(results_list)[i]]]$pd_result
             pS[, q] <- results_list[[names(results_list)[i]]]$ps_result
@@ -304,10 +304,10 @@ LimROTS <- function (x,
     if (is.null(a1) | is.null(a2)) {
         ssq <- c(seq(0, 20) / 100, seq(11, 50) / 50, seq(6, 25) / 5)
         N <- c(seq(1, 20) * 5,
-               seq(11, 50) * 10,
-               seq(21, 40) * 25,
-               seq(11, 1000) *
-                   100)
+            seq(11, 50) * 10,
+            seq(21, 40) * 25,
+            seq(11, 1000) *
+                100)
         K <- min(K, nrow(data))
         N <- N[N < K]
 
@@ -332,13 +332,13 @@ LimROTS <- function (x,
                     length(groups)
                 ), groups), function(x)
                     data[, x]),
-                group.name = group.name ,
+                group.name = group.name,
                 meta.info = meta.info,
                 formula.str = formula.str,
                 trend = trend,
                 robust = robust
             )
-        } else{
+        } else {
             fit <- testStatOptimized(paired, lapply(split(seq_len(
                 length(groups)
             ), groups), function(x)
@@ -351,8 +351,8 @@ LimROTS <- function (x,
         if (verbose)
             message("Calculating p-values")
         p <- empPvals(stat = d,
-                      stat0 = pD,
-                      pool = TRUE)
+            stat0 = pD,
+            pool = TRUE)
         if (verbose)
             message("Calculating FDR")
 
@@ -362,8 +362,8 @@ LimROTS <- function (x,
         gc()
 
         q_values <- qvalue(p,
-                           pi0.method = "bootstrap",
-                           lambda = seq(0.01, 0.95, 0.01))
+            pi0.method = "bootstrap",
+            lambda = seq(0.01, 0.95, 0.01))
         BH.pvalue <- p.adjust(p, method = "BH")
 
         LimROTS.output <- list(
@@ -379,9 +379,9 @@ LimROTS <- function (x,
             R = R,
             Z = Z,
             ztable = ztable,
-            groups = groups ,
+            groups = groups,
             corrected.logfc = corrected.logfc,
-            q_values = q_values ,
+            q_values = q_values,
             BH.pvalue = BH.pvalue
         )
     }
@@ -397,13 +397,13 @@ LimROTS <- function (x,
                     length(groups)
                 ), groups), function(x)
                     data[, x]),
-                group.name = group.name ,
-                meta.info = meta.info ,
+                group.name = group.name,
+                meta.info = meta.info,
                 formula.str = formula.str,
                 trend = trend,
                 robust = robust
             )
-        } else{
+        } else {
             fit <- testStatOptimized(paired, lapply(split(seq_len(
                 length(groups)
             ), groups), function(x)
@@ -415,21 +415,21 @@ LimROTS <- function (x,
         if (verbose)
             message("Calculating p-values")
         p <- empPvals(stat = d,
-                      stat0 = pD,
-                      pool = TRUE)
+            stat0 = pD,
+            pool = TRUE)
         if (verbose)
             message("Calculating FDR")
         FDR <- calculateFalseDiscoveryRate(d, pD, progress)
         corrected.logfc <- fit$corrected.logfc
-        q_values <-  qvalue(p,
-                            pi0.method = "bootstrap",
-                            lambda = seq(0.01, 0.95, 0.01))
+        q_values <- qvalue(p,
+            pi0.method = "bootstrap",
+            lambda = seq(0.01, 0.95, 0.01))
         BH.pvalue <- p.adjust(p, method = "BH")
         LimROTS.output <- list(
             data = data,
             B = B,
             d = d,
-            logfc = logfc ,
+            logfc = logfc,
             pvalue = p,
             FDR = FDR,
             a1 = a1,
@@ -437,9 +437,9 @@ LimROTS <- function (x,
             k = NULL,
             R = NULL,
             Z = NULL,
-            groups = groups ,
+            groups = groups,
             corrected.logfc = corrected.logfc,
-            q_values = q_values ,
+            q_values = q_values,
             BH.pvalue = BH.pvalue
         )
     }

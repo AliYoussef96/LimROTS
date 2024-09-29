@@ -52,10 +52,10 @@ testStatSurvivalOptimized <- function(x,
 
         if (length(indicesAtRisk) > 1) {
             survivalSD <- survivalSD + ((length(eventIndices) / length(indicesAtRisk)) *
-                                            rowSums((
-                                                allSamples[, indicesAtRisk] -
-                                                    rowMeans(allSamples[, indicesAtRisk], na.rm = TRUE)
-                                            ) ^ 2, na.rm = TRUE))
+                rowSums((
+                    allSamples[, indicesAtRisk] -
+                        rowMeans(allSamples[, indicesAtRisk], na.rm = TRUE)
+                )^2, na.rm = TRUE))
         }
     }
 

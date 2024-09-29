@@ -77,4 +77,3 @@ countLargerThan <- function(observedVec, permutedVec) {
     # Return the count of larger values for each observed value
     return(combinedPos - observedPos + observedInPermuted)
 }
-

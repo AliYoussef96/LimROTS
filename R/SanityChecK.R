@@ -37,7 +37,7 @@ SanityChecK <- function(x,
                         a1 = NULL,
                         a2 = NULL,
                         meta.info = NULL,
-                        group.name = NULL ,
+                        group.name = NULL,
                         formula.str = NULL,
                         survival = FALSE,
                         paired = FALSE,
@@ -76,7 +76,7 @@ SanityChecK <- function(x,
 
         if (is.null(meta.info)) {
             stop("meta.info should be a vector of colData names to be used")
-        } else{
+        } else {
             meta.info.colnames <- meta.info
             meta.info <- data.frame(
                 colData(data.exp)[, meta.info],
@@ -85,7 +85,7 @@ SanityChecK <- function(x,
             )
             if (length(meta.info) != length(meta.info.colnames)) {
                 stop("meta.info should be a vector of colData names to be used")
-            } else{
+            } else {
                 colnames(meta.info) <- meta.info.colnames
             }
 
@@ -95,9 +95,9 @@ SanityChecK <- function(x,
                 "group.name should be a string specifying the column in `meta.info` that represents the groups or conditions for comparison."
             )
         }
-        message(sprintf("Assay: %s will be used" , assayNames(data.exp)[1]))
-        data <- assay(data.exp , assayNames(data.exp)[1])
-    } else{
+        message(sprintf("Assay: %s will be used", assayNames(data.exp)[1]))
+        data <- assay(data.exp, assayNames(data.exp)[1])
+    } else {
         data <- data.exp
         groups <- meta.info[, group.name]
     }
@@ -105,7 +105,7 @@ SanityChecK <- function(x,
     if (any(!row.names(meta.info) %in% colnames(data))) {
         stop("rownames for meta.info should match the data colnames (samples names)")
     }
-    if (any(grepl("." , colnames(data) , fixed = TRUE))) {
+    if (any(grepl(".", colnames(data), fixed = TRUE))) {
         stop("Sample names should contains no '.', please remove it if any")
     }
     if (!is.null(meta.info) & n.ROTS == FALSE) {
@@ -116,7 +116,7 @@ SanityChecK <- function(x,
             if (is.null(formula.str)) {
                 stop("formula.str should by provided for the model")
             }
-        } else{
+        } else {
             message(
                 "A meta.info table is provided with covariates >>> LimROTS with covariates will be used"
             )
@@ -124,7 +124,7 @@ SanityChecK <- function(x,
                 stop("formula.str should by provided for the model")
             }
         }
-    } else{
+    } else {
         message("n.ROTS is TRUE >>> ROTS will be used")
     }
 
@@ -137,8 +137,8 @@ SanityChecK <- function(x,
     data <- data[, sort.df$sample.id]
     meta.info$temp <- row.names(meta.info)
     meta.info <- data.frame(meta.info[colnames(data), ],
-                            check.rows = FALSE,
-                            check.names = FALSE)
+        check.rows = FALSE,
+        check.names = FALSE)
     meta.info$temp <- NULL
     ### Groups
     if (inherits(meta.info[, group.name], "character")) {
@@ -147,11 +147,11 @@ SanityChecK <- function(x,
         meta.info[, group.name] <- as.numeric(meta.info[, group.name])
     } else if (inherits(meta.info[, group.name], "factor")) {
         groups <- as.numeric(meta.info[, group.name])
-    } else{
+    } else {
         meta.info[, group.name] <- as.numeric(meta.info[, group.name])
         groups <- as.numeric(meta.info[, group.name])
     }
-    if (survival  == TRUE) {
+    if (survival == TRUE) {
         if (all(c("time", "event") %in% colnames(meta.info))) {
             stop(
                 "meta.info must have two columns time and event. Also, group.name must be time"
@@ -159,7 +159,7 @@ SanityChecK <- function(x,
         }
         event <- meta.info[, "event"]
         groups <- meta.info[, "time"]
-    } else{
+    } else {
         event <- NULL
         time <- NULL
     }
@@ -168,7 +168,7 @@ SanityChecK <- function(x,
     if (paired) {
         for (i in unique(groups)[-1]) {
             if (length(which(groups == 1)) != length(which(groups ==
-                                                           i)))
+                i)))
                 stop("Uneven number of samples for paired test.")
         }
     }
