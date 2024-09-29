@@ -39,7 +39,12 @@
 
 
 
-testStatistic_with_covariates <- function(x, group.name, meta.info, formula.str , trend, robust) {
+testStatistic_with_covariates <- function(x,
+                                          group.name,
+                                          meta.info,
+                                          formula.str ,
+                                          trend,
+                                          robust) {
     data <- x
     combined_data <- data.frame(
         check.rows = FALSE,
@@ -71,7 +76,7 @@ testStatistic_with_covariates <- function(x, group.name, meta.info, formula.str 
         pairwise_contrasts <- combn(pairwise_contrasts, 2, function(x)
             paste(x[1], "-", x[2]))
         cont_matrix <- makeContrasts(contrasts = pairwise_contrasts, levels =
-                                                design.matrix)
+                                         design.matrix)
         fit2 <- contrasts.fit(fit, cont_matrix)
         fit.ebayes <- eBayes(fit2, trend = trend, robust = robust)
         d_values <- topTable(
