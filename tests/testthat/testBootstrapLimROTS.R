@@ -14,7 +14,7 @@ test_that("bootstrapSamples.limRots returns expected output structure", {
     group.name <- "group"
 
     # Call the function
-    result <- bootstrapSamples.limRots(data = NULL, B = B, meta.info = meta.info, group.name = group.name)
+    result <- bootstrapSamples.limRots(B = B, meta.info = meta.info, group.name = group.name)
 
     # Check output structure
     expect_type(result, "character")
