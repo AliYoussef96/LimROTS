@@ -47,7 +47,7 @@
 #' data <- data.frame(matrix(rnorm(1000), nrow = 100, ncol = 10)) # Simulated data
 #' meta.info <- data.frame(group = factor(rep(1:2, each = 5)), row.names = colnames(data))
 #' formula.str <- "~ 0 + group"
-#' result <- LimROTS(data, meta.info = meta.info, group.name = "group", formula.str = formula.str)
+#' result <- LimROTS(data, meta.info = meta.info, group.name = "group", formula.str = formula.str, B = 100)
 #'
 #' @importFrom limma voom lmFit eBayes
 #' @importFrom stats model.matrix formula p.adjust
