@@ -5,7 +5,7 @@
 \title{LimROTS: An Extension of the ROTS Method with Limma Integration}
 \usage{
 LimROTS(
-  data.exp,
+  x,
   B = 1000,
   K = NULL,
   a1 = NULL,
@@ -26,7 +26,7 @@ LimROTS(
 )
 }
 \arguments{
-\item{data.exp}{A matrix where rows represent features (e.g., genes, proteins), and columns represent samples.
+\item{x}{A matrix where rows represent features (e.g., genes, proteins), and columns represent samples.
 The values should be log-transformed \code{log}, or a SummarizedExperiment object.}
 
 \item{B}{An integer specifying the number of bootstrap iterations. Default is 1000.}

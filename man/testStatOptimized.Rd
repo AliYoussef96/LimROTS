@@ -4,12 +4,12 @@
 \alias{testStatOptimized}
 \title{Optimized Test Statistic Calculation}
 \usage{
-testStatOptimized(isPaired, sampleGroups)
+testStatOptimized(isPaired, x)
 }
 \arguments{
 \item{isPaired}{Logical. If TRUE, calculates test statistics for paired samples. If FALSE, for unpaired samples.}
 
-\item{sampleGroups}{List of matrices or data frames. Each element represents a group of samples (columns) with the same set of features (rows).}
+\item{x}{List of matrices or data frames. Each element represents a group of samples (columns) with the same set of features (rows).}
 }
 \value{
 A list containing:

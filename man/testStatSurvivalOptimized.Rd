@@ -4,10 +4,10 @@
 \alias{testStatSurvivalOptimized}
 \title{Test Statistics for Survival Data}
 \usage{
-testStatSurvivalOptimized(sampleGroups, survivalTime, survivalEvent)
+testStatSurvivalOptimized(x, survivalTime, survivalEvent)
 }
 \arguments{
-\item{sampleGroups}{A list of matrices or data frames, where each element represents a group of samples
+\item{x}{A list of matrices or data frames, where each element represents a group of samples
 (columns) with the same set of features (rows).}
 
 \item{survivalTime}{A numeric vector containing the survival times for each sample.}
