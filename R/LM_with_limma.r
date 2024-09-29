@@ -4,7 +4,7 @@
 #' in the `meta.info`. It supports two-group comparisons and multi-group analysis, incorporating covariates
 #' through a design matrix.
 #'
-#' @param data A list containing two or more data matrices where rows represent features (e.g., genes, proteins)
+#' @param x A list containing two or more data matrices where rows represent features (e.g., genes, proteins)
 #' and columns represent samples. The list should contain at least two matrices for pairwise group comparison.
 #' @param group.name A character string indicating the name of the group variable in `meta.info` to be used
 #' in the analysis.
