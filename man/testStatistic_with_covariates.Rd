@@ -14,6 +14,9 @@ testStatistic_with_covariates(
 )
 }
 \arguments{
+\item{x}{A list containing two or more data matrices where rows represent features (e.g., genes, proteins)
+and columns represent samples. The list should contain at least two matrices for pairwise group comparison.}
+
 \item{group.name}{A character string indicating the name of the group variable in \code{meta.info} to be used
 in the analysis.}
 
@@ -26,9 +29,6 @@ R formula syntax (e.g., \code{~ covariate1 + covariate2}).}
 \item{trend}{A logical value indicating whether to allow for an intensity-dependent trend in the prior variance.}
 
 \item{robust}{A logical value indicating whether to use a robust fitting procedure to protect against outliers.}
-
-\item{data}{A list containing two or more data matrices where rows represent features (e.g., genes, proteins)
-and columns represent samples. The list should contain at least two matrices for pairwise group comparison.}
 }
 \value{
 A list containing the following elements:
