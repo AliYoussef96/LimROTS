@@ -15,10 +15,9 @@ vignette: >
 
 ```{r}
 # Load necessary packages
-require("LimROTS")
-require("parallel")
-require("devtools")
-require("ggplot2")
+library(LimROTS)
+require(parallel)
+require(ggplot2)
 ```
 
 # UPS1 Case Study

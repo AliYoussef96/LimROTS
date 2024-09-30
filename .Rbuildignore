@@ -2,3 +2,8 @@
 ^Meta$
 ^.*\.Rproj$
 ^\.Rproj\.user$
+
+vignettes/*.html
+vignettes/*.pdf
+vignettes/*.R
+vignettes/*.qmd

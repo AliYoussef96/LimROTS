@@ -1,24 +1,32 @@
 ---
-title: "LimROTS Analysis"
-author: "Ali Youssef"
-format: 
-  html:
-    toc: TRUE
-editor: visual
+title: "LimROTS"
+output:
+    BiocStyle::html_document:
+        fig_height: 7
+        fig_width: 10
+        toc: true
+        toc_float: true
+        toc_depth: 2
+        number_sections: true
 vignette: >
-  %\VignetteIndexEntry{LimROTS Analysis}
-  %\VignetteEngine{quarto::html}
-  %\VignetteEncoding{UTF-8}
+    %\VignetteIndexEntry{mia}
+    %\VignetteEngine{knitr::rmarkdown}
+    %\VignetteEncoding{UTF-8}
 ---
 
-# LimROTS Analysis
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
 
 ```{r}
 # Load necessary packages
-require("LimROTS")
-require("parallel")
-require("devtools")
-require("ggplot2")
+library(LimROTS)
+require(parallel)
+require(devtools)
+require(ggplot2)
 ```
 
 # UPS1 Case Study
@@ -86,13 +94,13 @@ meta.info <- c("Conc.", "tool", "fake.batch")
 B <- 100 # Number of bootstrap samples
 K <- 100 # Set the value for K based on the data size
 K <- floor(K)
-num_cores <- 4 # Number of cores for parallel processing
+num_cores <- 2 # Number of cores for parallel processing
 cluster <- makeCluster(num_cores) # Create a parallel cluster
 group.name <- "Conc."
 formula.str <- "~ 0 + Conc. + tool + fake.batch" # Formula for group comparison
 
 # Run LimROTS analysis with trend and robust settings enabled
-limrots.result <- LimROTS(data.exp = UPS1.Case4,
+limrots.result <- LimROTS(x = UPS1.Case4,
     B = B, K = K, meta.info = meta.info,
     cluster = cluster, group.name = group.name,
     formula.str = formula.str, trend = TRUE, robust = TRUE)

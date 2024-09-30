@@ -44,10 +44,11 @@
 #' @examples
 #' # Example usage:
 #'
-#' data <- data.frame(matrix(rnorm(1000), nrow = 100, ncol = 10)) # Simulated data
+#' data <- data.frame(matrix(rnorm(500), nrow = 100, ncol = 10)) # Simulated data
 #' meta.info <- data.frame(group = factor(rep(1:2, each = 5)), row.names = colnames(data))
 #' formula.str <- "~ 0 + group"
-#' result <- LimROTS(data, meta.info = meta.info, group.name = "group", formula.str = formula.str, B = 100)
+#' result <- LimROTS(data, meta.info = meta.info, group.name = "group",
+#'                                 formula.str = formula.str, B = 10)
 #'
 #' @importFrom limma voom lmFit eBayes
 #' @importFrom stats model.matrix formula p.adjust
@@ -194,7 +195,8 @@ LimROTS <- function(x,
     results_list <- foreach(
         i = seq_len(nrow(samples)),
         .combine = "c",
-        .packages = c("utils", "dplyr", "stringr", "stats", "LimROTS")
+        .packages = c("utils", "stringr", "stats" , "limma"),
+        .export = c("testStatSurvivalOptimized" , "testStatistic_with_covariates" , "testStatOptimized", "testStatistic_with_covariates_permutating")
     ) %dorng% {
         samples.R <- split(samples[i, ], groups)
 
