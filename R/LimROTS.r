@@ -1,27 +1,23 @@
 #' LimROTS: An Extension of the ROTS Method with Limma Integration
 #'
-#' The `LimROTS` function performs robust ranking of differential expression statistics for omics data,
-#' incorporating covariates from metadata and optionally integrating survival analysis, paired data, and more.
+#' The `LimROTS` function employs a reproducibility-optimized test statistic utilising the limma and ROTS methodology to simulate complex experimental designs.
 #'
-#' @param x A matrix where rows represent features (e.g., genes, proteins), and columns represent samples.
-#'             The values should be log-transformed `log`, or a SummarizedExperiment object.
+#' @param x A \code{SummarizedExperiment} object or a matrix where rows represent features (e.g., genes, proteins) and columns represent samples. The values should be log-transformed.
 #' @param B An integer specifying the number of bootstrap iterations. Default is 1000.
 #' @param K An optional integer representing the top list size for ranking. If not specified, it is set to one-fourth of the number of features.
-#' @param a1 Optional numeric value used in the optimization process.
-#' @param a2 Optional numeric value used in the optimization process.
-#' @param log Logical, indicating whether the data is already log-transformed. Default is TRUE.
-#' @param progress Logical, indicating whether to display a progress bar during bootstrap sampling. Default is FALSE.
-#' @param verbose Logical, indicating whether to display messages during the function's execution. Default is TRUE.
-#' @param meta.info A data frame containing sample-level metadata, where each row corresponds to a sample. It should include the grouping variable specified in `group.name`.
-#' @param cluster A parallel cluster object for distributed computation, e.g., created by `makeCluster()`. Default is NULL.
-#' @param group.name A string specifying the column in `meta.info` that represents the groups or conditions for comparison.
-#' @param formula.str An optional formula string used when covariates are present in `meta.info` for modeling.
-#' @param trend Logical, indicating whether to include trend fitting in the differential expression analysis. Default is TRUE.
-#' @param robust Logical, indicating whether robust fitting should be used. Default is TRUE.
-#' @param paired Logical, indicating whether the data represent paired samples. Default is FALSE.
-#' @param n.ROTS Default is FALSE. If TRUE, all parameters related to LimROTS will be ignored, and the normal ROTS analysis will run.
-#' @param survival To enable survival analysis, If TRUE then `meta.info` should contains time and event
-#' @param seed.cl A seed should be set for randomization; if not, the default is 1234
+#' @param a1 Optional numeric value used in the optimization process. If defined by the user, no optimization occurs.
+#' @param a2 Optional numeric value used in the optimization process. If defined by the user, no optimization occurs [0,1].
+#' @param log Logical, indicating whether the data is already log-transformed. Default is \code{TRUE}.
+#' @param progress Logical, indicating whether to display a progress bar during bootstrap sampling. Default is \code{FALSE}.
+#' @param verbose Logical, indicating whether to display messages during the function's execution. Default is \code{TRUE}.
+#' @param meta.info A data frame containing sample-level metadata, where each row corresponds to a sample. It should include the grouping variable specified in \code{group.name}. If \code{x} is a \code{SummarizedExperiment} object, \code{meta.info} must be a vector of the metadata needed for the model to run and can be retrieved using \code{colData()}.
+#' @param group.name A string specifying the column in \code{meta.info} that represents the groups or conditions for comparison.
+#' @param seed.cl An integer specifying the seed for randomization; if not provided, the default is 1234.
+#' @param cluster A parallel cluster object for distributed computation, e.g., created by \code{makeCluster()}. Default is 2.
+#' @param survival Logical, indicating whether to enable survival analysis. If \code{TRUE}, then \code{meta.info} should contain \code{time} and \code{event} columns.
+#' @param paired Logical, indicating whether the data represent paired samples. Default is \code{FALSE}.
+#' @param n.ROTS Logical. If \code{TRUE}, all parameters related to \code{LimROTS} will be ignored, and the original \code{ROTS} analysis will run. This must be \code{TRUE} when \code{survival} or \code{paired} is set to \code{TRUE}.
+#'
 #'
 #' @return A list of class `"list"` with the following elements:
 #' \item{data}{The original data matrix.}
@@ -37,9 +33,7 @@
 #' \item{q_values}{Estimated q-values using the `qvalue` package.}
 #' \item{BH.pvalue}{Benjamini-Hochberg adjusted p-values.}
 #'
-#' @details
-#' This function extends the ROTS (Reproducibility Optimized Test Statistic) method by integrating functionality from `limma` for differential expression analysis with optional covariates, survival data, and paired samples.
-#' It allows the user to specify additional covariates and models complex experimental designs.
+#'
 #'
 #' @examples
 #' # Example usage:
@@ -60,6 +54,23 @@
 #' @importFrom qvalue empPvals qvalue
 #' @import utils
 #' @import SummarizedExperiment
+#'
+#' @details Differential expression analysis is a prevalent method utilised in the examination of diverse biological data.
+#'     The reproducibility-optimized test statistic (ROTS) modifies a t-statistic based on the data's intrinsic characteristics and ranks features according to their statistical significance for differential expression between two or more groups, as shown by the f-statistic.
+#'     Focussing on proteomics and metabolomics, the current ROTS implementation cannot account for technical or biological covariates such as MS batches or gender differences among the samples.
+#'     Consequently, we developed LimROTS, which employs a reproducibility-optimized test statistic utilising the limma methodology to simulate complex experimental designs.
+#'
+#'
+#' @references
+#'   Ritchie, M.E., Phipson, B., Wu, D., Hu, Y., Law, C.W., Shi, W., and Smyth, G.K. (2015). limma powers differential
+#'   expression analyses for RNA-sequencing and microarray studies. Nucleic Acids Research 43(7), e47
+#'
+#'   Suomi T, Seyednasrollah F, Jaakkola M, Faux T, Elo L (2017). “ROTS: An R package for reproducibility-optimized
+#'   statistical testing.” _PLoS computational biology_, *13*(5), e1005562. doi:10.1371/journal.pcbi.1005562
+#'   <https://doi.org/10.1371/journal.pcbi.1005562>, <http://www.ncbi.nlm.nih.gov/pubmed/28542205>
+#'
+#'
+#'
 #' @export
 
 

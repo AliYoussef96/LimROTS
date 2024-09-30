@@ -14,7 +14,10 @@ Authors@R:
     person(given = "Eleanor", family = "Coffey", role = c("aut", "ths"),
     email = "elecof@utu.fi",
     comment = c(ORCID = "0000-0002-9717-5610")))
-Description: This function extends the ROTS (Reproducibility Optimized Test Statistic) method by integrating functionality from `limma` for differential expression analysis with optional covariates, survival data, and paired samples. It allows the user to specify additional covariates and models complex experimental designs.
+Description: Differential expression analysis is a prevalent method utilised in the examination of diverse biological data.
+            The reproducibility-optimized test statistic (ROTS) modifies a t-statistic based on the data's intrinsic characteristics and ranks features according to their statistical significance for differential expression between two or more groups, as shown by the f-statistic. 
+            Focussing on proteomics and metabolomics, the current ROTS implementation cannot account for technical or biological covariates such as MS batches or gender differences among the samples. 
+            Consequently, we developed LimROTS, which employs a reproducibility-optimized test statistic utilising the limma methodology to simulate complex experimental designs.
 License: Artistic-2.0
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

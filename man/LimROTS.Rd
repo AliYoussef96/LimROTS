@@ -26,42 +26,35 @@ LimROTS(
 )
 }
 \arguments{
-\item{x}{A matrix where rows represent features (e.g., genes, proteins), and columns represent samples.
-The values should be log-transformed \code{log}, or a SummarizedExperiment object.}
+\item{x}{A \code{SummarizedExperiment} object or a matrix where rows represent features (e.g., genes, proteins) and columns represent samples. The values should be log-transformed.}
 
 \item{B}{An integer specifying the number of bootstrap iterations. Default is 1000.}
 
 \item{K}{An optional integer representing the top list size for ranking. If not specified, it is set to one-fourth of the number of features.}
 
-\item{a1}{Optional numeric value used in the optimization process.}
+\item{a1}{Optional numeric value used in the optimization process. If defined by the user, no optimization occurs.}
 
-\item{a2}{Optional numeric value used in the optimization process.}
+\item{a2}{Optional numeric value used in the optimization process. If defined by the user, no optimization occurs \link{0,1}.}
 
-\item{log}{Logical, indicating whether the data is already log-transformed. Default is TRUE.}
+\item{log}{Logical, indicating whether the data is already log-transformed. Default is \code{TRUE}.}
 
-\item{progress}{Logical, indicating whether to display a progress bar during bootstrap sampling. Default is FALSE.}
+\item{progress}{Logical, indicating whether to display a progress bar during bootstrap sampling. Default is \code{FALSE}.}
 
-\item{verbose}{Logical, indicating whether to display messages during the function's execution. Default is TRUE.}
+\item{verbose}{Logical, indicating whether to display messages during the function's execution. Default is \code{TRUE}.}
 
-\item{meta.info}{A data frame containing sample-level metadata, where each row corresponds to a sample. It should include the grouping variable specified in \code{group.name}.}
+\item{meta.info}{A data frame containing sample-level metadata, where each row corresponds to a sample. It should include the grouping variable specified in \code{group.name}. If \code{x} is a \code{SummarizedExperiment} object, \code{meta.info} must be a vector of the metadata needed for the model to run and can be retrieved using \code{colData()}.}
 
-\item{cluster}{A parallel cluster object for distributed computation, e.g., created by \code{makeCluster()}. Default is NULL.}
+\item{cluster}{A parallel cluster object for distributed computation, e.g., created by \code{makeCluster()}. Default is 2.}
 
 \item{group.name}{A string specifying the column in \code{meta.info} that represents the groups or conditions for comparison.}
 
-\item{formula.str}{An optional formula string used when covariates are present in \code{meta.info} for modeling.}
+\item{survival}{Logical, indicating whether to enable survival analysis. If \code{TRUE}, then \code{meta.info} should contain \code{time} and \code{event} columns.}
 
-\item{survival}{To enable survival analysis, If TRUE then \code{meta.info} should contains time and event}
+\item{paired}{Logical, indicating whether the data represent paired samples. Default is \code{FALSE}.}
 
-\item{paired}{Logical, indicating whether the data represent paired samples. Default is FALSE.}
+\item{n.ROTS}{Logical. If \code{TRUE}, all parameters related to \code{LimROTS} will be ignored, and the original \code{ROTS} analysis will run. This must be \code{TRUE} when \code{survival} or \code{paired} is set to \code{TRUE}.}
 
-\item{n.ROTS}{Default is FALSE. If TRUE, all parameters related to LimROTS will be ignored, and the normal ROTS analysis will run.}
-
-\item{seed.cl}{A seed should be set for randomization; if not, the default is 1234}
-
-\item{robust}{Logical, indicating whether robust fitting should be used. Default is TRUE.}
-
-\item{trend}{Logical, indicating whether to include trend fitting in the differential expression analysis. Default is TRUE.}
+\item{seed.cl}{An integer specifying the seed for randomization; if not provided, the default is 1234.}
 }
 \value{
 A list of class \code{"list"} with the following elements:
@@ -79,12 +72,13 @@ A list of class \code{"list"} with the following elements:
 \item{BH.pvalue}{Benjamini-Hochberg adjusted p-values.}
 }
 \description{
-The \code{LimROTS} function performs robust ranking of differential expression statistics for omics data,
-incorporating covariates from metadata and optionally integrating survival analysis, paired data, and more.
+The \code{LimROTS} function employs a reproducibility-optimized test statistic utilising the limma and ROTS methodology to simulate complex experimental designs.
 }
 \details{
-This function extends the ROTS (Reproducibility Optimized Test Statistic) method by integrating functionality from \code{limma} for differential expression analysis with optional covariates, survival data, and paired samples.
-It allows the user to specify additional covariates and models complex experimental designs.
+Differential expression analysis is a prevalent method utilised in the examination of diverse biological data.
+The reproducibility-optimized test statistic (ROTS) modifies a t-statistic based on the data's intrinsic characteristics and ranks features according to their statistical significance for differential expression between two or more groups, as shown by the f-statistic.
+Focussing on proteomics and metabolomics, the current ROTS implementation cannot account for technical or biological covariates such as MS batches or gender differences among the samples.
+Consequently, we developed LimROTS, which employs a reproducibility-optimized test statistic utilising the limma methodology to simulate complex experimental designs.
 }
 \examples{
 # Example usage:
@@ -95,4 +89,12 @@ formula.str <- "~ 0 + group"
 result <- LimROTS(data, meta.info = meta.info, group.name = "group",
                                 formula.str = formula.str, B = 10)
 
+}
+\references{
+Ritchie, M.E., Phipson, B., Wu, D., Hu, Y., Law, C.W., Shi, W., and Smyth, G.K. (2015). limma powers differential
+expression analyses for RNA-sequencing and microarray studies. Nucleic Acids Research 43(7), e47
+
+Suomi T, Seyednasrollah F, Jaakkola M, Faux T, Elo L (2017). “ROTS: An R package for reproducibility-optimized
+statistical testing.” \emph{PLoS computational biology}, \emph{13}(5), e1005562. doi:10.1371/journal.pcbi.1005562
+\url{https://doi.org/10.1371/journal.pcbi.1005562}, \url{http://www.ncbi.nlm.nih.gov/pubmed/28542205}
 }
