@@ -6,7 +6,7 @@
 #' @param B An integer specifying the number of bootstrap iterations. Default is 1000.
 #' @param K An optional integer representing the top list size for ranking. If not specified, it is set to one-fourth of the number of features.
 #' @param a1 Optional numeric value used in the optimization process. If defined by the user, no optimization occurs.
-#' @param a2 Optional numeric value used in the optimization process. If defined by the user, no optimization occurs [0,1].
+#' @param a2 Optional numeric value used in the optimization process. If defined by the user, no optimization occurs.
 #' @param log Logical, indicating whether the data is already log-transformed. Default is \code{TRUE}.
 #' @param progress Logical, indicating whether to display a progress bar during bootstrap sampling. Default is \code{FALSE}.
 #' @param verbose Logical, indicating whether to display messages during the function's execution. Default is \code{TRUE}.
@@ -17,6 +17,9 @@
 #' @param survival Logical, indicating whether to enable survival analysis. If \code{TRUE}, then \code{meta.info} should contain \code{time} and \code{event} columns.
 #' @param paired Logical, indicating whether the data represent paired samples. Default is \code{FALSE}.
 #' @param n.ROTS Logical. If \code{TRUE}, all parameters related to \code{LimROTS} will be ignored, and the original \code{ROTS} analysis will run. This must be \code{TRUE} when \code{survival} or \code{paired} is set to \code{TRUE}.
+#' @param formula.str A formula string used when covariates are present in meta.info for modeling. It should include "~ 0 + ..." to exclude the intercept from the model.
+#' @param robust indicating whether robust fitting should be used. Default is TRUE, see \link{eBayes}.
+#' @param trend indicating whether to include trend fitting in the differential expression analysis. Default is TRUE. see \link{eBayes}.
 #'
 #'
 #' @return A list of class `"list"` with the following elements:
@@ -66,8 +69,8 @@
 #'   expression analyses for RNA-sequencing and microarray studies. Nucleic Acids Research 43(7), e47
 #'
 #'   Suomi T, Seyednasrollah F, Jaakkola M, Faux T, Elo L (2017). “ROTS: An R package for reproducibility-optimized
-#'   statistical testing.” _PLoS computational biology_, *13*(5), e1005562. doi:10.1371/journal.pcbi.1005562
-#'   <https://doi.org/10.1371/journal.pcbi.1005562>, <http://www.ncbi.nlm.nih.gov/pubmed/28542205>
+#'   statistical testing.” _PLoS computational biology_, *13*(5), e1005562. \url{doi:10.1371/journal.pcbi.1005562}
+#'   \url{https://doi.org/10.1371/journal.pcbi.1005562}, \url{http://www.ncbi.nlm.nih.gov/pubmed/28542205}
 #'
 #'
 #'

@@ -34,7 +34,7 @@ LimROTS(
 
 \item{a1}{Optional numeric value used in the optimization process. If defined by the user, no optimization occurs.}
 
-\item{a2}{Optional numeric value used in the optimization process. If defined by the user, no optimization occurs \link{0,1}.}
+\item{a2}{Optional numeric value used in the optimization process. If defined by the user, no optimization occurs.}
 
 \item{log}{Logical, indicating whether the data is already log-transformed. Default is \code{TRUE}.}
 
@@ -48,6 +48,8 @@ LimROTS(
 
 \item{group.name}{A string specifying the column in \code{meta.info} that represents the groups or conditions for comparison.}
 
+\item{formula.str}{A formula string used when covariates are present in meta.info for modeling. It should include "~ 0 + ..." to exclude the intercept from the model.}
+
 \item{survival}{Logical, indicating whether to enable survival analysis. If \code{TRUE}, then \code{meta.info} should contain \code{time} and \code{event} columns.}
 
 \item{paired}{Logical, indicating whether the data represent paired samples. Default is \code{FALSE}.}
@@ -55,6 +57,10 @@ LimROTS(
 \item{n.ROTS}{Logical. If \code{TRUE}, all parameters related to \code{LimROTS} will be ignored, and the original \code{ROTS} analysis will run. This must be \code{TRUE} when \code{survival} or \code{paired} is set to \code{TRUE}.}
 
 \item{seed.cl}{An integer specifying the seed for randomization; if not provided, the default is 1234.}
+
+\item{robust}{indicating whether robust fitting should be used. Default is TRUE, see \link{eBayes}.}
+
+\item{trend}{indicating whether to include trend fitting in the differential expression analysis. Default is TRUE. see \link{eBayes}.}
 }
 \value{
 A list of class \code{"list"} with the following elements:
@@ -95,6 +101,6 @@ Ritchie, M.E., Phipson, B., Wu, D., Hu, Y., Law, C.W., Shi, W., and Smyth, G.K. 
 expression analyses for RNA-sequencing and microarray studies. Nucleic Acids Research 43(7), e47
 
 Suomi T, Seyednasrollah F, Jaakkola M, Faux T, Elo L (2017). “ROTS: An R package for reproducibility-optimized
-statistical testing.” \emph{PLoS computational biology}, \emph{13}(5), e1005562. doi:10.1371/journal.pcbi.1005562
+statistical testing.” \emph{PLoS computational biology}, \emph{13}(5), e1005562. \url{doi:10.1371/journal.pcbi.1005562}
 \url{https://doi.org/10.1371/journal.pcbi.1005562}, \url{http://www.ncbi.nlm.nih.gov/pubmed/28542205}
 }
