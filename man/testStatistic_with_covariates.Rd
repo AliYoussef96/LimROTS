@@ -5,7 +5,7 @@
 \title{Perform Linear Modeling with Covariates using Limma}
 \usage{
 testStatistic_with_covariates(
-  data,
+  x,
   group.name,
   meta.info,
   formula.str,
@@ -14,7 +14,7 @@ testStatistic_with_covariates(
 )
 }
 \arguments{
-\item{data}{A list containing two or more data matrices where rows represent features (e.g., genes, proteins)
+\item{x}{A list containing two or more data matrices where rows represent features (e.g., genes, proteins)
 and columns represent samples. The list should contain at least two matrices for pairwise group comparison.}
 
 \item{group.name}{A character string indicating the name of the group variable in \code{meta.info} to be used

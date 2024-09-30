@@ -5,7 +5,7 @@
 \title{LimROTS: An Extension of the ROTS Method with Limma Integration}
 \usage{
 LimROTS(
-  data.exp,
+  x,
   B = 1000,
   K = NULL,
   a1 = NULL,
@@ -26,7 +26,7 @@ LimROTS(
 )
 }
 \arguments{
-\item{data.exp}{A matrix where rows represent features (e.g., genes, proteins), and columns represent samples.
+\item{x}{A matrix where rows represent features (e.g., genes, proteins), and columns represent samples.
 The values should be log-transformed \code{log}, or a SummarizedExperiment object.}
 
 \item{B}{An integer specifying the number of bootstrap iterations. Default is 1000.}
@@ -89,9 +89,10 @@ It allows the user to specify additional covariates and models complex experimen
 \examples{
 # Example usage:
 
-data <- data.frame(matrix(rnorm(1000), nrow = 100, ncol = 10)) # Simulated data
+data <- data.frame(matrix(rnorm(500), nrow = 100, ncol = 10)) # Simulated data
 meta.info <- data.frame(group = factor(rep(1:2, each = 5)), row.names = colnames(data))
 formula.str <- "~ 0 + group"
-result <- LimROTS(data, meta.info = meta.info, group.name = "group", formula.str = formula.str)
+result <- LimROTS(data, meta.info = meta.info, group.name = "group",
+                                formula.str = formula.str, B = 10)
 
 }

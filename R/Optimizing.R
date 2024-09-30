@@ -1,5 +1,3 @@
-
-
 #' Optimize Parameters Based on Overlap Calculations
 #'
 #' This function optimizes parameters by calculating overlaps between observed and permuted data for multiple values of a smoothing constant (`ssq`) and a single-label replicate (SLR) comparison.
@@ -47,8 +45,8 @@ Optimizing <- function(B, ssq, N, D, S, pD, pS, verbose, progress) {
     row.names(reprotable.sd) <- c(ssq, "slr")
     if (progress)
         pb <- txtProgressBar(min = 0,
-                             max = length(ssq),
-                             style = 3)
+            max = length(ssq),
+            style = 3)
     for (i in seq_len(length(ssq))) {
         overlaps <- matrix(0, nrow = B, ncol = length(N))
         overlaps.P <- matrix(0, nrow = B, ncol = length(N))
@@ -68,8 +66,8 @@ Optimizing <- function(B, ssq, N, D, S, pD, pS, verbose, progress) {
         reprotable[i, ] <- colMeans(cResults[["overlaps"]])
         reprotable.P[i, ] <- colMeans(cResults[["overlaps_P"]])
         reprotable.sd[i, ] <- sqrt(rowSums((t(cResults[["overlaps"]]) -
-                                                reprotable[i, ]) ^ 2) / (nrow(cResults[["overlaps"]]) -
-                                                                             1))
+            reprotable[i, ])^2) / (nrow(cResults[["overlaps"]]) -
+            1))
         if (progress)
             setTxtProgressBar(pb, i)
     }
@@ -79,20 +77,20 @@ Optimizing <- function(B, ssq, N, D, S, pD, pS, verbose, progress) {
     overlaps <- matrix(0, nrow = B, ncol = length(N))
     overlaps.P <- matrix(0, nrow = B, ncol = length(N))
     cResults <- calOverlaps.slr(D,
-                                pD,
-                                nrow(D),
-                                as.integer(N),
-                                length(N),
-                                as.integer(B),
-                                overlaps,
-                                overlaps.P)
+        pD,
+        nrow(D),
+        as.integer(N),
+        length(N),
+        as.integer(B),
+        overlaps,
+        overlaps.P)
     rm(D, S)
     gc()
     reprotable[i, ] <- colMeans(cResults[["overlaps"]])
     reprotable.P[i, ] <- colMeans(cResults[["overlaps_P"]])
     reprotable.sd[i, ] <- sqrt(rowSums((t(cResults[["overlaps"]]) -
-                                            reprotable[i, ]) ^ 2) / (nrow(cResults[["overlaps"]]) -
-                                                                         1))
+        reprotable[i, ])^2) / (nrow(cResults[["overlaps"]]) -
+        1))
     rm(overlaps, overlaps.P, cResults)
     gc()
     ztable <- (reprotable - reprotable.P) / reprotable.sd

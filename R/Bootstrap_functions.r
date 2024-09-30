@@ -24,11 +24,7 @@
 #'
 #' # Paired bootstrap sampling
 #' bootstrapS(B = 10, meta.info = meta.info, group.name = "group", paired = TRUE)
-
-
-
-
-bootstrapS <- function (B, meta.info, group.name , paired) {
+bootstrapS <- function(B, meta.info, group.name, paired) {
     groups <- meta.info[, group.name]
     bootsamples <- matrix(nrow = B, ncol = length(groups))
     for (i in seq_len(B)) {
@@ -39,8 +35,8 @@ bootstrapS <- function (B, meta.info, group.name , paired) {
     }
     if (paired) {
         for (i in seq_len(B)) {
-            g.names1 <-  bootsamples[i, which(groups == unique(groups)[1])]
-            g.names2 <- match(g.names1 , row.names(meta.info)) + length(g.names1)
+            g.names1 <- bootsamples[i, which(groups == unique(groups)[1])]
+            g.names2 <- match(g.names1, row.names(meta.info)) + length(g.names1)
             bootsamples[i, which(groups == unique(groups)[2])] <- row.names(meta.info)[g.names2]
         }
     }
@@ -68,9 +64,7 @@ bootstrapS <- function (B, meta.info, group.name , paired) {
 #' set.seed(123)
 #' meta.info <- data.frame(group = rep(c("A", "B"), each = 5), row.names = paste0("Sample", 1:10))
 #' permutatedS(meta.info = meta.info, B = 10)
-
-
-permutatedS <- function (meta.info, B)
+permutatedS <- function(meta.info, B)
 {
     persamples <- matrix(nrow = B, ncol = nrow(meta.info))
     for (i in seq_len(B)) {
@@ -86,7 +80,6 @@ permutatedS <- function (meta.info, B)
 #' This function generates stratified bootstrap samples based on the groupings and additional factors in the metadata.
 #' The function ensures that samples are drawn proportionally based on strata defined by the interaction of factor columns in the metadata.
 #'
-#' @param data Data frame or matrix. The input data for which the bootstrap samples will be generated.
 #' @param B Integer. The number of bootstrap samples to generate.
 #' @param meta.info Data frame. Metadata containing sample information, where each row corresponds to a sample. Factor columns in `meta.info` are used to define strata for sampling.
 #' @param group.name Character. The name of the column in `meta.info` that defines the grouping variable for the samples.
@@ -104,13 +97,11 @@ permutatedS <- function (meta.info, B)
 #' # Example usage:
 #' set.seed(123)
 #' meta.info <- data.frame(group = rep(c(1, 2), each = 5),
-#'                         batch = rep(c("A", "B"), 5),
-#'                         row.names = paste0("Sample", 1:10))
+#'     batch = rep(c("A", "B"), 5),
+#'     row.names = paste0("Sample", 1:10))
 #' meta.info$batch <- as.factor(meta.info$batch)
-#' bootstrapSamples.limRots(data = NULL, B = 10, meta.info = meta.info, group.name = "group")
-
-
-bootstrapSamples.limRots <- function (data, B, meta.info , group.name)
+#' bootstrapSamples.limRots(B = 10, meta.info = meta.info, group.name = "group")
+bootstrapSamples.limRots <- function(B, meta.info, group.name)
 {
     labels <- as.numeric(meta.info[, group.name])
     samples <- matrix(nrow = B, ncol = length(labels))
@@ -121,11 +112,11 @@ bootstrapSamples.limRots <- function (data, B, meta.info , group.name)
             meta.info.factors <- c()
             for (j in seq_len(ncol(meta.info))) {
                 if (is.factor(meta.info.pos[, j])) {
-                    meta.info.factors <- c(meta.info.factors,colnames(meta.info.pos)[j])
-                    }
+                    meta.info.factors <- c(meta.info.factors, colnames(meta.info.pos)[j])
+                }
             }
             if (is.null(meta.info.factors)) {
-                samples <-  bootstrapS(
+                samples <- bootstrapS(
                     B = B,
                     meta.info = meta.info,
                     group.name = group.name,
@@ -138,7 +129,7 @@ bootstrapSamples.limRots <- function (data, B, meta.info , group.name)
             stratum_sizes <- table(meta.info.pos$stratum)
             stratum_samples <- round(length(pos) * prop.table(stratum_sizes))
             sampled_indices <- unlist(lapply(names(stratum_samples), function(stratum) {
-                stratum_indices <- row.names(meta.info.pos)[which(meta.info.pos$stratum ==  stratum)]
+                stratum_indices <- row.names(meta.info.pos)[which(meta.info.pos$stratum == stratum)]
                 sample(stratum_indices, stratum_samples[stratum], replace = TRUE)
             }))
             samples[i, pos] <- sampled_indices

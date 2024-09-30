@@ -5,7 +5,7 @@
 \title{Sanity Check for Input Data and Parameters}
 \usage{
 SanityChecK(
-  data.exp,
+  x,
   B = 1000,
   K = NULL,
   a1 = NULL,
@@ -21,7 +21,7 @@ SanityChecK(
 )
 }
 \arguments{
-\item{data.exp}{A matrix-like object or a \code{SummarizedExperiment} containing the data to be analyzed.}
+\item{x}{A matrix-like object or a \code{SummarizedExperiment} containing the data to be analyzed.}
 
 \item{B}{Integer. Number of bootstrap samples or resampling iterations. Default is 1000.}
 

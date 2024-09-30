@@ -25,7 +25,17 @@
 
 
 
-calOverlaps <- function(D, S, pD, pS, nrow, N, N_len, ssq, B, overlaps, overlaps_P) {
+calOverlaps <- function(D,
+                        S,
+                        pD,
+                        pS,
+                        nrow,
+                        N,
+                        N_len,
+                        ssq,
+                        B,
+                        overlaps,
+                        overlaps_P) {
     sort2_1R <- function(a, b) {
         order_a <- order(a, b, decreasing = TRUE)
         a <- a[order_a]
@@ -38,10 +48,10 @@ calOverlaps <- function(D, S, pD, pS, nrow, N, N_len, ssq, B, overlaps, overlaps
     for (b in idx_b) {
         res1 <- abs(D[((b - 1) * nrow + 1):(b * nrow)] / (S[((b - 1) * nrow + 1):(b * nrow)] + ssq))
         res2 <- abs(D[((b + idx_offset - 1) * nrow + 1):((b + idx_offset) * nrow)] /
-                        (S[((b + idx_offset - 1) * nrow + 1):((b + idx_offset) * nrow)] + ssq))
+            (S[((b + idx_offset - 1) * nrow + 1):((b + idx_offset) * nrow)] + ssq))
         pres1 <- abs(pD[((b - 1) * nrow + 1):(b * nrow)] / (pS[((b - 1) * nrow + 1):(b * nrow)] + ssq))
         pres2 <- abs(pD[((b + idx_offset - 1) * nrow + 1):((b + idx_offset) * nrow)] /
-                         (pS[((b + idx_offset - 1) * nrow + 1):((b + idx_offset) * nrow)] + ssq))
+            (pS[((b + idx_offset - 1) * nrow + 1):((b + idx_offset) * nrow)] + ssq))
 
         sorted_res <- sort2_1R(res1, res2)
         res1 <- sorted_res$a

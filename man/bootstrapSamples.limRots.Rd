@@ -4,11 +4,9 @@
 \alias{bootstrapSamples.limRots}
 \title{Generate Stratified Bootstrap Samples for limRots}
 \usage{
-bootstrapSamples.limRots(data, B, meta.info, group.name)
+bootstrapSamples.limRots(B, meta.info, group.name)
 }
 \arguments{
-\item{data}{Data frame or matrix. The input data for which the bootstrap samples will be generated.}
-
 \item{B}{Integer. The number of bootstrap samples to generate.}
 
 \item{meta.info}{Data frame. Metadata containing sample information, where each row corresponds to a sample. Factor columns in \code{meta.info} are used to define strata for sampling.}
@@ -32,8 +30,8 @@ from the correct groups and strata in a proportional manner.
 # Example usage:
 set.seed(123)
 meta.info <- data.frame(group = rep(c(1, 2), each = 5),
-                        batch = rep(c("A", "B"), 5),
-                        row.names = paste0("Sample", 1:10))
+    batch = rep(c("A", "B"), 5),
+    row.names = paste0("Sample", 1:10))
 meta.info$batch <- as.factor(meta.info$batch)
-bootstrapSamples.limRots(data = NULL, B = 10, meta.info = meta.info, group.name = "group")
+bootstrapSamples.limRots(B = 10, meta.info = meta.info, group.name = "group")
 }

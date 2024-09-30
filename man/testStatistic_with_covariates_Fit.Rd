@@ -5,7 +5,7 @@
 \title{Perform Linear Modeling with Covariates using Limma}
 \usage{
 testStatistic_with_covariates_Fit(
-  data,
+  x,
   group.name,
   meta.info,
   formula.str,
@@ -14,7 +14,7 @@ testStatistic_with_covariates_Fit(
 )
 }
 \arguments{
-\item{data}{A list containing two or more data matrices where rows represent features
+\item{x}{A list containing two or more data matrices where rows represent features
 (e.g., genes, proteins) and columns represent samples. The list should contain at least
 two matrices for pairwise group comparison.}
 

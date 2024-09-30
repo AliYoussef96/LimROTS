@@ -2,7 +2,7 @@
 #'
 #' This function performs a series of checks and initial setups for input data, metadata, and parameters, ensuring everything is correctly formatted for downstream analysis.
 #'
-#' @param data.exp A matrix-like object or a `SummarizedExperiment` containing the data to be analyzed.
+#' @param x A matrix-like object or a `SummarizedExperiment` containing the data to be analyzed.
 #' @param B Integer. Number of bootstrap samples or resampling iterations. Default is 1000.
 #' @param K Integer. Top list size. If NULL, it will be set to a quarter of the number of rows in the data matrix. Default is NULL.
 #' @param a1,a2 Optional numeric parameters related to optimization.
@@ -31,8 +31,20 @@
 
 
 
-SanityChecK <- function(data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL, meta.info = NULL, group.name = NULL ,
-                        formula.str = NULL, survival = FALSE, paired = FALSE, n.ROTS = FALSE, verbose = TRUE, log = TRUE) {
+SanityChecK <- function(x,
+                        B = 1000,
+                        K = NULL,
+                        a1 = NULL,
+                        a2 = NULL,
+                        meta.info = NULL,
+                        group.name = NULL,
+                        formula.str = NULL,
+                        survival = FALSE,
+                        paired = FALSE,
+                        n.ROTS = FALSE,
+                        verbose = TRUE,
+                        log = TRUE) {
+    data.exp <- x
     if (survival == TRUE) {
         if (n.ROTS == FALSE) {
             stop(
@@ -64,7 +76,7 @@ SanityChecK <- function(data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL, meta
 
         if (is.null(meta.info)) {
             stop("meta.info should be a vector of colData names to be used")
-        } else{
+        } else {
             meta.info.colnames <- meta.info
             meta.info <- data.frame(
                 colData(data.exp)[, meta.info],
@@ -73,7 +85,7 @@ SanityChecK <- function(data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL, meta
             )
             if (length(meta.info) != length(meta.info.colnames)) {
                 stop("meta.info should be a vector of colData names to be used")
-            } else{
+            } else {
                 colnames(meta.info) <- meta.info.colnames
             }
 
@@ -83,9 +95,9 @@ SanityChecK <- function(data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL, meta
                 "group.name should be a string specifying the column in `meta.info` that represents the groups or conditions for comparison."
             )
         }
-        message(sprintf("Assay: %s will be used" , assayNames(data.exp)[1]))
-        data <- assay(data.exp , assayNames(data.exp)[1])
-    } else{
+        message(sprintf("Assay: %s will be used", assayNames(data.exp)[1]))
+        data <- assay(data.exp, assayNames(data.exp)[1])
+    } else {
         data <- data.exp
         groups <- meta.info[, group.name]
     }
@@ -93,7 +105,7 @@ SanityChecK <- function(data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL, meta
     if (any(!row.names(meta.info) %in% colnames(data))) {
         stop("rownames for meta.info should match the data colnames (samples names)")
     }
-    if (any(grepl("." , colnames(data) , fixed = TRUE))) {
+    if (any(grepl(".", colnames(data), fixed = TRUE))) {
         stop("Sample names should contains no '.', please remove it if any")
     }
     if (!is.null(meta.info) & n.ROTS == FALSE) {
@@ -104,7 +116,7 @@ SanityChecK <- function(data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL, meta
             if (is.null(formula.str)) {
                 stop("formula.str should by provided for the model")
             }
-        } else{
+        } else {
             message(
                 "A meta.info table is provided with covariates >>> LimROTS with covariates will be used"
             )
@@ -112,7 +124,7 @@ SanityChecK <- function(data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL, meta
                 stop("formula.str should by provided for the model")
             }
         }
-    } else{
+    } else {
         message("n.ROTS is TRUE >>> ROTS will be used")
     }
 
@@ -125,8 +137,8 @@ SanityChecK <- function(data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL, meta
     data <- data[, sort.df$sample.id]
     meta.info$temp <- row.names(meta.info)
     meta.info <- data.frame(meta.info[colnames(data), ],
-                            check.rows = FALSE,
-                            check.names = FALSE)
+        check.rows = FALSE,
+        check.names = FALSE)
     meta.info$temp <- NULL
     ### Groups
     if (inherits(meta.info[, group.name], "character")) {
@@ -135,11 +147,11 @@ SanityChecK <- function(data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL, meta
         meta.info[, group.name] <- as.numeric(meta.info[, group.name])
     } else if (inherits(meta.info[, group.name], "factor")) {
         groups <- as.numeric(meta.info[, group.name])
-    } else{
+    } else {
         meta.info[, group.name] <- as.numeric(meta.info[, group.name])
         groups <- as.numeric(meta.info[, group.name])
     }
-    if (survival  == TRUE) {
+    if (survival == TRUE) {
         if (all(c("time", "event") %in% colnames(meta.info))) {
             stop(
                 "meta.info must have two columns time and event. Also, group.name must be time"
@@ -147,7 +159,7 @@ SanityChecK <- function(data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL, meta
         }
         event <- meta.info[, "event"]
         groups <- meta.info[, "time"]
-    } else{
+    } else {
         event <- NULL
         time <- NULL
     }
@@ -156,7 +168,7 @@ SanityChecK <- function(data.exp, B = 1000, K = NULL, a1 = NULL, a2 = NULL, meta
     if (paired) {
         for (i in unique(groups)[-1]) {
             if (length(which(groups == 1)) != length(which(groups ==
-                                                           i)))
+                i)))
                 stop("Uneven number of samples for paired test.")
         }
     }

@@ -1,68 +1,153 @@
 ---
-title: "LimROTS Analysis"
-author: "Ali Youssef"
-format: 
-  html:
-    toc: TRUE
-editor: visual
+title: "LimROTS"
+output:
+    BiocStyle::html_document:
+        fig_height: 7
+        fig_width: 10
+        toc: true
+        toc_float: true
+        toc_depth: 2
+        number_sections: true
 vignette: >
-  %\VignetteIndexEntry{LimROTS Analysis}
-  %\VignetteEngine{quarto::html}
-  %\VignetteEncoding{UTF-8}
+    %\VignetteIndexEntry{mia}
+    %\VignetteEngine{knitr::rmarkdown}
+    %\VignetteEncoding{UTF-8}
 ---
 
-# LimROTS Analysis
-
-This analysis demonstrates how to integrate the Limma and ROTS methods using UPS1-spiked proteomics data.
-
-# UPS1 Case Study 0
-
-The dataset consists of DIA proteomics data from a UPS1-spiked E. coli protein mixture. Eight different concentrations of UPS1 were used (0.1 to 50 fmol), grouped into two categories: low concentrations (0.1--2.5 fmol, labeled as Conc. 2) and high concentrations (5--50 fmol, labeled as Conc. 1). In this dataset 48 HUMAN UPS1 proteins were detected. The data is provided in a `SummarizedExperiment` format. This example illustrates the application of LimROTS in a simple case where two groups are compared, considering only the concentrations and no other parameters. 48 UPS1-spiked human proteins were detected in this dataset.
-
-```{r message=FALSE, warning=FALSE}
-# Load necessary packages
-require("LimROTS")
-require("parallel")
-require("devtools")
-require("ggplot2")
-
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
 ```
 
-```{r results="hide", message=FALSE, warning=FALSE, eval=FALSE}
+```{r}
+# Load necessary packages
+library(LimROTS)
+require(parallel)
+require(devtools)
+require(ggplot2)
+```
 
+# UPS1 Case Study
+
+To demonstrate LimROTS' ability to detect true negatives complex scenarios, this dataset includes 48 samples: 24 samples analyzed with Spectronaut and another 24 analyzed with ScaffoldDIA software, and 1656 proteins. Synthetic, unbalanced fake batches assigned to the samples. The assignment follows the ratio of: `c(rep("M", 9), rep("F", 3), rep("M", 3), rep("F", 9), rep("M", 9), rep("F", 3), rep("M", 3), rep("F", 9))`.
+
+Additionally, 100 E. coli proteins were randomly selected, and an effect size of 10 was added to each. The expected outcome is that only the UPS1 human proteins will be identified as truly significant, while none of the remaining proteins should show significant differences between the concentration groups.\
+\
+This scenario resembles a real-world case where the experiment involves unbalanced batch assignments or, for instance, an uneven gender ratio among the samples.\
+
+LimROTS can take a SummarizedExperiment object with all the metadata needed to run the model. In this example we importing UPS1.Case4 data available in LimROTS.
+
+```{r}
 # Load the dataset
-data("UPS1.Case0")
-print(UPS1.Case0)
+data("UPS1.Case4")
+print(UPS1.Case4)
+```
 
-# Set random seed for reproducibility
+### Parameter Description for `LimROTS`
+
+`LimROTS` takes several parameters, and it should be called correctly to obtain the desired output. The parameters are divided into three different sets:
+
+1.  **Parameters for `LimROTS` Implementation**
+2.  **Parameters for the Original `ROTS` Implementation without `limma` Integration**
+3.  **Common Parameters**
+
+#### Common Parameters
+
+-   **`data.exp`**: The input data, which can be a `SummarizedExperiment` object or a matrix where rows represent features (e.g., genes, proteins) and columns represent samples. The values should be log-transformed.
+-   **`B`**: An integer specifying the number of bootstrap iterations. Default is 1000.
+-   **`K`**: An optional integer representing the top list size for ranking. If not specified, it is set to one-fourth of the number of features.
+-   **`a1`**: Optional numeric value used in the optimization process.
+-   **`a2`**: Optional numeric value used in the optimization process.
+-   **`log`**: Logical, indicating whether the data is already log-transformed. Default is `TRUE`.
+-   **`progress`**: Logical, indicating whether to display a progress bar during bootstrap sampling. Default is `FALSE`.
+-   **`verbose`**: Logical, indicating whether to display messages during the function's execution. Default is `TRUE`.
+-   **`meta.info`**: A data frame containing sample-level metadata, where each row corresponds to a sample. It should include the grouping variable specified in `group.name`. If `data.exp` is a `SummarizedExperiment` object, `meta.info` must be a vector of the metadata needed for the model to run and can be retrieved using `colData()`.
+-   **`group.name`**: A string specifying the column in `meta.info` that represents the groups or conditions for comparison.
+-   **`seed.cl`**: An integer specifying the seed for randomization; if not provided, the default is 1234.
+-   **`cluster`**: A parallel cluster object for distributed computation, e.g., created by `makeCluster()`. Default is 2.
+
+#### Parameters for `LimROTS` Implementation
+
+-   **`formula.str`**: A formula string used when covariates are present in `meta.info` for modeling. It should include "\~ 0 + ..." to exclude the intercept from the model.
+-   **`robust`**: Logical, indicating whether robust fitting should be used. Default is `TRUE`.
+-   **`trend`**: Logical, indicating whether to include trend fitting in the differential expression analysis. Default is `TRUE`.
+
+#### Parameters for the Original `ROTS` Implementation
+
+-   **`survival`**: Logical, indicating whether to enable survival analysis. If `TRUE`, then `meta.info` should contain `time` and `event` columns.
+-   **`paired`**: Logical, indicating whether the data represent paired samples. Default is `FALSE`.
+-   **`n.ROTS`**: Logical. If `TRUE`, all parameters related to `LimROTS` will be ignored, and the original `ROTS` analysis will run. This must be `TRUE` when `survival` or `paired` is set to `TRUE`.
+
+### Run LimROTS with the new implementation
+
+Additionally, `seed.cl` internally control the seed randomization during the parallel bootstrapping process. It is advisable to establish a consistent seed prior to executing `LimROTS`
+
+```{r}
 set.seed(1234, kind = "default")
+```
 
+```{r}
 # Set metadata and formula for LimROTS analysis
-meta.info <- "Conc."
-B <- 1000  # Number of bootstrap samples
-K <- dim(UPS1.Case0)[1]/4  # Set the value for K based on the data size
-K <- floor(K) 
-num_cores <- 10  # Number of cores for parallel processing
-cluster <- makeCluster(num_cores)  # Create a parallel cluster
+meta.info <- c("Conc.", "tool", "fake.batch")
+B <- 100 # Number of bootstrap samples
+K <- 100 # Set the value for K based on the data size
+K <- floor(K)
+num_cores <- 2 # Number of cores for parallel processing
+cluster <- makeCluster(num_cores) # Create a parallel cluster
 group.name <- "Conc."
-formula.str <- "~ 0 + Conc."  # Formula for group comparison
+formula.str <- "~ 0 + Conc. + tool + fake.batch" # Formula for group comparison
 
 # Run LimROTS analysis with trend and robust settings enabled
-limrots.result <- LimROTS(data.exp = UPS1.Case0, 
-                          B = B, K = K, meta.info = meta.info, 
-                          cluster = cluster, group.name = group.name, 
-                          formula.str = formula.str, trend = TRUE, robust = TRUE)
+limrots.result <- LimROTS(x = UPS1.Case4,
+    B = B, K = K, meta.info = meta.info,
+    cluster = cluster, group.name = group.name,
+    formula.str = formula.str, trend = TRUE, robust = TRUE)
 ```
 
-```{r results="hide", message=FALSE, warning=FALSE, echo=FALSE}
-load_all()
-file_path <- system.file("extdata", "UPS1.Case0.LimROTS.rds", package = "LimROTS")
-limrots.result <- readRDS(file_path)
+**NOTE:** "In this instance, we configure the number of bootstrap iterations (B) and the count of top-ranked features for reproducibility optimization (K) to 100 both, in order to minimize the example's runtime. For actual analyses, it is advisable to utilize a greater number of bootstraps (e.g., 1000).
+
+## Filter and Analyze Significant Results
+
+```{r}
+# Create a data frame from the LimROTS results
+limrots.result.df <- data.frame(proteins = row.names(limrots.result$data),
+    LimROTS.FC = limrots.result$corrected.logf,
+    q.value = limrots.result$q_values$qvalues)
+
+# Filter for significant proteins (FDR < 0.01)
+limrots.result.df <- limrots.result.df[limrots.result.df$q.value < 0.05, ]
+
+# Mark proteins as true positives (HUMAN UPS1 proteins)
+limrots.result.df$TP <- ifelse(grepl("HUMAN", limrots.result.df$proteins), "HUMAN_TP", "ECOLI.FP")
+
+# Count the number of true positives
+table(limrots.result.df$TP)
+```
+
+## Volcano Plot with ggplot2
+
+```{r}
+# Create a data frame from the LimROTS results
+limrots.result.df <- data.frame(proteins = row.names(limrots.result$data),
+    LimROTS.FC = limrots.result$corrected.logf, q.value = limrots.result$q_values$qvalues)
+# Mark proteins as true positives (HUMAN UPS1 proteins)
+limrots.result.df$TP <- ifelse(grepl("HUMAN", limrots.result.df$proteins), "HUMAN_TP", "ECOLI_FP")
+
+# Create a volcano plot
+ggplot(limrots.result.df, aes(x = LimROTS.FC, y = -log10(q.value), color = factor(TP))) +
+    geom_point(alpha = 0.8) +
+    theme_bw() +
+    labs(title = "Volcano Plot", x = "Log Fold Change", y = "-Log10 q.value", color = "True Positive") +
+    scale_color_manual(values = c("grey", "red")) +
+    geom_hline(yintercept = -log10(0.05), linetype = "dashed", color = "blue") +
+    geom_hline(yintercept = -log10(0.01), linetype = "dashed", color = "black")
 ```
 
 ## Quality Control Plots
 
-LimROTS generates p-values from permutation samples, along with FDR. Additionally, the `qvalue` package is used to calculate q-values and Benjamini-Hochberg adjusted p-values based on the permutation-derived p-values. These can be used as Quality Control for the LimROTS results. We recommend using permutation-derived p-values and FDR, though they should generally be very similar to the q-values and Benjamini-Hochberg adjusted p-values.
+LimROTS generates p-values from permutation samples, along with FDR. Additionally, the `qvalue` package is used to calculate q-values and Benjamini-Hochberg adjusted p-values based on the permutation-derived p-values. These can be used as Quality Control for the LimROTS results. We recommend using permutation-derived p-values and qvalues, though they should generally be very similar to the FDR and Benjamini-Hochberg adjusted p-values.
 
 ```{r results="hide" , message=FALSE, warning=FALSE}
 ## Quality Control Plots
@@ -76,358 +161,6 @@ hist(limrots.result$q_values, main = "Q-value Distribution", xlab = "Q-value", c
 # Summary of q-values
 summary(limrots.result$q_values)
 ```
-
-## Filter and Analyze Significant Results
-
-```{r}
-# Create a data frame from the LimROTS results
-limrots.result.df <- data.frame(proteins = row.names(limrots.result$data),
-                                LimROTS.FC = limrots.result$corrected.logf,
-                                q.value = limrots.result$q_values$qvalues)
-
-# Filter for significant proteins (FDR < 0.01)
-limrots.result.df <- limrots.result.df[limrots.result.df$q.value < 0.01,]
-
-# Mark proteins as true positives (HUMAN UPS1 proteins)
-limrots.result.df$TP <- ifelse(grepl("HUMAN", limrots.result.df$proteins), "HUMAN_TP", "ECOLI.FP")
-
-# Count the number of true positives
-table(limrots.result.df$TP)
-```
-
-## Volcano Plot with ggplot2
-
-```{r}
-
-
-
-# Create a data frame from the LimROTS results
-limrots.result.df <- data.frame(proteins = row.names(limrots.result$data),
-                                LimROTS.FC = limrots.result$corrected.logf,
-                                q.value = limrots.result$q_values$qvalues)
-
-# Mark proteins as true positives (HUMAN UPS1 proteins)
-limrots.result.df$TP <- ifelse(grepl("HUMAN", limrots.result.df$proteins), "HUMAN_TP", "ECOLI_FP")
-
-# Create a volcano plot
-ggplot(limrots.result.df, aes(x = LimROTS.FC, y = -log10(q.value), color = factor(TP))) +
-  geom_point(alpha = 0.8) +
-  theme_bw() +
-  labs(title = "Volcano Plot", x = "Log Fold Change", y = "-Log10 q.value", color = "True Positive") +
-  scale_color_manual(values = c("grey", "red"))+
-  geom_hline(yintercept=-log10(0.05), linetype="dashed", color = "blue")+
-  geom_hline(yintercept=-log10(0.01), linetype="dashed", color = "black")
-```
-
-# UPS1 Case Study 1
-
-In Case Study 0, LimROTS effectively identified only the truly significant proteins, with a very low rate of false positives (just 1 false positives at a 1% FDR threshold). This demonstrates its precision in detecting true signals. In contrast, Case Study 1 introduces a more complex scenario where UPS1 human proteins are removed, and the model is adjusted to include information about analytical replicates from different injections. This modification allows LimROTS to account for additional sources of variability. The example highlights LimROTS' capability not only to handle a more intricate model but also to accurately detect true negatives, showcasing its robustness in more challenging experimental designs.
-
-```{r results="hide", message=FALSE, warning=FALSE, eval=FALSE}
-# Load the dataset
-data("UPS1.Case1")
-print(UPS1.Case1)
-
-# Set random seed for reproducibility
-set.seed(1234, kind = "default")
-
-# Set metadata and formula for LimROTS analysis
-meta.info <- c("Conc." , "inj")
-B <- 1000  # Number of bootstrap samples
-K <- dim(UPS1.Case1)[1]/4 # Set the value for K based on the data size
-K <- floor(K) 
-num_cores <- 10  # Number of cores for parallel processing
-cluster <- makeCluster(num_cores)  # Create a parallel cluster
-group.name <- "Conc."
-formula.str <- "~ 0 + Conc.+ inj + Conc.*inj"  # Formula for group comparison + injections
-
-# Run LimROTS analysis with trend and robust settings enabled
-limrots.result <- LimROTS(data.exp = UPS1.Case1, 
-                          B = B, K = K, meta.info = meta.info, 
-                          cluster = cluster, group.name = group.name, 
-                          formula.str = formula.str, trend = TRUE, robust = TRUE)
-```
-
-```{r results="hide", message=FALSE, warning=FALSE, echo=FALSE}
-load_all()
-file_path <- system.file("extdata", "UPS1.Case1.LimROTS.rds", package = "LimROTS")
-limrots.result <- readRDS(file_path)
-```
-
-## Filter and Analyze Significant Results
-
-```{r}
-# Create a data frame from the LimROTS results
-limrots.result.df <- data.frame(proteins = row.names(limrots.result$data),
-                                LimROTS.FC = limrots.result$corrected.logf,
-                                q.value = limrots.result$q_values$qvalues)
-
-# Filter for significant proteins (FDR < 0.01)
-limrots.result.df <- limrots.result.df[limrots.result.df$q.value < 0.01,]
-
-dim(limrots.result.df)
-```
-
-## Volcano Plot with ggplot2
-
-```{r}
-
-
-
-# Create a data frame from the LimROTS results
-limrots.result.df <- data.frame(proteins = row.names(limrots.result$data),
-                                LimROTS.FC = limrots.result$corrected.logf,
-                                q.value = limrots.result$q_values$qvalues)
-
-# Create a volcano plot
-ggplot(limrots.result.df, aes(x = LimROTS.FC, y = -log10(q.value))) +
-  geom_point(alpha = 0.6, color = "black") +
-  theme_bw() +
-  labs(title = "Volcano Plot", x = "Log Fold Change", y = "-Log10 q.value") +
-  geom_hline(yintercept=-log10(0.05), linetype="dashed", color = "blue")+
-  geom_hline(yintercept=-log10(0.01), linetype="dashed", color = "black")
-```
-
-# UPS1 Case Study 2
-
-In this case study, we will examine a different set of covariates compared to Case Study 1. This dataset includes 48 samples: 24 samples analyzed with Spectronaut and another 24 analyzed with ScaffoldDIA software. As in the previous case study, UPS1 human proteins have been removed to focus solely on proteins that might be influenced by the use of different software, rather than other factors.
-
-```{r results="hide", message=FALSE, warning=FALSE, eval=FALSE}
-
-# Load the dataset
-data("UPS1.Case2")
-print(UPS1.Case2)
-
-# Set random seed for reproducibility
-set.seed(1234, kind = "default")
-
-# Set metadata and formula for LimROTS analysis
-meta.info <- c("Conc." , "tool")
-B <- 1000  # Number of bootstrap samples
-K <- dim(UPS1.Case2)[1]/4 # Set the value for K based on the data size
-K <- floor(K) 
-num_cores <- 10  # Number of cores for parallel processing
-cluster <- makeCluster(num_cores)  # Create a parallel cluster
-group.name <- "Conc."
-formula.str <- "~ 0 + Conc. + tool"  # Formula for group comparison 
-
-# Run LimROTS analysis with trend and robust settings enabled
-limrots.result <- LimROTS(data.exp = UPS1.Case2, 
-                          B = B, K = K, meta.info = meta.info, 
-                          cluster = cluster, group.name = group.name, 
-                          formula.str = formula.str, trend = TRUE, robust = TRUE)
-```
-
-```{r results="hide", message=FALSE, warning=FALSE, echo=FALSE}
-load_all()
-file_path <- system.file("extdata", "UPS1.Case2.LimROTS.rds", package = "LimROTS")
-limrots.result <- readRDS(file_path)
-```
-
-## Filter and Analyze Significant Results
-
-```{r}
-# Create a data frame from the LimROTS results
-limrots.result.df <- data.frame(proteins = row.names(limrots.result$data),
-                                LimROTS.FC = limrots.result$corrected.logf,
-                                q.value = limrots.result$q_values$qvalues, bh = limrots.result$BH.pvalue, p.value = limrots.result$pvalue)
-
-# Filter for significant proteins (FDR < 0.01)
-limrots.result.df <- limrots.result.df[limrots.result.df$q.value < 0.01,]
-
-dim(limrots.result.df)
-```
-
-In case studies 0 and 1, LimROTS demonstrated its efficacy in identifying both true significant proteins and true negatives across simple and semi-complex experimental designs. In case study 2, approximately 41 proteins were identified as significant (false positives) with a false discovery rate (FDR) of 1%. Despite this, the results are favorable when compared to alternative methods such as LIMMA and ANCOVA. For a comprehensive analysis, please refer to the associated publication.
-
-# UPS1 Case Study 3
-
-In this case study, we will explore a more intricate experimental design. Similar to case study 2, the data will be sourced from two software programs, Spectronaut and ScaffoldDIA. This time, the focus will be on comparing the performance of the software packages themselves, rather than the concentration levels. However, concentration and injection information will be utilized as covariates and interaction parameters in the analysis. Please note that in this dataset, the UPS1 human proteins have not been removed. However, they will not be considered true positives, as the focus of this analysis is on comparing the software, rather than the concentration.
-
-```{r results="hide", message=FALSE, warning=FALSE, eval=FALSE}
-
-# Load the dataset
-data("UPS1.Case3")
-print(UPS1.Case3)
-
-# Set random seed for reproducibility
-set.seed(1234, kind = "default")
-
-# Set metadata and formula for LimROTS analysis
-meta.info <- c("Conc." , "tool" , "inj")
-B <- 1000  # Number of bootstrap samples
-K <- dim(UPS1.Case3)[1]/4 # Set the value for K based on the data size
-K <- floor(K) 
-num_cores <- 10  # Number of cores for parallel processing
-cluster <- makeCluster(num_cores)  # Create a parallel cluster
-group.name <- "tool"
-formula.str <- "~ 0 + tool + Conc. + inj + tool:Conc. + tool:inj"  # Formula for group comparison
-
-# Run LimROTS analysis with trend and robust settings enabled
-limrots.result <- LimROTS(data.exp = UPS1.Case3, 
-                          B = B, K = K , meta.info = meta.info, 
-                          cluster = cluster, group.name = group.name, 
-                          formula.str = formula.str, trend = TRUE, robust = TRUE)
-```
-
-```{r results="hide", message=FALSE, warning=FALSE, echo=FALSE}
-load_all()
-file_path <- system.file("extdata", "UPS1.Case3.LimROTS.rds", package = "LimROTS")
-limrots.result <- readRDS(file_path)
-```
-
-## Filter and Analyze Significant Results
-
-```{r}
-# Create a data frame from the LimROTS results
-limrots.result.df <- data.frame(proteins = row.names(limrots.result$data),
-                                LimROTS.FC = limrots.result$corrected.logf,
-                                q.value = limrots.result$q_values$qvalues, bh = limrots.result$BH.pvalue, p.value = limrots.result$pvalue)
-
-# Filter for significant proteins (FDR < 0.01)
-limrots.result.df <- limrots.result.df[limrots.result.df$q.value < 0.01,]
-
-dim(limrots.result.df)
-```
-
-# UPS1 Case Study 4
-
-To demonstrate LimROTS' ability to detect true negatives in more complex scenarios, this dataset mirrors that of case study 3, but with synthetic, unbalanced fake batches assigned to the samples. The assignment follows the ratio: `c(rep("M", 9), rep("F", 3), rep("M", 3), rep("F", 9), rep("M", 9), rep("F", 3), rep("M", 3), rep("F", 9))`.
-
-Additionally, 100 E. coli proteins were randomly selected, and an effect size of 10 was added to each. The model was then run using these fake batches. The expected outcome is that only the UPS1 human proteins will be identified as truly significant, while none of the remaining proteins should show significant differences between the concentration groups.\
-\
-This scenario resembles a real-world case where the experiment involves unbalanced batch assignments or, for instance, an uneven gender ratio among the samples.\
-\
-
-```{r results="hide", message=FALSE, warning=FALSE, eval=FALSE}
-
-# Load the dataset
-data("UPS1.Case4")
-print(UPS1.Case4)
-
-# Set random seed for reproducibility
-set.seed(1234, kind = "default")
-
-# Set metadata and formula for LimROTS analysis
-meta.info <- c("Conc." , "tool" , "fake.batch")
-B <- 1000  # Number of bootstrap samples
-K <- dim(UPS1.Case4)[1]/4 # Set the value for K based on the data size
-K <- floor(K) 
-num_cores <- 10  # Number of cores for parallel processing
-cluster <- makeCluster(num_cores)  # Create a parallel cluster
-group.name <- "Conc."
-formula.str <- "~ 0 + Conc. + tool + fake.batch"  # Formula for group comparison
-
-# Run LimROTS analysis with trend and robust settings enabled
-limrots.result <- LimROTS(data.exp = UPS1.Case4, 
-                          B = B, K = K, meta.info = meta.info, 
-                          cluster = cluster, group.name = group.name, 
-                          formula.str = formula.str, trend = TRUE, robust = TRUE)
-```
-
-```{r results="hide", message=FALSE, warning=FALSE, echo=FALSE}
-load_all()
-file_path <- system.file("extdata", "UPS1.Case4.LimROTS.rds", package = "LimROTS")
-limrots.result <- readRDS(file_path)
-
-```
-
-## Filter and Analyze Significant Results
-
-```{r}
-# Create a data frame from the LimROTS results
-limrots.result.df <- data.frame(proteins = row.names(limrots.result$data),
-                                LimROTS.FC = limrots.result$corrected.logf,
-                                q.value = limrots.result$q_values$qvalues)
-
-# Filter for significant proteins (FDR < 0.01)
-limrots.result.df <- limrots.result.df[limrots.result.df$q.value < 0.01,]
-
-# Mark proteins as true positives (HUMAN UPS1 proteins)
-limrots.result.df$TP <- ifelse(grepl("HUMAN", limrots.result.df$proteins), "HUMAN_TP", "ECOLI.FP")
-
-# Count the number of true positives
-table(limrots.result.df$TP)
-```
-
-## Volcano Plot with ggplot2
-
-```{r}
-
-
-
-# Create a data frame from the LimROTS results
-limrots.result.df <- data.frame(proteins = row.names(limrots.result$data),
-                                LimROTS.FC = limrots.result$corrected.logf, q.value = limrots.result$q_values$qvalues)
-# Mark proteins as true positives (HUMAN UPS1 proteins)
-limrots.result.df$TP <- ifelse(grepl("HUMAN", limrots.result.df$proteins), "HUMAN_TP", "ECOLI_FP")
-
-# Create a volcano plot
-ggplot(limrots.result.df, aes(x = LimROTS.FC, y = -log10(q.value), color = factor(TP))) +
-  geom_point(alpha = 0.8) +
-  theme_bw() +
-  labs(title = "Volcano Plot", x = "Log Fold Change", y = "-Log10 q.value", color = "True Positive") +
-  scale_color_manual(values = c("grey", "red"))+
-  geom_hline(yintercept=-log10(0.05), linetype="dashed", color = "blue")+
-  geom_hline(yintercept=-log10(0.01), linetype="dashed", color = "black")
-```
-
-# BM21 Case Study 5
-
-To demonstrate the capability of LimROTS to also handle metabolomics data, the dataset was obtained from the Metabolomics Workbench (ST002454). Different matrix ratios of human plasma and vegetable juice were analyzed, and three different datasets were summarized into three *SummarizedExperiment* objects.
-
-Another feature in LimROTS is the ability to handle more than two groups using moderated F-statistics and ROTS optimization. In this example, three different ratio mixtures were extracted from the BM21 dataset and peaks with more than 50% missing values were removed, and peaks with a variance less than 1 were excluded. Furthermore, only peaks quantified in samples with 100% plasma and 100% vegetable juice were selected. Therefore, we expect to see the maximum number of features that are significantly different with a true effect.
-
-```{r results="hide", message=FALSE, warning=FALSE, eval=FALSE}
-
-# Load the dataset
-data(BM21.Case1)
-
-print(BM21.Case1)
-
-# Set random seed for reproducibility
-set.seed(1234, kind = "default")
-
-# Set metadata and formula for LimROTS analysis
-meta.info <- "mixing.ratio"
-B <- 1000  # Number of bootstrap samples
-K <- dim(BM21.Case1)[1]/4  # Set the value for K based on the data size
-K <- floor(K) 
-num_cores <- 30   # Number of cores for parallel processing
-cluster <- makeCluster(num_cores)  # Create a parallel cluster
-group.name <- "mixing.ratio"
-formula.str <- "~ 0 + mixing.ratio"  # Formula for group comparison
-
-
-# Run LimROTS analysis with trend and robust settings enabled
-limrots.result <- LimROTS(data.exp = BM21.Case1, 
-                          B = B, K = K, meta.info = meta.info, 
-                          cluster = cluster, group.name = group.name, 
-                          formula.str = formula.str, trend = TRUE, robust = TRUE)
-
-
-```
-
-```{r results="hide", message=FALSE, warning=FALSE, echo=FALSE}
-load_all()
-file_path <- system.file("extdata", "BM21.Case1.limrots.rds", package = "LimROTS")
-limrots.result <- readRDS(file_path)
-```
-
-## Filter and Analyze Significant Results
-
-```{r}
-# Create a data frame from the LimROTS results
-limrots.result.df <- data.frame(proteins = row.names(limrots.result$data),
-                                LimROTS.FC = limrots.result$corrected.logf,
-                                q.value = limrots.result$q_values$qvalues, bh = limrots.result$BH.pvalue, p.value = limrots.result$pvalue)
-
-# Filter for significant proteins (FDR < 0.01)
-limrots.result.df <- limrots.result.df[limrots.result.df$q.value < 0.01,]
-
-dim(limrots.result.df)
-```
-
 
 ```{r}
 sessionInfo()

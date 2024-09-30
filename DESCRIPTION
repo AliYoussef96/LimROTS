@@ -25,7 +25,7 @@ biocViews: Software, GeneExpression, DifferentialExpression,
 URL: https://github.com/AliYoussef96/LimROTS
 BugReports: https://github.com/AliYoussef96/LimROTS/issues
 VignetteBuilder: 
-    quarto 
+    knitr 
 Imports: 
     limma,
     parallel,
@@ -40,7 +40,7 @@ Imports:
     dplyr
 Suggests: 
     ggplot2,
-    devtools,
     testthat (>= 3.0.0),
-    quarto
+    knitr,
+    rmarkdown
 Config/testthat/edition: 3
