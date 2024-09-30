@@ -7,3 +7,8 @@ vignettes/*.html
 vignettes/*.pdf
 vignettes/*.R
 vignettes/*.qmd
+
+
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
