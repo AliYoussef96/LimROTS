@@ -24,15 +24,7 @@ knitr::opts_chunk$set(
 
 # How LimROTS Work?
 
-\
-The LimROTS approach initially use the limma @limma implement to simulate the intensity data of proteins and metabolites. A linear model is subsequently fitted using the design matrix. Subsequently, empirical Bayes variance shrinking is implemented. The adjusted standard error (SEpost = √(s2.post) \* unscaled SD) for each feature is computed, with the regression coefficient for each feature (indicating the impact of variations in the experimental settings) to get the moderated t-statistics. The ROTS @rots approach establishes optimality based on the largest overlap of top-ranked genes inside group-preserving bootstrap datasets. Refer to @elo2008reproducibility for further information on the reproducibility-optimization approach.
-
-```{r}
-# Load necessary packages
-library(LimROTS)
-library(parallel)
-library(ggplot2)
-```
+The **LimROTS** approach initially uses the limma package @limma to simulate the intensity data of proteins and metabolites. A linear model is subsequently fitted using the design matrix. Empirical Bayes variance shrinking is then implemented. The adjusted standard error (SEpost = √(s2.post) \* unscaled SD) for each feature is computed, along with the regression coefficient for each feature (indicating the impact of variations in the experimental settings) to obtain the moderated t-statistics. The ROTS approach @rots establishes optimality based on the largest overlap of top-ranked genes within group-preserving bootstrap datasets. Refer to @elo2008reproducibility for further information on the reproducibility-optimization a
 
 # UPS1 Case Study
 
@@ -47,6 +39,13 @@ This scenario resembles a real-world case where the experiment involves unbalanc
 LimROTS can take a SummarizedExperiment object with all the metadata needed to run the model. In this example we importing UPS1.Case4 data available in LimROTS.
 
 The original source of the dataset can be found here @GOTTI2022107829
+
+```{r}
+# Load necessary packages
+library(LimROTS)
+library(parallel)
+library(ggplot2)
+```
 
 ```{r}
 # Load the dataset
@@ -160,3 +159,4 @@ sessionInfo()
 ```
 
 # References
+

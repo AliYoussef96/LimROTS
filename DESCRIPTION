@@ -1,5 +1,5 @@
 Package: LimROTS
-Title: Linear model Reproducibility Optimized Test Statistic
+Title: An Extension of the ROTS Method with Limma Integration
 Version: 0.99.0
 Authors@R: 
     c(person(given = "Ali", family = "Youssef", role = c("aut", "cre"), 
