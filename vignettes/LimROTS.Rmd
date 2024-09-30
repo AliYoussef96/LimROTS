@@ -24,9 +24,8 @@ knitr::opts_chunk$set(
 ```{r}
 # Load necessary packages
 library(LimROTS)
-require(parallel)
-require(devtools)
-require(ggplot2)
+library(parallel)
+library(ggplot2)
 ```
 
 # UPS1 Case Study
@@ -108,7 +107,7 @@ limrots.result <- LimROTS(x = UPS1.Case4,
 
 **NOTE:** "In this instance, we configure the number of bootstrap iterations (B) and the count of top-ranked features for reproducibility optimization (K) to 100 both, in order to minimize the example's runtime. For actual analyses, it is advisable to utilize a greater number of bootstraps (e.g., 1000).
 
-## Filter and Analyze Significant Results
+### Filter and Analyze Significant Results
 
 ```{r}
 # Create a data frame from the LimROTS results
@@ -126,7 +125,7 @@ limrots.result.df$TP <- ifelse(grepl("HUMAN", limrots.result.df$proteins), "HUMA
 table(limrots.result.df$TP)
 ```
 
-## Volcano Plot with ggplot2
+### Volcano Plot with ggplot2
 
 ```{r}
 # Create a data frame from the LimROTS results
@@ -145,7 +144,7 @@ ggplot(limrots.result.df, aes(x = LimROTS.FC, y = -log10(q.value), color = facto
     geom_hline(yintercept = -log10(0.01), linetype = "dashed", color = "black")
 ```
 
-## Quality Control Plots
+### Quality Control Plots
 
 LimROTS generates p-values from permutation samples, along with FDR. Additionally, the `qvalue` package is used to calculate q-values and Benjamini-Hochberg adjusted p-values based on the permutation-derived p-values. These can be used as Quality Control for the LimROTS results. We recommend using permutation-derived p-values and qvalues, though they should generally be very similar to the FDR and Benjamini-Hochberg adjusted p-values.
 

@@ -8,6 +8,7 @@ vignettes/*.pdf
 vignettes/*.R
 vignettes/*.qmd
 
+CONTRIBUTING.md
 
 ^_pkgdown\.yml$
 ^docs$
