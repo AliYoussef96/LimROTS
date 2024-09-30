@@ -6,7 +6,7 @@ output:
         fig_width: 10
         toc: true
         toc_float: true
-        toc_depth: 2
+        toc_depth: 3
         number_sections: true
 bibliography: ref.bib
 vignette: >
@@ -25,6 +25,41 @@ knitr::opts_chunk$set(
 # How LimROTS Work?
 
 The **LimROTS** approach initially uses the limma package @limma to simulate the intensity data of proteins and metabolites. A linear model is subsequently fitted using the design matrix. Empirical Bayes variance shrinking is then implemented. The adjusted standard error (SEpost = √(s2.post) \* unscaled SD) for each feature is computed, along with the regression coefficient for each feature (indicating the impact of variations in the experimental settings) to obtain the moderated t-statistics. The ROTS approach @rots establishes optimality based on the largest overlap of top-ranked genes within group-preserving bootstrap datasets. Refer to @elo2008reproducibility for further information on the reproducibility-optimization a
+
+# Parameter Description for `LimROTS`
+
+`LimROTS` takes several parameters, and it should be called correctly to obtain the desired output. The parameters are divided into three different sets:
+
+1.  **Parameters for `LimROTS` Implementation**
+2.  **Parameters for the Original `ROTS` Implementation without `limma` Integration**
+3.  **Common Parameters**
+
+## Common Parameters
+
+-   **`x`**: The input data, which can be a `SummarizedExperiment` object or a matrix where rows represent features (e.g., genes, proteins) and columns represent samples. The values should be log-transformed.
+-   **`B`**: An integer specifying the number of bootstrap iterations. Default is 1000.
+-   **`K`**: An optional integer representing the top list size for ranking. If not specified, it is set to one-fourth of the number of features.
+-   **`a1`**: Optional numeric value used in the optimization process. If defined by the user, no optimization occurs.
+-   **`a2`**: Optional numeric value used in the optimization process. If defined by the user, no optimization occurs [0,1].
+-   **`log`**: Logical, indicating whether the data is already log-transformed. Default is `TRUE`.
+-   **`progress`**: Logical, indicating whether to display a progress bar during bootstrap sampling. Default is `FALSE`.
+-   **`verbose`**: Logical, indicating whether to display messages during the function's execution. Default is `TRUE`.
+-   **`meta.info`**: A data frame containing sample-level metadata, where each row corresponds to a sample. It should include the grouping variable specified in `group.name`. If `x` (data) is a `SummarizedExperiment` object, `meta.info` must be a vector of the metadata needed for the model to run and can be retrieved using `colData()`.
+-   **`group.name`**: A string specifying the column in `meta.info` that represents the groups or conditions for comparison.
+-   **`seed.cl`**: An integer specifying the seed for randomization; if not provided, the default is 1234.
+-   **`cluster`**: A parallel cluster object for distributed computation, e.g., created by `makeCluster()`. Default is 2.
+
+## Parameters for `LimROTS` Implementation
+
+-   **`formula.str`**: A formula string used when covariates are present in `meta.info` for modeling. It should include "\~ 0 + ..." to exclude the intercept from the model.
+-   **`robust`**: Logical, indicating whether robust fitting should be used. Default is `TRUE`.
+-   **`trend`**: Logical, indicating whether to include trend fitting in the differential expression analysis. Default is `TRUE`.
+
+## Parameters for the Original `ROTS` Implementation
+
+-   **`survival`**: Logical, indicating whether to enable survival analysis. If `TRUE`, then `meta.info` should contain `time` and `event` columns.
+-   **`paired`**: Logical, indicating whether the data represent paired samples. Default is `FALSE`.
+-   **`n.ROTS`**: Logical. If `TRUE`, all parameters related to `LimROTS` will be ignored, and the original `ROTS` analysis will run. This must be `TRUE` when `survival` or `paired` is set to `TRUE`.
 
 # UPS1 Case Study
 
@@ -52,41 +87,6 @@ library(ggplot2)
 data("UPS1.Case4")
 print(UPS1.Case4)
 ```
-
-### Parameter Description for `LimROTS`
-
-`LimROTS` takes several parameters, and it should be called correctly to obtain the desired output. The parameters are divided into three different sets:
-
-1.  **Parameters for `LimROTS` Implementation**
-2.  **Parameters for the Original `ROTS` Implementation without `limma` Integration**
-3.  **Common Parameters**
-
-#### Common Parameters
-
--   **`x`**: The input data, which can be a `SummarizedExperiment` object or a matrix where rows represent features (e.g., genes, proteins) and columns represent samples. The values should be log-transformed.
--   **`B`**: An integer specifying the number of bootstrap iterations. Default is 1000.
--   **`K`**: An optional integer representing the top list size for ranking. If not specified, it is set to one-fourth of the number of features.
--   **`a1`**: Optional numeric value used in the optimization process. If defined by the user, no optimization occurs.
--   **`a2`**: Optional numeric value used in the optimization process. If defined by the user, no optimization occurs [0,1].
--   **`log`**: Logical, indicating whether the data is already log-transformed. Default is `TRUE`.
--   **`progress`**: Logical, indicating whether to display a progress bar during bootstrap sampling. Default is `FALSE`.
--   **`verbose`**: Logical, indicating whether to display messages during the function's execution. Default is `TRUE`.
--   **`meta.info`**: A data frame containing sample-level metadata, where each row corresponds to a sample. It should include the grouping variable specified in `group.name`. If `x` (data) is a `SummarizedExperiment` object, `meta.info` must be a vector of the metadata needed for the model to run and can be retrieved using `colData()`.
--   **`group.name`**: A string specifying the column in `meta.info` that represents the groups or conditions for comparison.
--   **`seed.cl`**: An integer specifying the seed for randomization; if not provided, the default is 1234.
--   **`cluster`**: A parallel cluster object for distributed computation, e.g., created by `makeCluster()`. Default is 2.
-
-#### Parameters for `LimROTS` Implementation
-
--   **`formula.str`**: A formula string used when covariates are present in `meta.info` for modeling. It should include "\~ 0 + ..." to exclude the intercept from the model.
--   **`robust`**: Logical, indicating whether robust fitting should be used. Default is `TRUE`.
--   **`trend`**: Logical, indicating whether to include trend fitting in the differential expression analysis. Default is `TRUE`.
-
-#### Parameters for the Original `ROTS` Implementation
-
--   **`survival`**: Logical, indicating whether to enable survival analysis. If `TRUE`, then `meta.info` should contain `time` and `event` columns.
--   **`paired`**: Logical, indicating whether the data represent paired samples. Default is `FALSE`.
--   **`n.ROTS`**: Logical. If `TRUE`, all parameters related to `LimROTS` will be ignored, and the original `ROTS` analysis will run. This must be `TRUE` when `survival` or `paired` is set to `TRUE`.
 
 ### Run LimROTS
 
@@ -159,4 +159,3 @@ sessionInfo()
 ```
 
 # References
-
