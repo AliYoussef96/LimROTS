@@ -81,10 +81,8 @@ A list of class \code{"list"} with the following elements:
 The \code{LimROTS} function employs a reproducibility-optimized test statistic utilising the limma and ROTS methodology to simulate complex experimental designs.
 }
 \details{
-Differential expression analysis is a prevalent method utilised in the examination of diverse biological data.
-The reproducibility-optimized test statistic (ROTS) modifies a t-statistic based on the data's intrinsic characteristics and ranks features according to their statistical significance for differential expression between two or more groups, as shown by the f-statistic.
-Focussing on proteomics and metabolomics, the current ROTS implementation cannot account for technical or biological covariates such as MS batches or gender differences among the samples.
-Consequently, we developed LimROTS, which employs a reproducibility-optimized test statistic utilising the limma methodology to simulate complex experimental designs.
+The \strong{LimROTS} approach initially uses the \link{limma} package to simulate the intensity data of proteins and metabolites. A linear model is subsequently fitted using the design matrix. Empirical Bayes variance shrinking is then implemented. To obtain the moderated t-statistics, the adjusted standard error \eqn{SEpost = √(s2.post) \times unscaled SD} for each feature is computed, along with the regression coefficient for each feature (indicating the impact of variations in the experimental settings). The \link{ROTS} approach establishes optimality based on the largest overlap of top-ranked features within group-preserving bootstrap datasets, Finally based on the optimized parameters \eqn{\alpha1} and \eqn{\alpha2} this equation used to calculates the final statistics: \deqn{t_{\alpha}(g) = \frac{\beta}{\alpha1 + \alpha2 \times SEpost}}
+where \eqn{t_{\alpha}(g)} is the final statistics for each feature, \eqn{\beta} is the coefficient, and SEpost is the the adjusted standard error. LimROTS generates p-values from permutation samples using the implementation available in \link{qvalue} package, along with internal implementation of FDR adapted from ROTS package. Additionally, the qvalue package is used to calculate q-values, were the proportion of true null p-values is set to the bootstrap method \link{pi0est}. We recommend using permutation-derived p-values and qvalues.
 }
 \examples{
 # Example usage:
@@ -103,4 +101,7 @@ expression analyses for RNA-sequencing and microarray studies. Nucleic Acids Res
 Suomi T, Seyednasrollah F, Jaakkola M, Faux T, Elo L (2017). “ROTS: An R package for reproducibility-optimized
 statistical testing.” \emph{PLoS computational biology}, \emph{13}(5), e1005562. \url{doi:10.1371/journal.pcbi.1005562}
 \url{https://doi.org/10.1371/journal.pcbi.1005562}, \url{http://www.ncbi.nlm.nih.gov/pubmed/28542205}
+
+Elo LL, Filen S, Lahesmaa R, Aittokallio T. Reproducibility-optimized test statistic for ranking genes in microarray studies.
+IEEE/ACM Trans Comput Biol Bioinform. 2008;5(3):423-431. \url{doi:10.1109/tcbb.2007.1078}
 }
