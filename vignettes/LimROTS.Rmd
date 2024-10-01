@@ -25,7 +25,9 @@ knitr::opts_chunk$set(
 # How LimROTS Work?
 
 The **LimROTS** approach initially uses the limma package @limma to simulate the intensity data of proteins and metabolites. A linear model is subsequently fitted using the design matrix. Empirical Bayes variance shrinking is then implemented. To obtain the moderated t-statistics, the adjusted standard error (SEpost = √(s2.post) \* unscaled SD) for each feature is computed, along with the regression coefficient for each feature (indicating the impact of variations in the experimental settings). The ROTS approach @rots establishes optimality based on the largest overlap of top-ranked features within group-preserving bootstrap datasets (refer to @elo2008reproducibility for further information on the reproducibility-optimization), Finally based on the optimized parameters ${\alpha1}$ and ${\alpha2}$ this equation used to calculates the final statistics: $$t_{\alpha}(g) = \frac{\beta}{\alpha1 + \alpha2 \times SEpost}$$\
+
 where $t_{\alpha}(g)$ is the final statistics for each feature, ${\beta}$ is the coefficient, and SEpost is the the adjusted standard error. LimROTS generates p-values from permutation samples using the implementation available in qvalue package @qvalue, along with internal implementation of FDR adapted from ROTS package @rots. Additionally, the `qvalue` package is used to calculate q-values, were the proportion of true null p-values is set to the bootstrap method. We recommend using permutation-derived p-values and qvalues.
+
 
 # Computational Power
 
