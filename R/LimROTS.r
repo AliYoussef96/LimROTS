@@ -1,4 +1,4 @@
-#' LimROTS: An Extension of the ROTS Method with Limma Integration
+#' LimROTS: A Hybrid Method Integrating Empirical Bayes and Reproducibility-Optimized Statistics for Robust Analysis of Protein and Metabolite Data
 #'
 #' The `LimROTS` function employs a reproducibility-optimized test statistic utilising the limma and ROTS methodology to simulate complex experimental designs.
 #'

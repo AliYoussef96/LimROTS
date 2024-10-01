@@ -2,7 +2,7 @@
 % Please edit documentation in R/LimROTS.r
 \name{LimROTS}
 \alias{LimROTS}
-\title{LimROTS: An Extension of the ROTS Method with Limma Integration}
+\title{LimROTS: A Hybrid Method Integrating Empirical Bayes and Reproducibility-Optimized Statistics for Robust Analysis of Protein and Metabolite Data}
 \usage{
 LimROTS(
   x,
