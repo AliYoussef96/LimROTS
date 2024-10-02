@@ -14,6 +14,7 @@
 #' R formula syntax (e.g., `~ covariate1 + covariate2`).
 #' @param trend A logical value indicating whether to allow for an intensity-dependent trend in the prior variance.
 #' @param robust A logical value indicating whether to use a robust fitting procedure to protect against outliers.
+#' @param permutating.group Logical, If \code{TRUE}, the permutation for calculating the null distribution is performed by permuting the target group only specified in \code{group.name}. If FALSE, the entire \code{meta.info} will be permuted (recommended to be set to TRUE).
 #'
 #' @details
 #' This function combines the data matrices from different groups and permutes the covariates from `meta.info`
@@ -44,7 +45,8 @@ testStatistic_with_covariates_permutating <- function(x,
                                                       meta.info,
                                                       formula.str,
                                                       trend,
-                                                      robust) {
+                                                      robust,
+                                                      permutating.group) {
     data <- x
     combined_data <- data.frame(
         check.rows = FALSE,
@@ -66,8 +68,11 @@ testStatistic_with_covariates_permutating <- function(x,
         df.temp$sample.id <- i
         covariates.p <- rbind(covariates.p, df.temp)
     }
-    covariates.p <- covariates.p[sample(nrow(covariates.p)), ]
-    # covariates.p[,group.name] <- sample(covariates.p[,group.name])
+    if (permutating.group == TRUE) {
+        covariates.p[, group.name] <- sample(covariates.p[, group.name])
+    } else{
+        covariates.p <- covariates.p[sample(nrow(covariates.p)), ]
+    }
     covariates.p$sample.id <- NULL
     row.names(covariates.p) <- NULL
     design.matrix <- model.matrix(formula(formula.str), data = covariates.p)

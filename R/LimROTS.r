@@ -20,7 +20,7 @@
 #' @param formula.str A formula string used when covariates are present in meta.info for modeling. It should include "~ 0 + ..." to exclude the intercept from the model.
 #' @param robust indicating whether robust fitting should be used. Default is TRUE, see \link{eBayes}.
 #' @param trend indicating whether to include trend fitting in the differential expression analysis. Default is TRUE. see \link{eBayes}.
-#'
+#' @param permutating.group Logical, If \code{TRUE}, the permutation for calculating the null distribution is performed by permuting the target group only specified in \code{group.name}. If FALSE, the entire \code{meta.info} will be permuted (recommended to be set to TRUE).
 #'
 #' @return A list of class `"list"` with the following elements:
 #' \item{data}{The original data matrix.}
@@ -94,7 +94,8 @@ LimROTS <- function(x,
                     n.ROTS = FALSE,
                     seed.cl = 1234,
                     robust = TRUE,
-                    trend = TRUE)
+                    trend = TRUE,
+                    permutating.group = TRUE)
 {
     SanityChecK.list <- SanityChecK(
         x,
@@ -264,7 +265,7 @@ LimROTS <- function(x,
                 formula.str = formula.str,
                 trend =
                     trend,
-                robust = robust
+                robust = robust , permutating.group = permutating.group
             )
         } else {
             pSamples.R <- split(pSamples[i, ], groups)

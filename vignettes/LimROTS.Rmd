@@ -28,9 +28,6 @@ The **LimROTS** approach initially uses the limma package @limma to simulate the
 
 where $t_{\alpha}(g)$ is the final statistics for each feature, ${\beta}$ is the coefficient, and SEpost is the the adjusted standard error. LimROTS generates p-values from permutation samples using the implementation available in qvalue package @qvalue, along with internal implementation of FDR adapted from ROTS package @rots. Additionally, the `qvalue` package is used to calculate q-values, were the proportion of true null p-values is set to the bootstrap method. We recommend using permutation-derived p-values and qvalues.
 
-
-
-
 # Computational Power
 
 The number of samples, features, bootstrap iterations, and k, which denotes the top list size for ranking, are the four primary elements that determine the amount of computing resources required for the optimisation process in LimROTS. It is therefore advised to use at least 4 cores to execute LimROTS since it uses a parallel processing implementation for the bootstrapping step. The optimisation process is sequential and also time-consuming; it is planned to be modified in order to make the upcoming LimROTS version more palatable.
@@ -63,6 +60,7 @@ The number of samples, features, bootstrap iterations, and k, which denotes the 
 -   **`formula.str`**: A formula string used when covariates are present in `meta.info` for modeling. It should include "\~ 0 + ..." to exclude the intercept from the model.
 -   **`robust`**: Logical, indicating whether robust fitting should be used. Default is `TRUE`.
 -   **`trend`**: Logical, indicating whether to include trend fitting in the differential expression analysis. Default is `TRUE`.
+-   **permutating.group**: Logical, If `TRUE`, the permutation for calculating the null distribution is performed by permuting the target group only specified in `group.name`. If `FALSE`, the entire `meta.info` will be permuted (recommended to be set to TRUE).
 
 ## Parameters for the Original `ROTS` Implementation
 

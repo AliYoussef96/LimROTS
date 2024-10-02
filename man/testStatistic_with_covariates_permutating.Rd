@@ -10,7 +10,8 @@ testStatistic_with_covariates_permutating(
   meta.info,
   formula.str,
   trend,
-  robust
+  robust,
+  permutating.group
 )
 }
 \arguments{
@@ -29,6 +30,8 @@ R formula syntax (e.g., \code{~ covariate1 + covariate2}).}
 \item{trend}{A logical value indicating whether to allow for an intensity-dependent trend in the prior variance.}
 
 \item{robust}{A logical value indicating whether to use a robust fitting procedure to protect against outliers.}
+
+\item{permutating.group}{Logical, If \code{TRUE}, the permutation for calculating the null distribution is performed by permuting the target group only specified in \code{group.name}. If FALSE, the entire \code{meta.info} will be permuted (recommended to be set to TRUE).}
 }
 \value{
 A list containing the following elements:

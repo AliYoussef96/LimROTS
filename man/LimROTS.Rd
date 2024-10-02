@@ -2,7 +2,7 @@
 % Please edit documentation in R/LimROTS.r
 \name{LimROTS}
 \alias{LimROTS}
-\title{LimROTS: A Hybrid Method Integrating Empirical Bayes and Reproducibility-Optimized Statistics for Robust Analysis of Protein and Metabolite Data}
+\title{LimROTS: A Hybrid Method Integrating Empirical Bayes and Reproducibility-Optimized Statistics for Robust Analysis of Proteomics and Metabolomics Data}
 \usage{
 LimROTS(
   x,
@@ -22,7 +22,8 @@ LimROTS(
   n.ROTS = FALSE,
   seed.cl = 1234,
   robust = TRUE,
-  trend = TRUE
+  trend = TRUE,
+  permutating.group = TRUE
 )
 }
 \arguments{
@@ -61,6 +62,8 @@ LimROTS(
 \item{robust}{indicating whether robust fitting should be used. Default is TRUE, see \link{eBayes}.}
 
 \item{trend}{indicating whether to include trend fitting in the differential expression analysis. Default is TRUE. see \link{eBayes}.}
+
+\item{permutating.group}{Logical, If \code{TRUE}, the permutation for calculating the null distribution is performed by permuting the target group only specified in \code{group.name}. If FALSE, the entire \code{meta.info} will be permuted (recommended to be set to TRUE).}
 }
 \value{
 A list of class \code{"list"} with the following elements:
