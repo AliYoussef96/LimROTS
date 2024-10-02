@@ -24,7 +24,7 @@ test_that("testStatistic_with_covariates_Fit returns expected output structure",
     formula.str <- "~ 0 + group"
 
     # Call the function
-    result <- testStatistic_with_covariates_permutating(data, "group", meta.info, formula.str, trend = FALSE, robust = FALSE)
+    result <- testStatistic_with_covariates_permutating(data, "group", meta.info, formula.str, trend = FALSE, robust = FALSE, permutating.group = TRUE)
 
     # Check output structure
     expect_type(result, "list")
