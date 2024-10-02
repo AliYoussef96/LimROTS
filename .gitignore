@@ -51,7 +51,5 @@ rsconnect/
 /doc/
 /Meta/
 inst/doc
-.Rproj
-LimROTS.Rproj
 docs
 ..DS_Store
