@@ -5,7 +5,7 @@
 <!--[![codecov](https://codecov.io/gh/AliYoussef96/LimROTS/branch/devel/graph/badge.svg)](https://app.codecov.io/gh/AliYoussef96/LimROTS?branch=devel)-->
 <!--[![codefactor](https://www.codefactor.io/repository/github/AliYoussef96/LimROTS/badge)](https://www.codefactor.io/repository/github/AliYoussef96/LimROTS)-->
 
-LimROTS: A Hybrid Method Integrating Empirical Bayes and Reproducibility-Optimized Statistics for Robust Analysis of Protein and Metabolite Data
+LimROTS: A Hybrid Method Integrating Empirical Bayes and Reproducibility-Optimized Statistics for Robust Analysis of Proteomics and Metabolomics Data
 
 Differential expression analysis is a prevalent method utilised in the examination of diverse biological data.
 The reproducibility-optimized test statistic (ROTS) ([Tomi Suomi et al.,](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1005562)) has been developed with a modified t-statistic based on the data's intrinsic characteristics and ranks features according to their statistical significance for differential expression between two or more groups, as shown by the f-statistic. Focusing on proteomics and metabolomics, the current ROTS implementation cannot account for technical or biological covariates such as MS batches or gender differences among the samples. Consequently, we developed LimROTS, which employs a reproducibility-optimized test statistic utilizing the limma ([Ritchie ME et al.,](https://academic.oup.com/nar/article/43/7/e47/2414268)) methodology to simulate more complex experimental designs.
