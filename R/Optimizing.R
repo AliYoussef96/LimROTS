@@ -1,25 +1,34 @@
 #' Optimize Parameters Based on Overlap Calculations
 #'
-#' This function optimizes parameters by calculating overlaps between observed and permuted data for multiple values of a smoothing constant (`ssq`) and a single-label replicate (SLR) comparison.
+#' This function optimizes parameters by calculating overlaps between observed
+#' and permuted data for multiple values of a smoothing constant (`ssq`) and a
+#' single-label replicate (SLR) comparison.
 #'
 #' @param B Integer. Number of bootstrap samples or resampling iterations.
 #' @param ssq Numeric vector. Smoothing constants to be evaluated.
-#' @param N Integer vector. Number of top values to consider for overlap calculation.
+#' @param N Integer vector. Number of top values to consider for overlap
+#' calculation.
 #' @param D Numeric matrix. Observed data values.
 #' @param S Numeric matrix. Standard errors or related values for observed data.
 #' @param pD Numeric matrix. Permuted data values.
-#' @param pS Numeric matrix. Standard errors or related values for permuted data.
+#' @param pS Numeric matrix. Standard errors or related values for
+#' permuted data.
 #' @param verbose Logical. If `TRUE`, progress messages will be displayed.
 #' @param progress Logical. If `TRUE`, a progress bar will be shown.
 #'
 #' @details
-#' The function calculates overlaps for a range of smoothing constants and identifies the optimal set of parameters by maximizing a z-score-based metric, which compares the overlap of observed data to permuted data.
-#' It computes overlap matrices for both observed (`D` and `S`) and permuted (`pD` and `pS`) data and returns the optimal parameters based on the highest z-score.
+#' The function calculates overlaps for a range of smoothing constants and
+#' identifies the optimal set of parameters by maximizing a z-score-based
+#' metric, which compares the overlap of observed data to permuted data.
+#' It computes overlap matrices for both observed (`D` and `S`) and permuted
+#' (`pD` and `pS`) data and returns the optimal parameters based on the
+#' highest z-score.
 #'
 #' @return A list containing the optimal parameters:
 #' \itemize{
 #'   \item \code{a1}: Optimal smoothing constant or 1 for SLR.
-#'   \item \code{a2}: SLR flag (1 if smoothing constant is optimal, 0 if SLR is optimal).
+#'   \item \code{a2}: SLR flag (1 if smoothing constant is optimal,
+#'   0 if SLR is optimal).
 #'   \item \code{k}: Optimal number of top values to consider for overlap.
 #'   \item \code{R}: Optimal overlap value.
 #'   \item \code{Z}: Optimal z-score.
@@ -44,9 +53,11 @@ Optimizing <- function(B, ssq, N, D, S, pD, pS, verbose, progress) {
     colnames(reprotable.sd) <- N
     row.names(reprotable.sd) <- c(ssq, "slr")
     if (progress)
-        pb <- txtProgressBar(min = 0,
+        pb <- txtProgressBar(
+            min = 0,
             max = length(ssq),
-            style = 3)
+            style = 3
+        )
     for (i in seq_len(length(ssq))) {
         overlaps <- matrix(0, nrow = B, ncol = length(N))
         overlaps.P <- matrix(0, nrow = B, ncol = length(N))
@@ -76,14 +87,16 @@ Optimizing <- function(B, ssq, N, D, S, pD, pS, verbose, progress) {
     i <- length(ssq) + 1
     overlaps <- matrix(0, nrow = B, ncol = length(N))
     overlaps.P <- matrix(0, nrow = B, ncol = length(N))
-    cResults <- calOverlaps.slr(D,
+    cResults <- calOverlaps.slr(
+        D,
         pD,
         nrow(D),
         as.integer(N),
         length(N),
         as.integer(B),
         overlaps,
-        overlaps.P)
+        overlaps.P
+    )
     rm(D, S)
     gc()
     reprotable[i, ] <- colMeans(cResults[["overlaps"]])
@@ -121,5 +134,4 @@ Optimizing <- function(B, ssq, N, D, S, pD, pS, verbose, progress) {
         Z = Z,
         ztable = ztable
     ))
-
 }

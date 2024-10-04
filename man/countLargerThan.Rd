@@ -9,11 +9,15 @@ countLargerThan(observedVec, permutedVec)
 \arguments{
 \item{observedVec}{Numeric vector. The observed values.}
 
-\item{permutedVec}{Numeric vector. The permuted values to compare against the observed values.}
+\item{permutedVec}{Numeric vector. The permuted values to compare against
+the observed values.}
 }
 \value{
-A numeric vector containing the counts of permuted values greater than or equal to the corresponding observed values.
+A numeric vector containing the counts of permuted values greater
+than or equal to the corresponding observed values.
 }
 \description{
-This helper function compares observed values against permuted values and counts the number of permuted values that are greater than or equal to each observed value.
+This helper function compares observed values against permuted values and
+counts the number of permuted values that are greater than or equal to each
+observed value.
 }

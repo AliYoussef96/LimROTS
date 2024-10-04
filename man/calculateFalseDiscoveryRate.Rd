@@ -11,24 +11,33 @@ calculateFalseDiscoveryRate(
 )
 }
 \arguments{
-\item{observedValues}{Numeric vector. The observed test statistics or values to be evaluated for significance.}
+\item{observedValues}{Numeric vector. The observed test statistics or values
+to be evaluated for significance.}
 
-\item{permutedValues}{Numeric matrix. The permuted test statistics or values, with rows corresponding to the same values as in \code{observedValues} and columns representing different permutations.}
+\item{permutedValues}{Numeric matrix. The permuted test statistics or values,
+with rows corresponding to the same values as in \code{observedValues} and
+columns representing different permutations.}
 
-\item{showProgress}{Logical. If \code{TRUE}, a progress bar will be shown during the computation.}
+\item{showProgress}{Logical. If \code{TRUE}, a progress bar will be shown during
+the computation.}
 }
 \value{
-A numeric vector of the same length as \code{observedValues}, containing the estimated FDR for each observed value.
+A numeric vector of the same length as \code{observedValues}, containing
+the estimated FDR for each observed value.
 }
 \description{
-This function calculates the false discovery rate (FDR) by comparing observed values to permuted values.
-The function sorts observed values, compares them against permuted data, and computes FDR using the median of permutation results.
+This function calculates the false discovery rate (FDR) by comparing
+observed values to permuted values.The function sorts observed values,
+compares them against permuted data, and computes FDR using the median of
+permutation results.
 }
 \examples{
 observedValues <- c(2.5, 1.8, 3.1, 0.7, 2.9)
 set.seed(123)
 permutedValues <- matrix(rnorm(5 * 5, mean = 2, sd = 1), nrow = 5)
-fdr <- calculateFalseDiscoveryRate(observedValues, permutedValues, showProgress = FALSE)
+fdr <- calculateFalseDiscoveryRate(observedValues, permutedValues,
+    showProgress = FALSE
+)
 print(fdr)
 
 }

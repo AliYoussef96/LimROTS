@@ -11,7 +11,8 @@ Optimizing(B, ssq, N, D, S, pD, pS, verbose, progress)
 
 \item{ssq}{Numeric vector. Smoothing constants to be evaluated.}
 
-\item{N}{Integer vector. Number of top values to consider for overlap calculation.}
+\item{N}{Integer vector. Number of top values to consider for overlap
+calculation.}
 
 \item{D}{Numeric matrix. Observed data values.}
 
@@ -19,7 +20,8 @@ Optimizing(B, ssq, N, D, S, pD, pS, verbose, progress)
 
 \item{pD}{Numeric matrix. Permuted data values.}
 
-\item{pS}{Numeric matrix. Standard errors or related values for permuted data.}
+\item{pS}{Numeric matrix. Standard errors or related values for
+permuted data.}
 
 \item{verbose}{Logical. If \code{TRUE}, progress messages will be displayed.}
 
@@ -29,7 +31,8 @@ Optimizing(B, ssq, N, D, S, pD, pS, verbose, progress)
 A list containing the optimal parameters:
 \itemize{
 \item \code{a1}: Optimal smoothing constant or 1 for SLR.
-\item \code{a2}: SLR flag (1 if smoothing constant is optimal, 0 if SLR is optimal).
+\item \code{a2}: SLR flag (1 if smoothing constant is optimal,
+0 if SLR is optimal).
 \item \code{k}: Optimal number of top values to consider for overlap.
 \item \code{R}: Optimal overlap value.
 \item \code{Z}: Optimal z-score.
@@ -37,9 +40,15 @@ A list containing the optimal parameters:
 }
 }
 \description{
-This function optimizes parameters by calculating overlaps between observed and permuted data for multiple values of a smoothing constant (\code{ssq}) and a single-label replicate (SLR) comparison.
+This function optimizes parameters by calculating overlaps between observed
+and permuted data for multiple values of a smoothing constant (\code{ssq}) and a
+single-label replicate (SLR) comparison.
 }
 \details{
-The function calculates overlaps for a range of smoothing constants and identifies the optimal set of parameters by maximizing a z-score-based metric, which compares the overlap of observed data to permuted data.
-It computes overlap matrices for both observed (\code{D} and \code{S}) and permuted (\code{pD} and \code{pS}) data and returns the optimal parameters based on the highest z-score.
+The function calculates overlaps for a range of smoothing constants and
+identifies the optimal set of parameters by maximizing a z-score-based
+metric, which compares the overlap of observed data to permuted data.
+It computes overlap matrices for both observed (\code{D} and \code{S}) and permuted
+(\code{pD} and \code{pS}) data and returns the optimal parameters based on the
+highest z-score.
 }

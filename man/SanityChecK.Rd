@@ -21,29 +21,41 @@ SanityChecK(
 )
 }
 \arguments{
-\item{x}{A matrix-like object or a \code{SummarizedExperiment} containing the data to be analyzed.}
+\item{x}{A matrix-like object or a \code{SummarizedExperiment} containing the
+data to be analyzed.}
 
-\item{B}{Integer. Number of bootstrap samples or resampling iterations. Default is 1000.}
+\item{B}{Integer. Number of bootstrap samples or resampling iterations.
+Default is 1000.}
 
-\item{K}{Integer. Top list size. If NULL, it will be set to a quarter of the number of rows in the data matrix. Default is NULL.}
+\item{K}{Integer. Top list size. If NULL, it will be set to a quarter of
+the number of rows in the data matrix. Default is NULL.}
 
 \item{a1, a2}{Optional numeric parameters related to optimization.}
 
-\item{meta.info}{Data frame. Metadata associated with the samples (columns of \code{data.exp}). If \code{data.exp} is a \code{SummarizedExperiment}, \code{meta.info} can be a vector of \code{colData} column names to use.}
+\item{meta.info}{Data frame. Metadata associated with the samples
+(columns of \code{data.exp}). If \code{data.exp} is a \code{SummarizedExperiment},
+\code{meta.info} can be a vector of \code{colData} column names to use.}
 
-\item{group.name}{Character. Column name in \code{meta.info} that defines the groups or conditions for comparison.}
+\item{group.name}{Character. Column name in \code{meta.info} that defines the
+groups or conditions for comparison.}
 
-\item{formula.str}{Optional character string representing the formula for the model.}
+\item{formula.str}{Optional character string representing the formula for
+the model.}
 
-\item{survival}{Logical. If TRUE, survival analysis is used, requiring \code{time} and \code{event} columns in \code{meta.info}. Default is FALSE.}
+\item{survival}{Logical. If TRUE, survival analysis is used, requiring
+\code{time} and \code{event} columns in \code{meta.info}. Default is FALSE.}
 
-\item{paired}{Logical. If TRUE, indicates paired test setup. Default is FALSE.}
+\item{paired}{Logical. If TRUE, indicates paired test setup.
+Default is FALSE.}
 
-\item{n.ROTS}{Logical. If TRUE, uses the ROTS method instead of LimROTS. Default is FALSE.}
+\item{n.ROTS}{Logical. If TRUE, uses the ROTS method instead of LimROTS.
+Default is FALSE.}
 
-\item{verbose}{Logical, indicating whether to display messages during the function's execution. Default is TRUE.}
+\item{verbose}{Logical, indicating whether to display messages during the
+function's execution. Default is TRUE.}
 
-\item{log}{Logical, indicating whether the data is already log-transformed. Default is TRUE.}
+\item{log}{Logical, indicating whether the data is already log-transformed.
+Default is TRUE.}
 }
 \value{
 A list containing:
@@ -56,8 +68,14 @@ A list containing:
 }
 }
 \description{
-This function performs a series of checks and initial setups for input data, metadata, and parameters, ensuring everything is correctly formatted for downstream analysis.
+This function performs a series of checks and initial setups for input data,
+metadata, and parameters, ensuring everything is correctly formatted for
+downstream analysis.
 }
 \details{
-This function checks whether the input data and metadata are in the correct format, processes metadata from a \code{SummarizedExperiment} object if provided, and ensures that group information is correctly specified. If no top list size (\code{K}) is provided, it defaults to a quarter of the number of rows in the data.
+This function checks whether the input data and metadata are in the correct
+format, processes metadata from a \code{SummarizedExperiment} object if provided,
+and ensures that group information is correctly specified. If no top list
+size (\code{K}) is provided, it defaults to a quarter of the number of rows in
+the data.
 }
