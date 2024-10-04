@@ -12,7 +12,7 @@ vignette: >
     %\VignetteIndexEntry{mia}
     %\VignetteEngine{knitr::rmarkdown}
     %\VignetteEncoding{UTF-8}
-bibliography: "reference.bib"
+bibliography: reference.bib
 ---
 
 ```{r, include = FALSE}

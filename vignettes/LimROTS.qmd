@@ -40,7 +40,7 @@ The **LimROTS** approach initially uses the limma package @limma to simulate the
 -   **`B`**: An integer specifying the number of bootstrap iterations. Default is 1000.
 -   **`K`**: An optional integer representing the top list size for ranking. If not specified, it is set to one-fourth of the number of features.
 -   **`a1`**: Optional numeric value used in the optimization process. If defined by the user, no optimization occurs.
--   **`a2`**: Optional numeric value used in the optimization process. If defined by the user, no optimization occurs [0,1].
+-   **`a2`**: Optional numeric value used in the optimization process. If defined by the user, no optimization occurs \[0,1\].
 -   **`log`**: Logical, indicating whether the data is already log-transformed. Default is `TRUE`.
 -   **`progress`**: Logical, indicating whether to display a progress bar during bootstrap sampling. Default is `FALSE`.
 -   **`verbose`**: Logical, indicating whether to display messages during the function's execution. Default is `TRUE`.
