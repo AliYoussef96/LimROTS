@@ -102,7 +102,7 @@ testStatistic_with_covariates_permutating <-
             cont_matrix <-
                 makeContrasts(
                     contrasts = pairwise_contrasts,
-                    levels = nndesign.matrix
+                    levels = design.matrix
                 )
             fit2 <- contrasts.fit(fit, cont_matrix)
             fit.ebayes <-

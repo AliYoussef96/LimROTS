@@ -1,7 +1,7 @@
 ---
-title: "LimROTS: A Hybrid Method Integrating Empirical
-Bayes and Reproducibility-Optimized Statistics for
-Robust Analysis of Proteomics and Metabolomics Data"
+title: "LimROTS: A Hybrid Method Integrating Empirical Bayes and 
+        Reproducibility-Optimized Statistics for Robust Analysis of Proteomics 
+        and Metabolomics Data"
 output:
     BiocStyle::html_document:
         fig_height: 7
@@ -11,10 +11,10 @@ output:
         toc_depth: 3
         number_sections: true
 vignette: >
-    %\VignetteIndexEntry{mia}
+    %\VignetteIndexEntry{LimROTS}
     %\VignetteEngine{knitr::rmarkdown}
     %\VignetteEncoding{UTF-8}
-bibliography: "reference.bib"
+bibliography: reference.bib
 ---
 
 ```{r, include = FALSE}
@@ -138,11 +138,11 @@ A synthetic, unbalanced fake batches assigned to the samples. The assignment
 follows the ratio of: 
 `Here is the rewritten version with a 50-character limit per line:
 
-```r
+```{r}
 c(rep("M", 9), rep("F", 3), rep("M", 3), rep("F", 
 9), rep("M", 9), rep("F", 3), rep("M", 3), rep("F", 
 9))
-```.
+```
 
 Additionally, 100 E. coli proteins were randomly selected, and an effect size 
 of 10 was added to each. The expected outcome is that only the UPS1 human 
