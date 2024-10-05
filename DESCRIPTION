@@ -48,11 +48,11 @@ Imports:
     utils,
     stats,
     doRNG,
-    magick,
     dplyr
 Suggests: 
     BiocStyle,
     ggplot2,
+    magick,
     testthat (>= 3.0.0),
     knitr,
     rmarkdown

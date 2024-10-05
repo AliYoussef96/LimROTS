@@ -125,7 +125,7 @@ moderated t-statistics, the adjusted standard error
 \eqn{SEpost = √(s2.post)
 \times unscaled SD} for each feature is computed, along with the regression
 coefficient for each feature (indicating the impact of variations in the
-experimental settings). The \link[ROTS]{ROTS} approach establishes optimality
+experimental settings). The \link{ROTS} approach establishes optimality
 based on the largest overlap of top-ranked features within group-preserving
 bootstrap datasets, Finally based on the optimized parameters
 \eqn{\alpha1} and
