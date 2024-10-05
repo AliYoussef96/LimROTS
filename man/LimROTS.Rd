@@ -25,7 +25,7 @@ LimROTS(
   seed.cl = 1234,
   robust = TRUE,
   trend = TRUE,
-  permutating.group = TRUE
+  permutating.group = FALSE
 )
 }
 \arguments{
@@ -94,7 +94,7 @@ differential expression analysis. Default is TRUE. see \link{eBayes}.}
 \item{permutating.group}{Logical, If \code{TRUE}, the permutation for
 calculating the null distribution is performed by permuting the target
 group only specified in \code{group.name}. If FALSE, the entire
-\code{meta.info} will be permuted (recommended to be set to TRUE).}
+\code{meta.info} will be permuted (recommended to be set to FALSE).}
 }
 \value{
 A list of class \code{"list"} with the following elements:
