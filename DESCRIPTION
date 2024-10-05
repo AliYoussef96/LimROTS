@@ -50,6 +50,7 @@ Imports:
     doRNG,
     dplyr
 Suggests: 
+    BiocStyle,
     ggplot2,
     testthat (>= 3.0.0),
     knitr,
