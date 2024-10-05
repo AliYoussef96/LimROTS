@@ -30,7 +30,7 @@ Description: Differential expression analysis is a prevalent method utilised in
             methodology to simulate complex experimental designs. LimROTS is a
             hybrid method integrating empirical bayes and 
             reproducibility-optimized statistics for robust analysis 
-            of proteomics and metabolomics data
+            of proteomics and metabolomics data.
 License: Artistic-2.0
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
