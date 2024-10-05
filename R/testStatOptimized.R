@@ -73,9 +73,12 @@ testStatOptimized <- function(isPaired, x) {
                     )
                 )^2, numeric(1)))
             meanDiff <- sqrt(factorScaling * rowVariance)
-            scalingFactor <- 1 / sum(vapply(sampleGroups, ncol, numeric(1)) - 1) *
-                sum(1 / vapply(sampleGroups, ncol, numeric(1)))
-            totalVariance <- rowSums(vapply(sampleGroups, function(group)
+            scalingFactor <- 1 / sum(vapply(sampleGroups,
+                                            ncol, numeric(1)) - 1) *
+                sum(1 / vapply(sampleGroups,
+                               ncol, numeric(1)))
+            totalVariance <- rowSums(vapply(sampleGroups,
+                                            function(group)
                 rowSums((group - rowMeans(group, na.rm = TRUE))^2,
                     na.rm = TRUE
                 ), numeric(1)))
