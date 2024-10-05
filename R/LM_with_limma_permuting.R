@@ -50,7 +50,8 @@
 #' @importFrom stringr str_split_fixed fixed
 #'
 testStatistic_with_covariates_permutating <-
-    function(x, group.name, meta.info, formula.str, trend, robust,
+    function(x, group.name, meta.info,
+             formula.str, trend, robust,
              permutating.group) {
         data <- x
         combined_data <- data.frame(
