@@ -53,11 +53,11 @@ calculateFalseDiscoveryRate <- function(observedValues, permutedValues,
     falseDiscoveryRate <- apply(FDRmatrix, 1, median)
     falseDiscoveryRate[falseDiscoveryRate > 1] <- 1
     falseDiscoveryRate[ord.obs] <-
-        rev(sapply(
+        rev(vapply(
             length(falseDiscoveryRate):1,
             function(x)
-                return(min(falseDiscoveryRate
-                [ord.obs][x:length(falseDiscoveryRate)]))
+                min(falseDiscoveryRate[ord.obs][x:length(falseDiscoveryRate)]),
+            numeric(1)
         ))
     return(falseDiscoveryRate)
 }

@@ -8,7 +8,7 @@ Authors@R:
     person(given = "Leo", family = "Lahti", role = c("aut" ,"ths"),
     email = "leo.lahti@iki.fi",
     comment = c(ORCID = "0000-0001-5537-637X")),
-    person(given = "Akewak", family = "Jeba", role = c("ctb"),
+    person(given = "Akewak", family = "Jeba", role = c("aut","ctb"),
     email = "akewak.k.jeba@utu.fi",
     comment = c(ORCID = "0009-0007-1347-7552")),
     person(given = "Eleanor", family = "Coffey", role = c("aut", "ths"),

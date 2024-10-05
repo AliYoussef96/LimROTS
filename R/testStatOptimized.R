@@ -64,21 +64,21 @@ testStatOptimized <- function(isPaired, x) {
     } else if (length(sampleGroups) > 2) {
         allSamples <- do.call("cbind", sampleGroups)
         if (!isPaired) {
-            factorScaling <- sum(sapply(sampleGroups, ncol)) /
-                prod(sapply(sampleGroups, ncol))
-            rowVariance <- rowSums(sapply(sampleGroups, function(group)
+            factorScaling <- sum(vapply(sampleGroups, ncol, as.numeric(1))) /
+                prod(vapply(sampleGroups, ncol, numeric(1)))
+            rowVariance <- rowSums(vapply(sampleGroups, function(group)
                 (
                     rowMeans(group, na.rm = TRUE) - rowMeans(allSamples,
                         na.rm = TRUE
                     )
-                )^2))
+                )^2, numeric(1)))
             meanDiff <- sqrt(factorScaling * rowVariance)
-            scalingFactor <- 1 / sum(sapply(sampleGroups, ncol) - 1) *
-                sum(1 / sapply(sampleGroups, ncol))
-            totalVariance <- rowSums(sapply(sampleGroups, function(group)
+            scalingFactor <- 1 / sum(vapply(sampleGroups, ncol, numeric(1)) - 1) *
+                sum(1 / vapply(sampleGroups, ncol, numeric(1)))
+            totalVariance <- rowSums(vapply(sampleGroups, function(group)
                 rowSums((group - rowMeans(group, na.rm = TRUE))^2,
                     na.rm = TRUE
-                )))
+                ), numeric(1)))
             standardDev <- sqrt(scalingFactor * totalVariance)
         } else {
             stop("Multiple paired groups are not supported!")
