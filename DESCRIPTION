@@ -1,5 +1,7 @@
 Package: LimROTS
-Title: An Extension of the ROTS Method with Limma Integration
+Title: A Hybrid Method Integrating Empirical Bayes and 
+        Reproducibility-Optimized Statistics for Robust Analysis of Proteomics 
+        and Metabolomics Data
 Version: 0.99.0
 Authors@R: 
     c(person(given = "Ali", family = "Youssef", role = c("aut", "cre"), 
@@ -15,7 +17,7 @@ Authors@R:
     email = "elecof@utu.fi",
     comment = c(ORCID = "0000-0002-9717-5610")))
 Description: Differential expression analysis is a prevalent method utilised in 
-            the examination of diverse biological data.The 
+            the examination of diverse biological data. The 
             reproducibility-optimized test statistic (ROTS) modifies a 
             t-statistic based on the data's intrinsic characteristics and ranks 
             features according to their statistical significance for 
@@ -23,9 +25,12 @@ Description: Differential expression analysis is a prevalent method utilised in
             Focussing on proteomics and metabolomics, the current ROTS 
             implementation cannot account for technical or biological 
             covariates such as MS batches or gender differences among 
-            the samples.Consequently, we developed LimROTS, which employs a 
+            the samples. Consequently, we developed LimROTS, which employs a 
             reproducibility-optimized test statistic utilising the limma 
-            methodology to simulate complex experimental designs.
+            methodology to simulate complex experimental designs. LimROTS is a
+            hybrid method integrating empirical bayes and 
+            reproducibility-optimized statistics for robust analysis 
+            of proteomics and metabolomics data
 License: Artistic-2.0
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

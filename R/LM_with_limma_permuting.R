@@ -51,8 +51,8 @@
 #'
 testStatistic_with_covariates_permutating <-
     function(x, group.name, meta.info,
-             formula.str, trend, robust,
-             permutating.group) {
+                formula.str, trend, robust,
+                permutating.group) {
         data <- x
         combined_data <- data.frame(
             check.rows = FALSE,
