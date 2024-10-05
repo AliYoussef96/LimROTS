@@ -53,7 +53,7 @@
 #' @param permutating.group Logical, If \code{TRUE}, the permutation for
 #' calculating the null distribution is performed by permuting the target
 #' group only specified in \code{group.name}. If FALSE, the entire
-#' \code{meta.info} will be permuted (recommended to be set to TRUE).
+#' \code{meta.info} will be permuted (recommended to be set to FALSE).
 #'
 #' @return A list of class `"list"` with the following elements:
 #' \item{data}{The original data matrix.}
@@ -162,7 +162,7 @@ LimROTS <- function(x,
                     seed.cl = 1234,
                     robust = TRUE,
                     trend = TRUE,
-                    permutating.group = TRUE) {
+                    permutating.group = FALSE) {
     SanityChecK.list <- SanityChecK(
         x,
         B = B,
