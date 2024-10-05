@@ -1,25 +1,35 @@
 #' Calculate False Discovery Rate (FDR) Using Permuted Values (Adjusted)
 #'
-#' This function calculates the false discovery rate (FDR) by comparing observed values to permuted values.
-#' The function sorts observed values, compares them against permuted data, and computes FDR using the median of permutation results.
+#' This function calculates the false discovery rate (FDR) by comparing
+#' observed values to permuted values.The function sorts observed values,
+#' compares them against permuted data, and computes FDR using the median of
+#' permutation results.
 #'
-#' @param observedValues Numeric vector. The observed test statistics or values to be evaluated for significance.
-#' @param permutedValues Numeric matrix. The permuted test statistics or values, with rows corresponding to the same values as in `observedValues` and columns representing different permutations.
-#' @param showProgress Logical. If `TRUE`, a progress bar will be shown during the computation.
+#' @param observedValues Numeric vector. The observed test statistics or values
+#' to be evaluated for significance.
+#' @param permutedValues Numeric matrix. The permuted test statistics or values,
+#'  with rows corresponding to the same values as in `observedValues` and
+#'  columns representing different permutations.
+#' @param showProgress Logical. If `TRUE`, a progress bar will be shown during
+#' the computation.
 #'
-#' @return A numeric vector of the same length as `observedValues`, containing the estimated FDR for each observed value.
+#' @return A numeric vector of the same length as `observedValues`, containing
+#' the estimated FDR for each observed value.
 #' @importFrom stats median
 #'
 #' @examples
 #' observedValues <- c(2.5, 1.8, 3.1, 0.7, 2.9)
 #' set.seed(123)
 #' permutedValues <- matrix(rnorm(5 * 5, mean = 2, sd = 1), nrow = 5)
-#' fdr <- calculateFalseDiscoveryRate(observedValues, permutedValues, showProgress = FALSE)
+#' fdr <- calculateFalseDiscoveryRate(observedValues, permutedValues,
+#'     showProgress = FALSE
+#' )
 #' print(fdr)
 #'
 #' @export
 
-calculateFalseDiscoveryRate <- function(observedValues, permutedValues, showProgress = FALSE) {
+calculateFalseDiscoveryRate <- function(observedValues, permutedValues,
+                                        showProgress = FALSE) {
     observedAbs <- abs(observedValues)
     permutedAbs <- abs(permutedValues)
     ord.obs <- order(observedAbs, decreasing = TRUE, na.last = TRUE)
@@ -42,18 +52,28 @@ calculateFalseDiscoveryRate <- function(observedValues, permutedValues, showProg
     }
     falseDiscoveryRate <- apply(FDRmatrix, 1, median)
     falseDiscoveryRate[falseDiscoveryRate > 1] <- 1
-    falseDiscoveryRate[ord.obs] <- rev(sapply(length(falseDiscoveryRate):1, function(x) return(min(falseDiscoveryRate[ord.obs][x:length(falseDiscoveryRate)]))))
+    falseDiscoveryRate[ord.obs] <-
+        rev(sapply(
+            length(falseDiscoveryRate):1,
+            function(x)
+                return(min(falseDiscoveryRate
+                [ord.obs][x:length(falseDiscoveryRate)]))
+        ))
     return(falseDiscoveryRate)
 }
 
 #' Count Larger Permuted Values (Modified)
 #'
-#' This helper function compares observed values against permuted values and counts the number of permuted values that are greater than or equal to each observed value.
+#' This helper function compares observed values against permuted values and
+#' counts the number of permuted values that are greater than or equal to each
+#' observed value.
 #'
 #' @param observedVec Numeric vector. The observed values.
-#' @param permutedVec Numeric vector. The permuted values to compare against the observed values.
+#' @param permutedVec Numeric vector. The permuted values to compare against
+#' the observed values.
 #'
-#' @return A numeric vector containing the counts of permuted values greater than or equal to the corresponding observed values.
+#' @return A numeric vector containing the counts of permuted values greater
+#' than or equal to the corresponding observed values.
 #'
 #'
 
@@ -69,7 +89,10 @@ countLargerThan <- function(observedVec, permutedVec) {
     observedInPermuted <- observedVec %in% permutedVec
 
     # Combine observed and permuted into a single sorted vector
-    combinedSorted <- sort(c(observedVec, permutedVec), decreasing = TRUE, na.last = TRUE)
+    combinedSorted <- sort(c(observedVec, permutedVec),
+        decreasing = TRUE,
+        na.last = TRUE
+    )
 
     # Match observed elements to the combined vector positions
     combinedPos <- match(observedVec, combinedSorted)

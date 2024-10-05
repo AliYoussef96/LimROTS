@@ -1,25 +1,34 @@
 #' Calculate Overlaps Between Observed and Permuted Data
 #'
-#' This function calculates the overlap between observed and permuted data for two sets of comparisons.
-#' It computes the ratio of overlap between pairs of vectors (res1/res2 and pres1/pres2) after sorting the values.
+#' This function calculates the overlap between observed and permuted data for
+#' two sets of comparisons. It computes the ratio of overlap between pairs of
+#' vectors (res1/res2 and pres1/pres2) after sorting the values.
 #'
 #' @param D Numeric vector. Observed data values (e.g., differences).
-#' @param S Numeric vector. Standard errors or related values associated with the observed data.
+#' @param S Numeric vector. Standard errors or related values associated with
+#' the observed data.
 #' @param pD Numeric vector. Permuted data values (e.g., differences).
-#' @param pS Numeric vector. Standard errors or related values associated with the permuted data.
+#' @param pS Numeric vector. Standard errors or related values associated with
+#' the permuted data.
 #' @param nrow Integer. Number of rows in each block of data.
-#' @param N Integer vector. Number of top values to consider for overlap calculation.
+#' @param N Integer vector. Number of top values to consider for overlap
+#' calculation.
 #' @param N_len Integer. Length of the `N` vector.
 #' @param ssq Numeric. A small constant added to standard errors for stability.
 #' @param B Integer. Number of bootstrap samples or resampling iterations.
-#' @param overlaps Numeric matrix. Matrix to store overlap results for observed data.
-#' @param overlaps_P Numeric matrix. Matrix to store overlap results for permuted data.
+#' @param overlaps Numeric matrix. Matrix to store overlap results for observed
+#' data.
+#' @param overlaps_P Numeric matrix. Matrix to store overlap results for
+#' permuted data.
 #'
 #' @details
-#' The function calculates overlaps for two sets of comparisons: one for observed data (res1/res2) and one for permuted data (pres1/pres2).
-#' For each bootstrap sample, the function orders the two vectors being compared, then calculates the proportion of overlap for the top `N` values.
+#' The function calculates overlaps for two sets of comparisons: one for
+#' observed data (res1/res2) and one for permuted data (pres1/pres2).For each
+#' bootstrap sample, the function orders the two vectors being compared, then
+#' calculates the proportion of overlap for the top `N` values.
 #'
-#' @return A list containing two matrices: \code{overlaps} for observed data and \code{overlaps_P} for permuted data.
+#' @return A list containing two matrices: \code{overlaps} for observed data and
+#'  \code{overlaps_P} for permuted data.
 #'
 #'
 
@@ -46,12 +55,20 @@ calOverlaps <- function(D,
     idx_offset <- B
     D <- abs(D)
     for (b in idx_b) {
-        res1 <- abs(D[((b - 1) * nrow + 1):(b * nrow)] / (S[((b - 1) * nrow + 1):(b * nrow)] + ssq))
-        res2 <- abs(D[((b + idx_offset - 1) * nrow + 1):((b + idx_offset) * nrow)] /
-            (S[((b + idx_offset - 1) * nrow + 1):((b + idx_offset) * nrow)] + ssq))
-        pres1 <- abs(pD[((b - 1) * nrow + 1):(b * nrow)] / (pS[((b - 1) * nrow + 1):(b * nrow)] + ssq))
-        pres2 <- abs(pD[((b + idx_offset - 1) * nrow + 1):((b + idx_offset) * nrow)] /
-            (pS[((b + idx_offset - 1) * nrow + 1):((b + idx_offset) * nrow)] + ssq))
+        res1 <-
+            abs(D[((b - 1) * nrow + 1):(b * nrow)] /
+                (S[((b - 1) * nrow + 1):(b * nrow)] + ssq))
+        res2 <-
+            abs(D[((b + idx_offset - 1) * nrow + 1):((b + idx_offset) * nrow)] /
+                (S[((b + idx_offset - 1) *
+                        nrow + 1):((b + idx_offset) * nrow)] + ssq))
+        pres1 <-
+            abs(pD[((b - 1) * nrow + 1):(b * nrow)] /
+                (pS[((b - 1) * nrow + 1):(b * nrow)] + ssq))
+        pres2 <-
+            abs(pD[((b + idx_offset - 1) * nrow + 1):((b + idx_offset) * nrow)]
+            / (pS[((b + idx_offset - 1) * nrow + 1):((b + idx_offset) *
+                    nrow)] + ssq))
 
         sorted_res <- sort2_1R(res1, res2)
         res1 <- sorted_res$a

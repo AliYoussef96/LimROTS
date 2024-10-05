@@ -1,12 +1,19 @@
 #' Spectronaut and ScaffoldDIA UPS1 Spiked Dataset case 4
 #'
-#' A \code{\link[SummarizedExperiment:SummarizedExperiment-class]{SummarizedExperiment}} object containing DIA proteomics data from a UPS1-spiked E. coli proteins, processed using both Spectronaut and ScaffoldDIA separately, then merged.
+#' A \code{
+#' \link[SummarizedExperiment:SummarizedExperiment-class]{SummarizedExperiment}}
+#'  object containing DIA proteomics data from a UPS1-spiked E. coli proteins,
+#'  processed using both Spectronaut and ScaffoldDIA separately, then merged.
 #'
 #' @name UPS1.Case4
 #' @docType data
-#' @format An instance of the \code{\link[SummarizedExperiment:SummarizedExperiment-class]{SummarizedExperiment}} class with the following assays:
+#' @format An instance of the
+#' \code{
+#' \link[SummarizedExperiment:SummarizedExperiment-class]{SummarizedExperiment}}
+#' class with the following assays:
 #' \describe{
-#'   \item{norm}{This assay includes log2 protein intensities calculated by averaging the peptides derived from the same protein}
+#'   \item{norm}{This assay includes log2 protein intensities calculated by
+#'   averaging the peptides derived from the same protein}
 #' }
 #' The object also contains colData and rowData:
 #' \describe{
@@ -17,14 +24,20 @@
 #' The `colData` contains the following columns:
 #' \describe{
 #'   \item{SampleID}{Unique identifier for each sample.}
-#'   \item{Conc}{Experimental condition or group for each sample , representing different conc. of UPS1-spiked proteins.}
+#'   \item{Conc}{Experimental condition or group for each sample ,
+#'   representing different conc. of UPS1-spiked proteins.}
 #'   \item{tool}{software tool used, Spectronaut or ScaffoldDIA.}
 #'   \item{fake.batch}{A fake digestion batch.}
 #' }
 #'
-#' @source Generated with both spectronaut and ScaffoldDIA separately. using a mixed mode acquisition method and FASTA mode for demonstration purposes.
+#' @source Generated with both spectronaut and ScaffoldDIA separately.
+#' using a mixed mode acquisition method and FASTA mode for demonstration
+#' purposes.
 #' @references
-#' Gotti, C., Roux-Dalvai, F., Joly-Beauparlant, C., Mangnier, L., Leclercq, M., & Droit, A. (2022). DIA proteomics data from a UPS1-spiked E.coli protein mixture processed with six software tools. In Data in Brief (Vol. 41, p. 107829). Elsevier BV. https://doi.org/10.1016/j.dib.2022.107829
+#' Gotti, C., Roux-Dalvai, F., Joly-Beauparlant, C., Mangnier, L., Leclercq, M.,
+#' & Droit, A. (2022). DIA proteomics data from a UPS1-spiked E.coli protein
+#' mixture processed with six software tools. In Data in Brief
+#' (Vol. 41, p. 107829). Elsevier BV. https://doi.org/10.1016/j.dib.2022.107829
 #'
 #'
 

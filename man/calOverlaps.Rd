@@ -9,15 +9,18 @@ calOverlaps(D, S, pD, pS, nrow, N, N_len, ssq, B, overlaps, overlaps_P)
 \arguments{
 \item{D}{Numeric vector. Observed data values (e.g., differences).}
 
-\item{S}{Numeric vector. Standard errors or related values associated with the observed data.}
+\item{S}{Numeric vector. Standard errors or related values associated with
+the observed data.}
 
 \item{pD}{Numeric vector. Permuted data values (e.g., differences).}
 
-\item{pS}{Numeric vector. Standard errors or related values associated with the permuted data.}
+\item{pS}{Numeric vector. Standard errors or related values associated with
+the permuted data.}
 
 \item{nrow}{Integer. Number of rows in each block of data.}
 
-\item{N}{Integer vector. Number of top values to consider for overlap calculation.}
+\item{N}{Integer vector. Number of top values to consider for overlap
+calculation.}
 
 \item{N_len}{Integer. Length of the \code{N} vector.}
 
@@ -25,18 +28,24 @@ calOverlaps(D, S, pD, pS, nrow, N, N_len, ssq, B, overlaps, overlaps_P)
 
 \item{B}{Integer. Number of bootstrap samples or resampling iterations.}
 
-\item{overlaps}{Numeric matrix. Matrix to store overlap results for observed data.}
+\item{overlaps}{Numeric matrix. Matrix to store overlap results for observed
+data.}
 
-\item{overlaps_P}{Numeric matrix. Matrix to store overlap results for permuted data.}
+\item{overlaps_P}{Numeric matrix. Matrix to store overlap results for
+permuted data.}
 }
 \value{
-A list containing two matrices: \code{overlaps} for observed data and \code{overlaps_P} for permuted data.
+A list containing two matrices: \code{overlaps} for observed data and
+\code{overlaps_P} for permuted data.
 }
 \description{
-This function calculates the overlap between observed and permuted data for two sets of comparisons.
-It computes the ratio of overlap between pairs of vectors (res1/res2 and pres1/pres2) after sorting the values.
+This function calculates the overlap between observed and permuted data for
+two sets of comparisons. It computes the ratio of overlap between pairs of
+vectors (res1/res2 and pres1/pres2) after sorting the values.
 }
 \details{
-The function calculates overlaps for two sets of comparisons: one for observed data (res1/res2) and one for permuted data (pres1/pres2).
-For each bootstrap sample, the function orders the two vectors being compared, then calculates the proportion of overlap for the top \code{N} values.
+The function calculates overlaps for two sets of comparisons: one for
+observed data (res1/res2) and one for permuted data (pres1/pres2).For each
+bootstrap sample, the function orders the two vectors being compared, then
+calculates the proportion of overlap for the top \code{N} values.
 }
