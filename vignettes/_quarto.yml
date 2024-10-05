@@ -1,5 +1,0 @@
-project:
-  type: website
-  output-dir: ../docs/articles
-  render:
-    - LimROTS_qmd.qmd
