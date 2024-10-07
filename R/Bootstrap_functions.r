@@ -1,4 +1,4 @@
-#' Generate Bootstrap Samples with Optional Pairing
+#' Generate Bootstrap Samples
 #'
 #' This function generates bootstrap samples from the input metadata. It samples
 #'  with replacement within each group defined in the metadata, and optionally
@@ -27,16 +27,10 @@
 #'     row.names = paste0("Sample", 1:10)
 #' )
 #' bootstrapS(
-#'     B = 10, meta.info = meta.info, group.name = "group",
-#'     paired = FALSE
+#'     B = 10, meta.info = meta.info, group.name = "group"
 #' )
 #'
-#' # Paired bootstrap sampling
-#' bootstrapS(
-#'     B = 10, meta.info = meta.info, group.name = "group",
-#'     paired = TRUE
-#' )
-#'
+
 bootstrapS <- function(B, meta.info, group.name) {
     groups <- meta.info[, group.name]
     bootsamples <- matrix(nrow = B, ncol = length(groups))
@@ -88,6 +82,7 @@ bootstrapS <- function(B, meta.info, group.name) {
 #' )
 #' meta.info$batch <- as.factor(meta.info$batch)
 #' bootstrapSamples.limRots(B = 10, meta.info = meta.info, group.name = "group")
+#'
 bootstrapSamples.limRots <- function(B, meta.info, group.name) {
     labels <- as.numeric(meta.info[, group.name])
     samples <- matrix(nrow = B, ncol = length(labels))

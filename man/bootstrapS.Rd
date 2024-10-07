@@ -2,7 +2,7 @@
 % Please edit documentation in R/Bootstrap_functions.r
 \name{bootstrapS}
 \alias{bootstrapS}
-\title{Generate Bootstrap Samples with Optional Pairing}
+\title{Generate Bootstrap Samples}
 \usage{
 bootstrapS(B, meta.info, group.name)
 }
@@ -37,14 +37,7 @@ meta.info <- data.frame(
     row.names = paste0("Sample", 1:10)
 )
 bootstrapS(
-    B = 10, meta.info = meta.info, group.name = "group",
-    paired = FALSE
-)
-
-# Paired bootstrap sampling
-bootstrapS(
-    B = 10, meta.info = meta.info, group.name = "group",
-    paired = TRUE
+    B = 10, meta.info = meta.info, group.name = "group"
 )
 
 }

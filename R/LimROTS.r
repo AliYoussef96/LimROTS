@@ -234,7 +234,7 @@ LimROTS <- function(x,
             "a1",
             "a2",
             "trend",
-            "robust",
+            "robust"
         ),
         envir = environment()
     )

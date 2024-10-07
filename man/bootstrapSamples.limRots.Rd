@@ -45,4 +45,5 @@ meta.info <- data.frame(
 )
 meta.info$batch <- as.factor(meta.info$batch)
 bootstrapSamples.limRots(B = 10, meta.info = meta.info, group.name = "group")
+
 }

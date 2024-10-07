@@ -11,7 +11,6 @@ test_that("bootstrapS returns expected output structure", {
     # Parameters
     B <- 5 # Number of bootstrap samples
     group.name <- "group"
-    paired <- FALSE # Change to TRUE for paired testing
 
     # Call the function
     result <- bootstrapS(B, meta.info, group.name)
