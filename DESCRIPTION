@@ -37,7 +37,7 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 Depends: R (>= 4.4.0)
 biocViews: Software, GeneExpression, DifferentialExpression,
-        Microarray, RNASeq, Proteomics, ImmunoOncology, Metabolomics, Survival
+        Microarray, RNASeq, Proteomics, ImmunoOncology, Metabolomics, mRNAMicroarray
 URL: https://github.com/AliYoussef96/LimROTS
 BugReports: https://github.com/AliYoussef96/LimROTS/issues
 VignetteBuilder: 
