@@ -2,9 +2,9 @@
 % Please edit documentation in R/Bootstrap_functions.r
 \name{bootstrapS}
 \alias{bootstrapS}
-\title{Generate Bootstrap Samples with Optional Pairing}
+\title{Generate Bootstrap Samples}
 \usage{
-bootstrapS(B, meta.info, group.name, paired)
+bootstrapS(B, meta.info, group.name)
 }
 \arguments{
 \item{B}{Integer. The number of bootstrap samples to generate.}
@@ -14,9 +14,6 @@ each row corresponds to a sample.}
 
 \item{group.name}{Character. The name of the column in \code{meta.info} that
 defines the grouping variable for the samples.}
-
-\item{paired}{Logical. If \code{TRUE}, the function ensures the bootstrap samples
-are paired between two groups.}
 }
 \value{
 A matrix of dimension \code{B} x \code{n}, where \code{n} is the
@@ -30,9 +27,7 @@ adjusts for paired groups.
 }
 \details{
 The function works by resampling the row names of the metadata for each group
-separately. If \code{paired} is \code{TRUE}, it assumes there are exactly two groups
-and samples the second group based on the positions of the first group to
-maintain pairing.
+separately.
 }
 \examples{
 # Example usage:
@@ -42,14 +37,7 @@ meta.info <- data.frame(
     row.names = paste0("Sample", 1:10)
 )
 bootstrapS(
-    B = 10, meta.info = meta.info, group.name = "group",
-    paired = FALSE
-)
-
-# Paired bootstrap sampling
-bootstrapS(
-    B = 10, meta.info = meta.info, group.name = "group",
-    paired = TRUE
+    B = 10, meta.info = meta.info, group.name = "group"
 )
 
 }

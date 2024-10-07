@@ -13,9 +13,6 @@ SanityChecK(
   meta.info = NULL,
   group.name = NULL,
   formula.str = NULL,
-  survival = FALSE,
-  paired = FALSE,
-  n.ROTS = FALSE,
   verbose = TRUE,
   log = TRUE
 )
@@ -42,15 +39,6 @@ groups or conditions for comparison.}
 \item{formula.str}{Optional character string representing the formula for
 the model.}
 
-\item{survival}{Logical. If TRUE, survival analysis is used, requiring
-\code{time} and \code{event} columns in \code{meta.info}. Default is FALSE.}
-
-\item{paired}{Logical. If TRUE, indicates paired test setup.
-Default is FALSE.}
-
-\item{n.ROTS}{Logical. If TRUE, uses the ROTS method instead of LimROTS.
-Default is FALSE.}
-
 \item{verbose}{Logical, indicating whether to display messages during the
 function's execution. Default is TRUE.}
 
@@ -63,7 +51,6 @@ A list containing:
 \item \code{meta.info}: Processed metadata.
 \item \code{data}: Processed data matrix.
 \item \code{groups}: Numeric or factor vector indicating group assignments.
-\item \code{event}: Event data for survival analysis (if applicable).
 \item \code{K}: Top list size to be used in the analysis.
 }
 }
