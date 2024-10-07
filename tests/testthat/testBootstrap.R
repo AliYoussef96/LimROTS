@@ -14,7 +14,7 @@ test_that("bootstrapS returns expected output structure", {
     paired <- FALSE # Change to TRUE for paired testing
 
     # Call the function
-    result <- bootstrapS(B, meta.info, group.name, paired)
+    result <- bootstrapS(B, meta.info, group.name)
 
     # Check output structure
     expect_type(result, "character")

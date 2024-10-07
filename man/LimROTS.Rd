@@ -19,9 +19,6 @@ LimROTS(
   cluster = NULL,
   group.name = NULL,
   formula.str = NULL,
-  survival = FALSE,
-  paired = FALSE,
-  n.ROTS = FALSE,
   seed.cl = 1234,
   robust = TRUE,
   trend = TRUE,
@@ -69,18 +66,6 @@ represents the groups or conditions for comparison.}
 \item{formula.str}{A formula string used when covariates are present in meta.
 info for modeling. It should include "~ 0 + ..." to exclude the
 intercept from the model.}
-
-\item{survival}{Logical, indicating whether to enable survival analysis.
-If \code{TRUE}, then \code{meta.info} should contain \code{time} and
-\code{event} columns.}
-
-\item{paired}{Logical, indicating whether the data represent paired samples.
-'Default is \code{FALSE}.}
-
-\item{n.ROTS}{Logical. If \code{TRUE}, all parameters related to
-\code{LimROTS} will be ignored, and the original
-\code{ROTS} analysis will run. This must be \code{TRUE} when
-\code{survival} or \code{paired} is set to \code{TRUE}.}
 
 \item{seed.cl}{An integer specifying the seed for randomization;
 if not provided, the default is 1234.}
