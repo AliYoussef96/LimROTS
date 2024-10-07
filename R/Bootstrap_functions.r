@@ -101,7 +101,7 @@ bootstrapSamples.limRots <- function(B, meta.info, group.name) {
                 samples <- bootstrapS(
                     B = B,
                     meta.info = meta.info,
-                    group.name = group.name,
+                    group.name = group.name
                 )
                 return(samples)
             }
