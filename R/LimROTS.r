@@ -176,8 +176,8 @@ LimROTS <- function(x,
         group2_data <- data[, groups == 2]
         if (log) {
             logfc <-
-                rowMeans(group1_data, na.rm = TRUE) - rowMeans(group2_data,
-                                                               na.rm = TRUE)
+                rowMeans(group1_data, na.rm = TRUE) -
+                rowMeans(group2_data, na.rm = TRUE)
         }
     } else {
         logfc <- rep(NA, nrow(data))
@@ -246,7 +246,7 @@ LimROTS <- function(x,
         .combine = "c",
         .packages = c("utils", "stringr", "stats", "limma"),
         .export = c( "testStatistic_with_covariates",
-             "testStatistic_with_covariates_permutating")
+                    "testStatistic_with_covariates_permutating")
     ) %dorng% {
         samples.R <- split(samples[i, ], groups)
         # Initialize placeholders for results
