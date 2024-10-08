@@ -30,6 +30,7 @@
 #' group only specified in \code{group.name}. If FALSE, the entire
 #' \code{meta.info} will be permuted (recommended to be set to FALSE).
 #' @param samples bootstrapped samples matrix
+#' @param groups groups information from `meta.info`
 #'
 #'
 #' @return A list containing: \code{D, S, pD, pS} for bootstrapped data and
@@ -62,6 +63,7 @@ Boot_parallel <- function(cluster, seed.cl , samples, data,
                                                 "a1", "a2", "trend", "robust" ,
                                                 "permutating.group"),
                         envir = environment())
+    i <- NULL
     results_list <- foreach(
         i = seq_len(nrow(samples)),
         .combine = "c", .packages = c("utils", "stringr", "stats", "limma"),

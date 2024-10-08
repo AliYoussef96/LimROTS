@@ -40,6 +40,8 @@ intercept from the model.}
 \item{group.name}{A string specifying the column in \code{meta.info} that
 represents the groups or conditions for comparison.}
 
+\item{groups}{groups information from \code{meta.info}}
+
 \item{meta.info}{A data frame containing sample-level metadata, where each
 row corresponds to a sample. It should include the grouping variable
 specified in \code{group.name}. If \code{x} is a \code{SummarizedExperiment}
