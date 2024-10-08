@@ -206,89 +206,18 @@ LimROTS <- function(x,
         max = 100,
         style = 3
     )
-
-    if (is.null(cluster)) {
-        cluster <- makeCluster(2)
-        registerDoParallel(cluster)
-        message("No cluster found; only two cores will be used!")
-    } else {
-        registerDoParallel(cluster)
+    if (progress) {
+        setTxtProgressBar(pb, 50)
     }
 
-    clusterSetRNGStream(cluster, iseed = seed.cl)
-    clusterExport(
-        cluster,
-        varlist = c(
-            "pb",
-            "samples",
-            "pSamples",
-            "D",
-            "data",
-            "S",
-            "pD",
-            "pS",
-            "formula.str",
-            "group.name",
-            "groups",
-            "meta.info",
-            "a1",
-            "a2",
-            "trend",
-            "robust"
-        ),
-        envir = environment()
-    )
-
-    if (progress) {setTxtProgressBar(pb, 50)}
-
-    results_list <- foreach(
-        i = seq_len(nrow(samples)),
-        .combine = "c",
-        .packages = c("utils", "stringr", "stats", "limma"),
-        .export = c( "testStatistic_with_covariates",
-                    "testStatistic_with_covariates_permutating")
-    ) %dorng% {
-        samples.R <- split(samples[i, ], groups)
-        # Initialize placeholders for results
-        d_result <- s_result <- pd_result <- ps_result <- NULL
-        # Compute D and S if conditions are met
-        if (is.null(a1) | is.null(a2)) {
-            fit <- testStatistic_with_covariates(
-                x = lapply(samples.R, function(x)
-                    data[, x]),
-                group.name = group.name,
-                meta.info = meta.info,
-                formula.str = formula.str,
-                trend =
-                    trend,
-                robust = robust
-            )
-        }
-            d_result <- fit$d
-            s_result <- fit$s
-            df1 <- data.frame(d_result = d_result, s_result = s_result)
-
-        # Compute pD and pS
-    pFit <- testStatistic_with_covariates_permutating(
-        x = lapply(split(seq_len(length(
-            groups
-        )), groups), function(x)
-            data[, x]),
-        group.name = group.name,
-        meta.info = meta.info,
-        formula.str = formula.str,
-        trend = trend,
-        robust = robust,
-        permutating.group = permutating.group)
-
-        pd_result <- pFit$d
-        ps_result <- pFit$s
-        df2 <- data.frame(pd_result = pd_result, ps_result = ps_result)
-        # Return results for this iteration as a data frame
-        list(ds = df1, pdps = df2)
-    }
-
-    stopCluster(cluster)
+    results_list <- Boot_parallel(cluster = cluster, seed.cl = seed.cl,
+                                  samples = samples, pSamples = pSamples,
+                                  D = D , data = data, S = S, pD = pD, pS = pS,
+                                  formula.str = formula.str,
+                                  group.name = group.name, groups = groups,
+                                  meta.info = meta.info, a1 = a1, a2 = a2,
+                                  trend = trend, robust = robust ,
+                                  permutating.group = permutating.group)
 
     if (progress) {setTxtProgressBar(pb, 80)}
 
