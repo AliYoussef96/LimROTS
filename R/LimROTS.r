@@ -193,7 +193,6 @@ LimROTS <- function(x,
         pSamples <- NULL
     } else {
         samples <- bootstrapS(2 * B, meta.info, group.name)
-        pSamples <- NULL
     }
 
     D <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
@@ -211,9 +210,8 @@ LimROTS <- function(x,
     }
 
     results_list <- Boot_parallel(cluster = cluster, seed.cl = seed.cl,
-                                  samples = samples, pSamples = pSamples,
-                                  D = D , data = data, S = S, pD = pD, pS = pS,
-                                  formula.str = formula.str,
+                                  samples = samples,
+                                  D = D , data = data, formula.str = formula.str,
                                   group.name = group.name, groups = groups,
                                   meta.info = meta.info, a1 = a1, a2 = a2,
                                   trend = trend, robust = robust ,
@@ -246,7 +244,7 @@ LimROTS <- function(x,
 
     if (progress){close(pb)}
 
-    rm(samples, pSamples)
+    rm(samples)
     gc()
 
     if (is.null(a1) | is.null(a2)) {
