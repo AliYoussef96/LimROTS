@@ -7,6 +7,12 @@
 #' @param group.name Character. Column name in `meta.info` that defines the
 #' groups or conditions for comparison.
 #'
+#' @import SummarizedExperiment
+#'
+#' @return a list of `data` , `groups` and `meta.info`
+#'
+#'
+#'
 
 Check_SummarizedExperiment <- function(data.exp, meta.info, group.name) {
     if (inherits(data.exp, "SummarizedExperiment")) {
@@ -36,9 +42,11 @@ Check_SummarizedExperiment <- function(data.exp, meta.info, group.name) {
         }
         message(sprintf("Assay: %s will be used", assayNames(data.exp)[1]))
         data <- assay(data.exp, assayNames(data.exp)[1])
+        groups <- NULL
     } else {
         data <- data.exp
         groups <- meta.info[, group.name]
+        meta.info <- meta.info
     }
-    return(list(data = data, groups = groups))
+    return(list(data = data, groups = groups , meta.info = meta.info))
 }

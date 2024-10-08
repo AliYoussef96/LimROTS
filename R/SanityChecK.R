@@ -48,6 +48,8 @@ SanityChecK <- function(x, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
                                                 group.name= group.name)
     data <- Check_SExp$data
     groups <- Check_SExp$groups
+    meta.info <- Check_SExp$meta.info
+
     Check_meta_info(meta.info = meta.info, data = data , log = log)
 
     sort.df <- data.frame(

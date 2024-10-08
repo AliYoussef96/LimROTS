@@ -1,6 +1,8 @@
 #' Parallel processing handling function
 #'
-#'
+#' @param data A \code{SummarizedExperiment} object or a matrix where rows
+#' represent features (e.g., genes, proteins) and columns represent samples.
+#' The values should be log-transformed.
 #' @param a1 Optional numeric value used in the optimization process.
 #' If defined by the user, no optimization occurs.
 #' @param a2 Optional numeric value used in the optimization process.
@@ -33,6 +35,13 @@
 #' @return A list containing: \code{D, S, pD, pS} for bootstrapped data and
 #'  for permuted data.
 #'
+#' @importFrom parallel makeCluster clusterSetRNGStream clusterExport
+#' stopCluster
+#' @importFrom doParallel registerDoParallel
+#' @importFrom foreach foreach
+#' @import doRNG
+#'
+#'
 #'
 
 Boot_parallel <- function(cluster, seed.cl , samples, data,
@@ -48,7 +57,7 @@ Boot_parallel <- function(cluster, seed.cl , samples, data,
     }
     clusterSetRNGStream(cluster, iseed = seed.cl)
     clusterExport( cluster,
-            varlist = c("samples", "pSamples", "data",
+            varlist = c("samples", "data",
                             "formula.str", "group.name", "groups", "meta.info",
                                                 "a1", "a2", "trend", "robust" ,
                                                 "permutating.group"),

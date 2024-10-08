@@ -137,7 +137,7 @@ A synthetic, unbalanced fake batches assigned to the samples. The assignment
 follows the ratio of: 
 `Here is the rewritten version with a 50-character limit per line:
 
-```{r}
+```
 c(rep("M", 9), rep("F", 3), rep("M", 3), rep("F", 
 9), rep("M", 9), rep("F", 3), rep("M", 3), rep("F", 
 9))

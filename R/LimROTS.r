@@ -77,17 +77,10 @@
 #'     formula.str = formula.str, B = 10
 #' )
 #'
-#' @importFrom limma voom lmFit eBayes
 #' @importFrom stats model.matrix formula p.adjust
 #' @importFrom dplyr bind_cols
-#' @importFrom parallel makeCluster clusterSetRNGStream clusterExport
-#' stopCluster
-#' @importFrom doParallel registerDoParallel
-#' @importFrom foreach foreach
-#' @import doRNG
 #' @importFrom qvalue empPvals qvalue
 #' @import utils
-#' @import SummarizedExperiment
 #'
 #' @details The **LimROTS** approach initially uses the
 #' \link{limma} package to simulate the intensity data of proteins and
@@ -257,7 +250,7 @@ LimROTS <- function(x,
         R <- optimized.parameters$R
         Z <- optimized.parameters$Z
         ztable <- optimized.parameters$ztable
-        fit <- testStatistic_with_covariates_Fit(
+        fit <- Limma_fit(
             x = lapply(split(seq_len(length(
                 groups
             )), groups), function(x)

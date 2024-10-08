@@ -7,6 +7,7 @@
 #' @param log Logical, indicating whether the data is already log-transformed.
 #' Default is TRUE.
 #'
+#' @return Logical
 #'
 #'
 
@@ -28,4 +29,6 @@ Check_meta_info <- function(meta.info, data, log) {
                 If the data is log2 values then only set log to TRUE."
         )
     }
+
+    return(TRUE)
 }
