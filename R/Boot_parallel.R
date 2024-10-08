@@ -35,10 +35,10 @@
 #'
 #'
 
-Boot_parallel <- function(cluster, seed.cl , samples, D , data,
-                            S, pD, pS, formula.str, group.name, groups,
-                                meta.info, a1, a2, trend, robust,
-                                permutating.group) {
+Boot_parallel <- function(cluster, seed.cl , samples, data,
+                                        formula.str, group.name, groups,
+                                        meta.info, a1, a2, trend, robust,
+                                        permutating.group) {
     if (is.null(cluster)) {
         cluster <- makeCluster(2)
         registerDoParallel(cluster)
@@ -50,19 +50,19 @@ Boot_parallel <- function(cluster, seed.cl , samples, D , data,
     clusterExport( cluster,
             varlist = c("samples", "pSamples", "data",
                             "formula.str", "group.name", "groups", "meta.info",
-                            "a1", "a2", "trend", "robust" , "permutating.group"),
-        envir = environment()
-                    )
+                                                "a1", "a2", "trend", "robust" ,
+                                                "permutating.group"),
+                        envir = environment())
     results_list <- foreach(
         i = seq_len(nrow(samples)),
         .combine = "c", .packages = c("utils", "stringr", "stats", "limma"),
-        .export = c("testStatistic_with_covariates",
-                        "testStatistic_with_covariates_permutating")
+        .export = c("Limma_bootstrap",
+                        "Limma_permutating")
     ) %dorng% {
         samples.R <- split(samples[i, ], groups)
         d_result <- s_result <- pd_result <- ps_result <- NULL
         if (is.null(a1) | is.null(a2)) {
-            fit <- testStatistic_with_covariates(
+            fit <- Limma_bootstrap(
                 x = lapply(samples.R, function(x) data[, x]),
                     group.name = group.name, meta.info = meta.info,
                 formula.str = formula.str, trend = trend, robust = robust
@@ -71,7 +71,7 @@ Boot_parallel <- function(cluster, seed.cl , samples, D , data,
         d_result <- fit$d
         s_result <- fit$s
         df1 <- data.frame(d_result = d_result, s_result = s_result)
-        pFit <- testStatistic_with_covariates_permutating(
+        pFit <- Limma_permutating(
             x = lapply(split(seq_len( length(groups) ), groups), function(x)
                     data[, x]), group.name = group.name, meta.info = meta.info,
                         formula.str = formula.str, trend = trend,

@@ -48,7 +48,7 @@
 #' @import utils
 #'
 
-testStatistic_with_covariates_Fit <-
+Limma_fit  <-
     function(x, group.name, meta.info, formula.str, trend, robust){
     data <- x
     combined_data <- data.frame(

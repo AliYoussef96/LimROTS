@@ -182,7 +182,6 @@ LimROTS <- function(x,
     } else {
         logfc <- rep(NA, nrow(data))
     }
-
     if (verbose)
         message("Bootstrapping samples")
 
@@ -194,12 +193,10 @@ LimROTS <- function(x,
     } else {
         samples <- bootstrapS(2 * B, meta.info, group.name)
     }
-
     D <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
     S <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
     pD <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
     pS <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
-
     pb <- txtProgressBar(
         min = 0,
         max = 100,
@@ -208,14 +205,15 @@ LimROTS <- function(x,
     if (progress) {
         setTxtProgressBar(pb, 50)
     }
-
     results_list <- Boot_parallel(cluster = cluster, seed.cl = seed.cl,
-                                  samples = samples,
-                                  D = D , data = data, formula.str = formula.str,
-                                  group.name = group.name, groups = groups,
-                                  meta.info = meta.info, a1 = a1, a2 = a2,
-                                  trend = trend, robust = robust ,
-                                  permutating.group = permutating.group)
+                                        samples = samples, data = data,
+                                        formula.str = formula.str,
+                                        group.name = group.name,
+                                        groups = groups,
+                                        meta.info = meta.info,
+                                        a1 = a1, a2 = a2,
+                                        trend = trend, robust = robust ,
+                                        permutating.group = permutating.group)
 
     if (progress) {setTxtProgressBar(pb, 80)}
 
@@ -223,10 +221,8 @@ LimROTS <- function(x,
         names(results_list),
         seq(1, length(names(results_list)))
     )
-
     j <- 0
     q <- 0
-    # Populate matrices D, S, pD, pS from results
     for (i in seq_along(results_list)) {
         if (grepl("ds", names(results_list)[i], fixed = TRUE)) {
             j <- j + 1
@@ -238,12 +234,8 @@ LimROTS <- function(x,
             pS[, q] <- results_list[[names(results_list)[i]]]$ps_result
         }
     }
-
-
     if (progress) {setTxtProgressBar(pb, 100)}
-
     if (progress){close(pb)}
-
     rm(samples)
     gc()
 
@@ -257,17 +249,14 @@ LimROTS <- function(x,
         )
         K <- min(K, nrow(data))
         N <- N[N < K]
-
         optimized.parameters <-
             Optimizing(B, ssq, N, D, S, pD, pS, verbose, progress)
-
         a1 <- optimized.parameters$a1
         a2 <- optimized.parameters$a2
         k <- optimized.parameters$k
         R <- optimized.parameters$R
         Z <- optimized.parameters$Z
         ztable <- optimized.parameters$ztable
-
         fit <- testStatistic_with_covariates_Fit(
             x = lapply(split(seq_len(length(
                 groups
@@ -279,7 +268,6 @@ LimROTS <- function(x,
             trend = trend,
             robust = robust
         )
-
         d <- fit$d / (a1 + a2 * fit$s)
         pD <- pD / (a1 + a2 * pS)
         rm(pS)
@@ -293,18 +281,15 @@ LimROTS <- function(x,
         )
         if (verbose)
             message("Calculating FDR")
-
         FDR <- calculateFalseDiscoveryRate(d, pD, progress)
         corrected.logfc <- fit$corrected.logfc
         rm(pD)
         gc()
-
         q_values <- qvalue(p,
             pi0.method = "bootstrap",
             lambda = seq(0.01, 0.95, 0.01)
         )
         BH.pvalue <- p.adjust(p, method = "BH")
-
         LimROTS.output <- list(
             data = data,
             B = B,
@@ -324,7 +309,7 @@ LimROTS <- function(x,
             BH.pvalue = BH.pvalue
         )
     } else {
-        fit <- testStatistic_with_covariates_Fit(
+        fit <- Limma_fit(
             x = lapply(split(seq_len(length(
                 groups
             )), groups), function(x)
@@ -335,7 +320,6 @@ LimROTS <- function(x,
             trend = trend,
             robust = robust
         )
-
         d <- fit$d / (a1 + a2 * fit$s)
         pD <- pD / (a1 + a2 * pS)
         if (verbose)

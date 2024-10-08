@@ -47,7 +47,7 @@
 #' @importFrom limma makeContrasts lmFit contrasts.fit eBayes topTable
 #'
 
-testStatistic_with_covariates <-
+Limma_bootstrap <-
     function(x, group.name, meta.info, formula.str, trend,robust) {
         data <- x
         combined_data <- data.frame(

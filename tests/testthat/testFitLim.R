@@ -1,7 +1,7 @@
 library(testthat)
 library(limma)
 
-test_that("testStatistic_with_covariates_Fit returns expected output structure", {
+test_that("Limma_fit returns expected output structure", {
     # Sample data with 10 samples per group
     data <- list(
         group1 = t(matrix(rnorm(400), nrow = 10)), # 10 samples, 4 features
@@ -18,7 +18,7 @@ test_that("testStatistic_with_covariates_Fit returns expected output structure",
     formula.str <- "~ 0 + group"
 
     # Call the function
-    result <- testStatistic_with_covariates_Fit(data, "group", meta.info, formula.str, trend = FALSE, robust = FALSE)
+    result <- Limma_fit(data, "group", meta.info, formula.str, trend = FALSE, robust = FALSE)
 
     # Check output structure
     expect_type(result, "list")

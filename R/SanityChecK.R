@@ -39,76 +39,17 @@
 #' }
 #'
 #'
-
-
-
-SanityChecK <- function(x,
-                        B = 1000,
-                        K = NULL,
-                        a1 = NULL,
-                        a2 = NULL,
-                        meta.info = NULL,
-                        group.name = NULL,
-                        formula.str = NULL,
-                        verbose = TRUE,
-                        log = TRUE) {
+SanityChecK <- function(x, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
+                        meta.info = NULL, group.name = NULL,
+                        formula.str = NULL, verbose = TRUE, log = TRUE) {
     data.exp <- x
+    Check_SExp <- Check_SummarizedExperiment(data.exp = x ,
+                                                meta.info = meta.info,
+                                                group.name= group.name)
+    data <- Check_SExp$data
+    groups <- Check_SExp$groups
+    Check_meta_info(meta.info = meta.info, data = data , log = log)
 
-    if (log == FALSE) {
-        stop(
-            "log is FALSE, Unlogged values, Please log2 the data and
-                set log to TRUE.
-                If the data is log2 values then only set log to TRUE."
-        )
-    }
-
-    ### SummarizedExperiment
-    if (inherits(data.exp, "SummarizedExperiment")) {
-        message("Data is SummarizedExperiment object")
-
-        if (is.null(meta.info)) {
-            stop("meta.info should be a vector of colData names to be used")
-        } else {
-            meta.info.colnames <- meta.info
-            meta.info <- data.frame(
-                colData(data.exp)[, meta.info],
-                check.names = FALSE,
-                row.names = row.names(colData(data.exp))
-            )
-            if (length(meta.info) != length(meta.info.colnames)) {
-                stop("meta.info should be a vector of colData names to be used")
-            } else {
-                colnames(meta.info) <- meta.info.colnames
-            }
-        }
-        if (!group.name %in% colnames(meta.info)) {
-            stop(
-                "group.name should be a string specifying the column in
-                `meta.info` that represents the groups or conditions
-                for comparison."
-            )
-        }
-        message(sprintf("Assay: %s will be used", assayNames(data.exp)[1]))
-        data <- assay(data.exp, assayNames(data.exp)[1])
-    } else {
-        data <- data.exp
-        groups <- meta.info[, group.name]
-    }
-    ### meta.info
-    if (any(!row.names(meta.info) %in% colnames(data))) {
-        stop(
-            "rownames
-            for meta.info should match the data colnames (samples names)"
-        )
-    }
-    if (any(grepl(".", colnames(data), fixed = TRUE))) {
-        stop("Sample names should contains no '.', please remove it if any")
-    }
-
-    ### Sort
-    if (nrow(meta.info) != ncol(data)) {
-        stop("Number of samples in the data does not match the groups.")
-    }
     sort.df <- data.frame(
         sample.id = colnames(data),
         groups = meta.info[, group.name]
@@ -117,11 +58,10 @@ SanityChecK <- function(x,
     data <- data[, sort.df$sample.id]
     meta.info$temp <- row.names(meta.info)
     meta.info <- data.frame(meta.info[colnames(data), ],
-        check.rows = FALSE,
-        check.names = FALSE
+                            check.rows = FALSE,
+                            check.names = FALSE
     )
     meta.info$temp <- NULL
-    ### Groups
     if (inherits(meta.info[, group.name], "character")) {
         meta.info[, group.name] <- factor(meta.info[, group.name])
         groups.levels <- levels(groups)

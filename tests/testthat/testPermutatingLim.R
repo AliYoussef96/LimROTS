@@ -2,7 +2,7 @@ library(testthat)
 library(limma)
 library(stringr)
 
-test_that("testStatistic_with_covariates_Fit returns expected output structure", {
+test_that("Limma_permutating returns expected output structure", {
     # Sample data with 10 samples per group
     data <- list(
         group1 = t(matrix(rnorm(400), nrow = 10)), # 10 samples, 4 features
@@ -24,7 +24,7 @@ test_that("testStatistic_with_covariates_Fit returns expected output structure",
     formula.str <- "~ 0 + group"
 
     # Call the function
-    result <- testStatistic_with_covariates_permutating(data, "group", meta.info, formula.str, trend = FALSE, robust = FALSE, permutating.group = TRUE)
+    result <- Limma_permutating(data, "group", meta.info, formula.str, trend = FALSE, robust = FALSE, permutating.group = TRUE)
 
     # Check output structure
     expect_type(result, "list")
