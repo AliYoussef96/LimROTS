@@ -2,6 +2,7 @@
 title: "LimROTS: A Hybrid Method Integrating Empirical Bayes and 
         Reproducibility-Optimized Statistics for Robust Analysis of Proteomics 
         and Metabolomics Data"
+bibliography: references.bib
 output:
     BiocStyle::html_document:
         fig_height: 7
@@ -23,55 +24,136 @@ knitr::opts_chunk$set(
 )
 ```
 
+
 # How LimROTS Work?
 
-The **LimROTS** approach initially uses the limma package @limma to simulate the intensity data of proteins and metabolites. A linear model is subsequently fitted using the design matrix. Empirical Bayes variance shrinking is then implemented. To obtain the moderated t-statistics (or f-statistics), the adjusted standard error $(SEpost = √(s2.post) * unscaled SD)$ for each feature is computed, along with the regression coefficient for each feature (indicating the impact of variations in the experimental settings). Then ROTS approach @rots establishes optimality based on the largest overlap of top-ranked features within group-preserving bootstrap datasets (refer to @elo2008reproducibility for further information on the reproducibility-optimization), Finally based on the optimized parameters ${\alpha1}$ and ${\alpha2}$ this equation used to calculates the final statistics: $$t_{\alpha}(g) = \frac{\beta}{\alpha1 + 
-\alpha2 \times SEpost}$$\
+The **LimROTS** approach initially uses the limma package @limma to simulate the
+intensity data of proteins and metabolites. A linear model is subsequently
+fitted using the design matrix. Empirical Bayes variance shrinking is then
+implemented. To obtain the moderated t-statistics (or f-statistics), the
+adjusted standard error $(SEpost = √(s2.post) * unscaled SD)$ for each feature
+is computed, along with the regression coefficient for each feature (indicating
+the impact of variations in the experimental settings). Then, by adapting a
+reproducibility-optimized technique known as ROTS @rots to establish an
+optimality based on the largest overlap of top-ranked features within
+group-preserving bootstrap datasets (refer to @elo2008reproducibility for
+further information on the reproducibility-optimization). Finally based on the
+optimized parameters ${\alpha1}$ and ${\alpha2}$ this equation used to
+calculates the final statistics: \$\$t\_{\alpha(p)} = \\frac{\beta\*{(p)}}
+{\*\alpha1 + \alpha2 \times SEpost{
 
-where $t_{\alpha}(g)$ is the final statistics for each feature, ${\beta}$ is the coefficient, and SEpost is the the adjusted standard error. LimROTS generates p-values from permutation samples using the implementation available in qvalue package @qvalue, along with internal implementation of FDR adapted from ROTS package @rots. Additionally, the `qvalue` package is used to calculate q-values, were the proportion of true null p-values is set to the bootstrap method. We recommend using permutation-derived p-values and qvalues.
+where $t_{\alpha(p)}$ is the final statistics for each feature, ${\beta_{(p)}}$
+is the coefficient, and $SEpost_{(p)}$ is the adjusted standard error. LimROTS
+generates p-values from permutation samples using the implementation available
+in `qvalue` package @qvalue, along with internal implementation of FDR adapted
+from ROTS package @rots. Additionally, the `qvalue` package is used to calculate
+q-values, were the proportion of true null p-values is set to the bootstrap
+method. We recommend using permutation-derived p-values and qvalues.
 
 # Computational Power
 
-The number of samples, features, bootstrap iterations, and k, which denotes the top list size for ranking, are the four primary elements that determine the amount of computing resources required for the optimisation process in LimROTS. It is therefore advised to use at least 4 cores to execute LimROTS since it uses a parallel processing implementation for the bootstrapping step. The optimisation process is sequential and also time-consuming; it is planned to be modified in order to make the upcoming LimROTS version more palatable.
+The number of samples, features, bootstrap iterations, and `k`, which denotes
+the top list size for ranking, are the four primary elements that determine the
+amount of computing resources required for the optimisation process in LimROTS.
+It is therefore advised to use at least 4 cores to execute LimROTS since it uses
+a parallel processing implementation for the bootstrapping step. The
+optimisation process is sequential and maybe time-consuming, based on the `k`
+value; it is planned to be modified in order to make the upcoming LimROTS
+version faster.
 
 # Parameter Description for `LimROTS`
 
-`LimROTS` takes several parameters, and it should be called correctly to obtain the desired output.
+`LimROTS` takes several parameters, and it should be called correctly to obtain 
+the desired output.
 
--   **`x`**: The input data, which can be a `SummarizedExperiment` object or a matrix where rows represent features (e.g., genes, proteins) and columns represent samples. The values should be log-transformed.
--   **`B`**: An integer specifying the number of bootstrap iterations. Default is 1000.
--   **`K`**: An optional integer representing the top list size for ranking. If not specified, it is set to one-fourth of the number of features.
--   **`a1`**: Optional numeric value used in the optimization process. If defined by the user, no optimization occurs.
--   **`a2`**: Optional numeric value used in the optimization process. If defined by the user, no optimization occurs [0,1].
--   **`log`**: Logical, indicating whether the data is already log-transformed. Default is `TRUE`.
--   **`progress`**: Logical, indicating whether to display a progress bar during bootstrap sampling. Default is `FALSE`.
--   **`verbose`**: Logical, indicating whether to display messages during the function's execution. Default is `TRUE`.
--   **`meta.info`**: A data frame containing sample-level metadata, where each row corresponds to a sample. It should include the grouping variable specified in `group.name`. If `x` (data) is a `SummarizedExperiment` object, `meta.info` must be a vector of the metadata needed for the model to run and can be retrieved using `colData()`.
--   **`group.name`**: A string specifying the column in `meta.info` that represents the groups or conditions for comparison.
--   **`seed.cl`**: An integer specifying the seed for randomization; if not provided, the default is 1234.
--   **`cluster`**: A parallel cluster object for distributed computation, e.g., created by `makeCluster()`. Default is 2.
--   **`formula.str`**: A formula string used when covariates are present in `meta.info` for modeling. It should include "\~ 0 + ..." to exclude the intercept from the model.
--   **`robust`**: Logical, indicating whether robust fitting should be used. Default is `TRUE`.
--   **`trend`**: Logical, indicating whether to include trend fitting in the differential expression analysis. Default is `TRUE`.
--   **permutating.group**: Logical, If `TRUE`, the permutation for calculating the null distribution is performed by permuting the target group only specified in `group.name`. If `FALSE`, the entire `meta.info` will be permuted (recommended to be set to TRUE).
+-   **`x`**: The input data, which can be a `SummarizedExperiment` object or a 
+matrix where rows represent features (e.g., genes, proteins) and columns 
+represent samples. The values should be log-transformed.
+
+-   **`B`**: An integer representing the amount of bootstrap iterations. 
+Default 1000.
+
+-   **`K`**: An optional integer representing the top list size for ranking. 
+If not specified, it is set to one-fourth of the number of features.
+
+-   **`a1`**: Optional numeric value used in the optimization process. 
+If defined by the user, no optimization occurs.
+
+-   **`a2`**: Optional numeric value used in the optimization process. 
+If defined by the user, no optimization occurs [0,1].
+
+-   **`log`**: Logical, indicating whether the data is already log-transformed. 
+Default is `TRUE`.
+
+-   **`progress`**: Logical, indicating whether to display a progress bar 
+during bootstrap sampling. Default is `FALSE`.
+
+-   **`verbose`**: Logical, indicating whether to display messages during the 
+function's execution. Default is `TRUE`.
+
+-   **`meta.info`**: A data frame containing sample-level metadata, where each 
+row corresponds to a sample. It should include the grouping variable specified 
+in `group.name`. If `x` (data) is a `SummarizedExperiment` object, `meta.info` 
+must be a vector of the metadata needed for the model to run and can be 
+retrieved using `colData()`.
+
+-   **`group.name`**: A string specifying the column in `meta.info` that 
+represents the groups or conditions for comparison.
+
+-   **`seed.cl`**: An integer specifying the seed for randomization; if not 
+provided, the default is 1234.
+
+-   **`cluster`**: A parallel cluster object for distributed computation, 
+e.g., created by `makeCluster()`. Default is 2.
+
+-   **`formula.str`**: A formula string for modeling. It should include 
+"\~ 0 + ..." to exclude the intercept from the model. All the model parameters 
+must be present in `meta.info.`
+
+-   **`robust`**: Logical, indicating whether robust fitting should be used. 
+Default is `TRUE`.
+
+-   **`trend`**: Logical, indicating whether to include trend fitting in the 
+differential expression analysis. Default is `TRUE`.
+
+-   **`permutating.group`**: Logical, If `TRUE`, the permutation for 
+calculating the null distribution is performed by permuting the target 
+group only specified in `group.name` Preserving all the other sample 
+information. If `FALSE`, the entire sample information retrieved from 
+`meta.info` will be permuted (recommended to be set to TRUE).
 
 # UPS1 Case Study
 
-To demonstrate LimROTS' ability to detect true negatives complex scenarios, we are using a DIA proteomics data from a UPS1-spiked E. coli protein mixture @GOTTI2022107829 includes 48 samples: 24 samples analyzed with Spectronaut and another 24 analyzed with ScaffoldDIA software, with total of 1656 proteins. Eight different concentrations of UPS1 were used (0.1 to 50 fmol), grouped into two categories: low concentrations (0.1–2.5 fmol, labeled as Conc. 2, 12 Samples from each software) and high concentrations (5–50 fmol, labeled as Conc. 1, 12 Samples from each software).
+To demonstrate LimROTS' ability to detect true negatives complex scenarios, we
+are using a DIA proteomics data from a UPS1-spiked E. coli protein mixture
+@GOTTI2022107829 includes 48 samples: 24 samples analyzed with Spectronaut and
+another 24 analyzed with ScaffoldDIA software, with total of 1656 proteins.
+Eight different concentrations of UPS1 were used (0.1 to 50 fmol), grouped into
+two categories: low concentrations (0.1–2.5 fmol, labeled as Conc. 2, 12 Samples
+from each software) and high concentrations (5–50 fmol, labeled as Conc. 1, 12
+Samples from each software).
 
-A synthetic, unbalanced fake batches assigned to the samples. The assignment follows the ratio of:
+A synthetic, unbalanced fake batches assigned to the samples. The assignment
+follows the ratio of:
 
-```         
-c(rep("M", 9), rep("F", 3), rep("M", 3), rep("F", 
-9), rep("M", 9), rep("F", 3), rep("M", 3), rep("F", 
-9))
+```{r echo=FALSE}
+library(LimROTS)
+data("UPS1.Case4")
+table(UPS1.Case4$fake.batch, UPS1.Case4$Conc.)
 ```
 
-Additionally, 100 E. coli proteins were randomly selected, and an effect size of 10 was added to each. The expected outcome is that only the UPS1 human proteins will be identified as truly significant, while none of the remaining proteins should show significant differences between the concentration groups.\
-\
-This scenario resembles a real-world case where the experiment involves unbalanced batch assignments or, for instance, an uneven gender ratio among the samples.
+Additionally, 100 E. coli proteins were randomly selected, and an effect size of
+10 was added to each. The expected outcome is that only the UPS1 human proteins
+will be identified as truly significant, while none of the remaining proteins
+should show significant differences between the concentration groups.
 
-LimROTS can take a SummarizedExperiment object with all the metadata needed to run the model. In this example we importing UPS1.Case4 data available in LimROTS.
+This scenario resembles a real-world case where the experiment involves
+unbalanced batch assignments or, for instance, an uneven gender ratio among the
+samples.
+
+LimROTS can take a SummarizedExperiment object with all the metadata needed to
+run the model. In this example we importing UPS1.Case4 data available in
+LimROTS.
 
 The original source of the dataset can be found here @GOTTI2022107829
 
@@ -90,7 +172,9 @@ print(UPS1.Case4)
 
 ### Run LimROTS
 
-Although `seed.cl` internally control the seed randomization during the parallel bootstrapping process. It is advisable to establish a consistent seed prior to executing `LimROTS`
+Although `seed.cl` internally control the seed randomization during the parallel
+bootstrapping process. It is advisable to establish a consistent seed prior to
+executing `LimROTS`
 
 ```{r}
 set.seed(1234, kind = "default")
@@ -118,11 +202,17 @@ limrots.result <- LimROTS(
 )
 ```
 
-**NOTE:** "In this instance, we configure the number of bootstrap iterations (B) and the count of top-ranked features for reproducibility optimization (K) to 100 both, in order to minimize the example's run-time. For actual analyses, it is advisable to utilize a greater number of bootstraps (e.g., 1000). Also, for the number of cores to use we recommend to use at least 4 cores.
+**NOTE:** "In this instance, we configure the number of bootstrap iterations 
+(B) and the count of top-ranked features for reproducibility optimization (K) 
+to 100 both, in order to minimize the example's run-time. For actual analyses, 
+it is advisable to utilize a greater number of bootstraps (e.g., 1000). Also, 
+for the number of cores to use we recommend to use at least 4 cores.
 
 ### Volcano Plot with ggplot2
 
-Utilising a Volcano plot and mapping the human UPS1 proteins at q-values of 1%  and 5%, it is evident that LimROTS accurately identified the majority of  actual positive proteins while detecting a limited number of simulated E. coli  proteins.
+Utilising a Volcano plot and mapping the human UPS1 proteins at q-values of 1%
+and 5%, it is evident that LimROTS accurately identified the majority of actual
+positive proteins while detecting a limited number of simulated E.coli proteins.
 
 ```{r}
 # Create a data frame from the LimROTS results
@@ -148,13 +238,18 @@ ggplot(limrots.result.df, aes(
         color = "True Positive"
     ) +
     scale_color_manual(values = c("grey", "red")) +
-    geom_hline(yintercept = -log10(0.05), linetype = "dashed", color = "blue") +
+    geom_hline(yintercept = -log10(0.05), linetype = "dashed", color = "blue")+
     geom_hline(yintercept = -log10(0.01), linetype = "dashed", color = "black")
 ```
 
 ### Quality Control Plots
 
-LimROTS generates p-values from permutation samples, along with FDR. Additionally, the `qvalue` package is used to calculate q-values and Benjamini-Hochberg adjusted p-values based on the permutation-derived p-values. These can be used as Quality Control for the LimROTS results. We recommend using permutation-derived p-values and qvalues, though they should generally be very similar to the FDR and Benjamini-Hochberg adjusted p-values.
+LimROTS generates p-values from permutation samples, along with FDR.
+Additionally, the `qvalue` package is used to calculate q-values and
+Benjamini-Hochberg adjusted p-values based on the permutation-derived p-values.
+These can be used as Quality Control for the LimROTS results. We recommend using
+permutation-derived p-values and qvalues, though they should generally be very
+similar to the FDR and Benjamini-Hochberg adjusted p-values.
 
 ```{r results="hide" , message=FALSE, warning=FALSE}
 ## Quality Control Plots

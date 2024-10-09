@@ -53,3 +53,16 @@ rsconnect/
 inst/doc
 docs
 ..DS_Store
+
+
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+.DS_Store
+*.Rproj
+/doc/
+/Meta/
+docs/
+.DS_Store
+mia.BiocCheck/
