@@ -39,8 +39,8 @@ optimality based on the largest overlap of top-ranked features within
 group-preserving bootstrap datasets (refer to @elo2008reproducibility for
 further information on the reproducibility-optimization). Finally based on the
 optimized parameters ${\alpha1}$ and ${\alpha2}$ this equation used to
-calculates the final statistics: \$\$t\_{\alpha(p)} = \\frac{\beta\*{(p)}}
-{\*\alpha1 + \alpha2 \times SEpost{
+calculates the final statistics: $$t\_{\alpha(p)} = \frac{\beta_{(p)}}
+{\alpha1 + \alpha2 \times SEpost_{(p)}}$$
 
 where $t_{\alpha(p)}$ is the final statistics for each feature, ${\beta_{(p)}}$
 is the coefficient, and $SEpost_{(p)}$ is the adjusted standard error. LimROTS
