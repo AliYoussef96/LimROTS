@@ -80,13 +80,7 @@ differential expression analysis. Default is TRUE. see \link{eBayes}.}
 calculating the null distribution is performed by permuting the target group
 only specified in \code{group.name} Preserving all the other sample
 information. If \code{FALSE}, the entire sample information retrieved from
-\code{meta.info} will be permuted (recommended to be set to TRUE).
-
-Logical, If \code{TRUE}, the permutation for calculating the null distribution
-is performed by permuting the target group only specified in \code{group.name}
-Preserving all the other sample information. If \code{FALSE}, the entire sample
-information retrieved from \code{meta.info} will be permuted
-(recommended to be set to TRUE).}
+\code{meta.info} will be permuted (recommended to be set to TRUE).}
 }
 \value{
 An object of class \code{"list"} with the following elements:
@@ -100,7 +94,8 @@ An object of class \code{"list"} with the following elements:
 \item{a2}{Optimized parameter used in differential expression ranking.}
 \item{k}{Top list size used for ranking.}
 \item{corrected.logfc}{estimate of the log2-fold-change
-corresponding to the effect Corrected by the model see \link{topTable}.}
+corresponding to the effect corrected by the s model
+see \link{topTable}.}
 \item{q_values}{Estimated q-values using the \code{qvalue} package.}
 \item{BH.pvalue}{Benjamini-Hochberg adjusted p-values.}
 }
@@ -119,7 +114,7 @@ moderated t-statistics, the adjusted standard error
 \times unscaled SD} for each feature is computed, along with the regression
 coefficient for each feature (indicating the impact of variations in the
 experimental settings). Then, by adapting a reproducibility-optimized
-technique known as ROTS \link[ROTS]{ROTS} to establish an optimality
+technique known as \link[ROTS]{ROTS} to establish an optimality
 based on the largest overlap of top-ranked features within group-preserving
 bootstrap datasets, Finally based on the optimized parameters
 \eqn{\alpha1} and

@@ -3,17 +3,21 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 
-vignettes/*.html
-vignettes/*.pdf
-vignettes/*.R
-vignettes/*.qmd
-
-
 CONTRIBUTING.md
 
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
-^.*\.bib$
 ^\.github$
-^vignettes/(?!reference.bib$).*\.bib$
+
+
+^.*\.Rproj$
+^\.Rproj\.user$
+.github
+^\.github$
+pkgdown
+.RData
+.pdf
+inst/extras
+^doc$
+^Meta$
