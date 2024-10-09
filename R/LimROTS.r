@@ -55,7 +55,7 @@
 #' \item{a2}{Optimized parameter used in differential expression ranking.}
 #' \item{k}{Top list size used for ranking.}
 #' \item{corrected.logfc}{estimate of the log2-fold-change
-#' corresponding to the effect corrected by the fitted model
+#' corresponding to the effect corrected by the s model
 #' see \link{topTable}.}
 #' \item{q_values}{Estimated q-values using the `qvalue` package.}
 #' \item{BH.pvalue}{Benjamini-Hochberg adjusted p-values.}
