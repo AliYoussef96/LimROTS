@@ -9,7 +9,7 @@
 #' @param x A \code{SummarizedExperiment} object or a matrix where rows
 #' represent features (e.g., genes, proteins) and columns represent samples.
 #' The values should be log-transformed.
-#' @param B An integer specifying the number of bootstrap iterations.
+#' @param B An integer representing the amount of bootstrap iterations.
 #' Default is 1000.
 #' @param K An optional integer representing the top list size for ranking.
 #' If not specified, it is set to one-fourth of the number of features.
@@ -95,9 +95,9 @@
 #' bootstrap datasets, Finally based on the optimized parameters
 #' \eqn{\alpha1} and
 #' \eqn{\alpha2} this equation used to calculates the final statistics:
-#' \deqn{t_{\alpha}(g) = \frac{\beta}{\alpha1 + \alpha2 \times SEpost}}where
-#'          \eqn{t_{\alpha}(g)} is the final statistics for each feature,
-#'          \eqn{\beta} is the coefficient, and SEpost is the the adjusted
+#' \deqn{t_{\alpha_{(p)}} = \frac{\beta_{(p)}}{\alpha1 + \alpha2 \times SEpost_{(p)}}}where
+#'          \eqn{t_{\alpha_{(p)}}} is the final statistics for each feature,
+#'          \eqn{\beta_{(p)}} is the coefficient, and \eqn{SEpost_{(p)}} is the the adjusted
 #'          standard error. LimROTS generates p-values from permutation samples
 #'          using the implementation available in
 #'          \link{qvalue} package, along with internal implementation of FDR
