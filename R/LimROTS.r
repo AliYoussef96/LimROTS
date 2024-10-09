@@ -3,7 +3,8 @@
 #' Metabolomics Data
 #'
 #' @param x A \code{SummarizedExperiment} object or a matrix where rows
-#' represent features (e.g., proteins, metabolites) and columns represent samples.
+#' represent features (e.g., proteins, metabolites) and columns
+#' represent samples.
 #' The values should be log-transformed.
 #' @param B An integer representing the amount of bootstrap iterations.
 #' Default is 1000.
@@ -83,7 +84,8 @@
 #' @import utils
 #'
 #' @details The **LimROTS** approach initially uses
-#' \link{limma} package functionality to simulate the intensity data of proteins and
+#' \link{limma} package functionality to simulate the intensity data of
+#' proteins and
 #' metabolites. A linear model is subsequently fitted using the design matrix.
 #' Empirical Bayes variance shrinking is then implemented. To obtain the
 #' moderated t-statistics, the adjusted standard error
@@ -96,9 +98,12 @@
 #' bootstrap datasets, Finally based on the optimized parameters
 #' \eqn{\alpha1} and
 #' \eqn{\alpha2} this equation used to calculates the final statistics:
-#' \deqn{t_{\alpha_{(p)}} = \frac{\beta_{(p)}}{\alpha1 + \alpha2 \times SEpost_{(p)}}}where
+#'
+#' \deqn{t_{\alpha_{(p)}} = \frac{\beta_{(p)}}
+#'          {\alpha1 + \alpha2 \times SEpost_{(p)}}}where
 #'          \eqn{t_{\alpha_{(p)}}} is the final statistics for each feature,
-#'          \eqn{\beta_{(p)}} is the coefficient, and \eqn{SEpost_{(p)}} is the the adjusted
+#'          \eqn{\beta_{(p)}} is the coefficient, and \eqn{SEpost_{(p)}}
+#'          is the the adjusted
 #'          standard error. LimROTS generates p-values from permutation samples
 #'          using the implementation available in
 #'          \link{qvalue} package, along with internal implementation of FDR
