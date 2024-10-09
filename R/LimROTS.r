@@ -1,13 +1,9 @@
-#' LimROTS: A Hybrid Method Integrating Empirical Bayes and
+#' `LimROTS`: A Hybrid Method Integrating Empirical Bayes and
 #' Reproducibility-Optimized Statistics for Robust Analysis of Proteomics and
 #' Metabolomics Data
 #'
-#' The `LimROTS` function employs a reproducibility-optimized test statistic
-#' utilising the limma and ROTS methodology to simulate complex experimental
-#' designs.
-#'
 #' @param x A \code{SummarizedExperiment} object or a matrix where rows
-#' represent features (e.g., genes, proteins) and columns represent samples.
+#' represent features (e.g., proteins, metabolites) and columns represent samples.
 #' The values should be log-transformed.
 #' @param B An integer representing the amount of bootstrap iterations.
 #' Default is 1000.
@@ -19,8 +15,8 @@
 #' If defined by the user, no optimization occurs.
 #' @param log Logical, indicating whether the data is already log-transformed.
 #' Default is \code{TRUE}.
-#' @param progress Logical, indicating whether to display a progress bar during
-#' bootstrap sampling. Default is \code{FALSE}.
+#' @param progress Logical, indicating whether to display a progress bar the
+#' function's execution. Default is \code{FALSE}.
 #' @param verbose Logical, indicating whether to display messages during the
 #' function's execution. Default is \code{TRUE}.
 #' @param meta.info A data frame containing sample-level metadata, where each
@@ -34,29 +30,33 @@
 #' if not provided, the default is 1234.
 #' @param cluster A parallel cluster object for distributed computation,
 #' e.g., created by \code{makeCluster()}. Default is 2.
-#' @param formula.str A formula string used when covariates are present in meta.
-#' info for modeling. It should include "~ 0 + ..." to exclude the
-#' intercept from the model.
+#' @param formula.str A formula string for modeling.
+#' It should include "~ 0 + ..." to exclude the intercept from the model.
+#' All the model parameters must be present in \code{meta.info}.
 #' @param robust indicating whether robust fitting should be used.
 #' Default is TRUE, see \link{eBayes}.
 #' @param trend indicating whether to include trend fitting in the
 #' differential expression analysis. Default is TRUE. see \link{eBayes}.
 #' @param permutating.group Logical, If \code{TRUE}, the permutation for
-#' calculating the null distribution is performed by permuting the target
-#' group only specified in \code{group.name}. If FALSE, the entire
-#' \code{meta.info} will be permuted (recommended to be set to FALSE).
+#' calculating the null distribution is performed by permuting the target group
+#' only specified in \code{group.name} Preserving all the other sample
+#' information. If `FALSE`, the entire sample information retrieved from
+#' \code{meta.info} will be permuted (recommended to be set to TRUE).
 #'
-#' @return A list of class `"list"` with the following elements:
+#'
+#' @return An object of class `"list"` with the following elements:
 #' \item{data}{The original data matrix.}
 #' \item{B}{The number of bootstrap samples used.}
-#' \item{d}{Differential expression statistics for each feature.}
+#' \item{d}{The optimized statistics for each feature.}
 #' \item{logfc}{Log-fold change values between groups.}
 #' \item{pvalue}{P-values computed based on the permutation samples.}
 #' \item{FDR}{False discovery rate estimates.}
 #' \item{a1}{Optimized parameter used in differential expression ranking.}
 #' \item{a2}{Optimized parameter used in differential expression ranking.}
 #' \item{k}{Top list size used for ranking.}
-#' \item{corrected.logfc}{Corrected log-fold change values, if applicable.}
+#' \item{corrected.logfc}{estimate of the log2-fold-change
+#' corresponding to the effect corrected by the fitted model
+#' see \link{topTable}.}
 #' \item{q_values}{Estimated q-values using the `qvalue` package.}
 #' \item{BH.pvalue}{Benjamini-Hochberg adjusted p-values.}
 #'
@@ -82,15 +82,16 @@
 #' @importFrom qvalue empPvals qvalue
 #' @import utils
 #'
-#' @details The **LimROTS** approach initially uses the
-#' \link{limma} package to simulate the intensity data of proteins and
+#' @details The **LimROTS** approach initially uses
+#' \link{limma} package functionality to simulate the intensity data of proteins and
 #' metabolites. A linear model is subsequently fitted using the design matrix.
 #' Empirical Bayes variance shrinking is then implemented. To obtain the
 #' moderated t-statistics, the adjusted standard error
 #' \eqn{SEpost = √(s2.post)
 #' \times unscaled SD} for each feature is computed, along with the regression
 #' coefficient for each feature (indicating the impact of variations in the
-#' experimental settings). The \link[ROTS]{ROTS} approach establishes optimality
+#' experimental settings). Then, by adapting a reproducibility-optimized
+#' technique known as \link[ROTS]{ROTS} to establish an optimality
 #' based on the largest overlap of top-ranked features within group-preserving
 #' bootstrap datasets, Finally based on the optimized parameters
 #' \eqn{\alpha1} and

@@ -25,8 +25,8 @@ knitr::opts_chunk$set(
 
 # How LimROTS Work?
 
-The **LimROTS** approach initially uses the limma package @limma to simulate the intensity data of proteins and metabolites. A linear model is subsequently fitted using the design matrix. Empirical Bayes variance shrinking is then implemented. To obtain the moderated t-statistics (or f-statistics), the adjusted standard error $(SEpost = √(s2.post) * unscaled SD)$ for each feature is computed, along with the regression coefficient for each feature (indicating the impact of variations in the experimental settings). Then adapting ROTS approach @rots to establish an optimality based on the largest overlap of top-ranked features within group-preserving bootstrap datasets (refer to @elo2008reproducibility for further information on the reproducibility-optimization). Finally based on the optimized parameters ${\alpha1}$ and ${\alpha2}$ this equation used to calculates the final statistics: $$t_{\alpha(p)} = \frac{\beta_{(p)}}{\alpha1 + 
-\alpha2 \times SEpost_{(p)}}$$\
+The **LimROTS** approach initially uses the limma package @limma to simulate the intensity data of proteins and metabolites. A linear model is subsequently fitted using the design matrix. Empirical Bayes variance shrinking is then implemented. To obtain the moderated t-statistics (or f-statistics), the adjusted standard error $(SEpost = √(s2.post) * unscaled SD)$ for each feature is computed, along with the regression coefficient for each feature (indicating the impact of variations in the experimental settings). Then, by adapting a reproducibility-optimized technique known as ROTS @rots to establish an optimality based on the largest overlap of top-ranked features within group-preserving bootstrap datasets (refer to @elo2008reproducibility for further information on the reproducibility-optimization). Finally based on the optimized parameters ${\alpha1}$ and ${\alpha2}$ this equation used to calculates the final statistics: $$t_{\alpha(p)} = \frac{\beta_{(p)}}{\alpha1 + 
+\alpha2 \times SEpost_{
 
 where $t_{\alpha(p)}$ is the final statistics for each feature, ${\beta_{(p)}}$ is the coefficient, and $SEpost_{(p)}$ is the adjusted standard error. LimROTS generates p-values from permutation samples using the implementation available in `qvalue` package @qvalue, along with internal implementation of FDR adapted from ROTS package @rots. Additionally, the `qvalue` package is used to calculate q-values, were the proportion of true null p-values is set to the bootstrap method. We recommend using permutation-derived p-values and qvalues.
 
@@ -50,10 +50,10 @@ The number of samples, features, bootstrap iterations, and `k`, which denotes th
 -   **`group.name`**: A string specifying the column in `meta.info` that represents the groups or conditions for comparison.
 -   **`seed.cl`**: An integer specifying the seed for randomization; if not provided, the default is 1234.
 -   **`cluster`**: A parallel cluster object for distributed computation, e.g., created by `makeCluster()`. Default is 2.
--   **`formula.str`**: A formula string used when covariates are present in `meta.info` for modeling. It should include "\~ 0 + ..." to exclude the intercept from the model.
+-   **`formula.str`**: A formula string for modeling. It should include "\~ 0 + ..." to exclude the intercept from the model. All the model parameters must be present in `meta.info.`
 -   **`robust`**: Logical, indicating whether robust fitting should be used. Default is `TRUE`.
 -   **`trend`**: Logical, indicating whether to include trend fitting in the differential expression analysis. Default is `TRUE`.
--   **`permutating.group`**: Logical, If `TRUE`, the permutation for calculating the null distribution is performed by permuting the target group only specified in `group.name`. If `FALSE`, the entire `meta.info` will be permuted (recommended to be set to TRUE).
+-   **`permutating.group`**: Logical, If `TRUE`, the permutation for calculating the null distribution is performed by permuting the target group only specified in `group.name` Preserving all the other sample information. If `FALSE`, the entire sample information retrieved from `meta.info` will be permuted (recommended to be set to TRUE).
 
 # UPS1 Case Study
 
@@ -61,10 +61,9 @@ To demonstrate LimROTS' ability to detect true negatives complex scenarios, we a
 
 A synthetic, unbalanced fake batches assigned to the samples. The assignment follows the ratio of:
 
-```         
-c(rep("M", 9), rep("F", 3), rep("M", 3), rep("F", 
-9), rep("M", 9), rep("F", 3), rep("M", 3), rep("F", 
-9))
+```{r echo=FALSE}
+data("UPS1.Case4")
+table(UPS1.Case4$fake.batch, UPS1.Case4$Conc.)
 ```
 
 Additionally, 100 E. coli proteins were randomly selected, and an effect size of 10 was added to each. The expected outcome is that only the UPS1 human proteins will be identified as truly significant, while none of the remaining proteins should show significant differences between the concentration groups.\
