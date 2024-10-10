@@ -4,10 +4,12 @@ name: rworkflows
     branches:
     - master
     - main
+    - devel
   pull_request:
     branches:
     - master
     - main
+    - devel
 jobs:
   rworkflows:
     permissions: write-all
