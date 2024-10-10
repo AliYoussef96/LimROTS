@@ -257,6 +257,7 @@ to establish a consistent seed prior to executing
 <span><span class="co">#&gt; Bootstrapping samples</span></span>
 <span><span class="co">#&gt;   |                                                                              |                                                                      |   0%</span></span>
 <span><span class="co">#&gt; Optimizing parameters</span></span>
+<span><span class="co">#&gt; Warning: One very small variance detected, has been offset away from zero</span></span>
 <span><span class="co">#&gt; Calculating p-values</span></span>
 <span><span class="co">#&gt; Calculating FDR</span></span></code></pre></div>
 <p><strong>NOTE:</strong> “In this instance, we configure the number of
@@ -343,12 +344,10 @@ Benjamini-Hochberg adjusted p-values.</p>
 <span><span class="co">#&gt; LAPACK: /usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblasp-r0.3.20.so;  LAPACK version 3.10.0</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; locale:</span></span>
-<span><span class="co">#&gt;  [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              </span></span>
-<span><span class="co">#&gt;  [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    </span></span>
-<span><span class="co">#&gt;  [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   </span></span>
-<span><span class="co">#&gt;  [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 </span></span>
-<span><span class="co">#&gt;  [9] LC_ADDRESS=C               LC_TELEPHONE=C            </span></span>
-<span><span class="co">#&gt; [11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       </span></span>
+<span><span class="co">#&gt;  [1] LC_CTYPE=C.UTF-8       LC_NUMERIC=C           LC_TIME=C.UTF-8       </span></span>
+<span><span class="co">#&gt;  [4] LC_COLLATE=C.UTF-8     LC_MONETARY=C.UTF-8    LC_MESSAGES=C.UTF-8   </span></span>
+<span><span class="co">#&gt;  [7] LC_PAPER=C.UTF-8       LC_NAME=C              LC_ADDRESS=C          </span></span>
+<span><span class="co">#&gt; [10] LC_TELEPHONE=C         LC_MEASUREMENT=C.UTF-8 LC_IDENTIFICATION=C   </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; time zone: UTC</span></span>
 <span><span class="co">#&gt; tzcode source: system (glibc)</span></span>
@@ -358,52 +357,51 @@ Benjamini-Hochberg adjusted p-values.</p>
 <span><span class="co">#&gt; [8] base     </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; other attached packages:</span></span>
-<span><span class="co">#&gt; [1] ggplot2_3.5.1    LimROTS_0.99.0   BiocStyle_2.33.1</span></span>
+<span><span class="co">#&gt; [1] ggplot2_3.5.1    LimROTS_0.99.0   BiocStyle_2.32.1</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
-<span><span class="co">#&gt;  [1] SummarizedExperiment_1.35.3 gtable_0.3.5               </span></span>
+<span><span class="co">#&gt;  [1] SummarizedExperiment_1.34.0 gtable_0.3.5               </span></span>
 <span><span class="co">#&gt;  [3] xfun_0.48                   bslib_0.8.0                </span></span>
-<span><span class="co">#&gt;  [5] htmlwidgets_1.6.4           Biobase_2.65.1             </span></span>
-<span><span class="co">#&gt;  [7] lattice_0.22-6              vctrs_0.6.5                </span></span>
-<span><span class="co">#&gt;  [9] tools_4.4.1                 generics_0.1.3             </span></span>
-<span><span class="co">#&gt; [11] stats4_4.4.1                tibble_3.2.1               </span></span>
-<span><span class="co">#&gt; [13] fansi_1.0.6                 highr_0.11                 </span></span>
-<span><span class="co">#&gt; [15] pkgconfig_2.0.3             Matrix_1.7-0               </span></span>
-<span><span class="co">#&gt; [17] desc_1.4.3                  S4Vectors_0.43.2           </span></span>
-<span><span class="co">#&gt; [19] rngtools_1.5.2              lifecycle_1.0.4            </span></span>
-<span><span class="co">#&gt; [21] GenomeInfoDbData_1.2.13     farver_2.1.2               </span></span>
-<span><span class="co">#&gt; [23] stringr_1.5.1               compiler_4.4.1             </span></span>
-<span><span class="co">#&gt; [25] textshaping_0.4.0           munsell_0.5.1              </span></span>
-<span><span class="co">#&gt; [27] statmod_1.5.0               codetools_0.2-20           </span></span>
-<span><span class="co">#&gt; [29] GenomeInfoDb_1.41.2         htmltools_0.5.8.1          </span></span>
-<span><span class="co">#&gt; [31] sass_0.4.9                  yaml_2.3.10                </span></span>
-<span><span class="co">#&gt; [33] pkgdown_2.1.1               pillar_1.9.0               </span></span>
-<span><span class="co">#&gt; [35] crayon_1.5.3                jquerylib_0.1.4            </span></span>
-<span><span class="co">#&gt; [37] limma_3.61.12               DelayedArray_0.31.14       </span></span>
-<span><span class="co">#&gt; [39] cachem_1.1.0                doRNG_1.8.6                </span></span>
-<span><span class="co">#&gt; [41] iterators_1.0.14            abind_1.4-8                </span></span>
-<span><span class="co">#&gt; [43] foreach_1.5.2               tidyselect_1.2.1           </span></span>
-<span><span class="co">#&gt; [45] digest_0.6.37               stringi_1.8.4              </span></span>
-<span><span class="co">#&gt; [47] reshape2_1.4.4              dplyr_1.1.4                </span></span>
-<span><span class="co">#&gt; [49] bookdown_0.40               labeling_0.4.3             </span></span>
-<span><span class="co">#&gt; [51] splines_4.4.1               fastmap_1.2.0              </span></span>
-<span><span class="co">#&gt; [53] grid_4.4.1                  colorspace_2.1-1           </span></span>
-<span><span class="co">#&gt; [55] cli_3.6.3                   SparseArray_1.5.42         </span></span>
-<span><span class="co">#&gt; [57] magrittr_2.0.3              S4Arrays_1.5.10            </span></span>
-<span><span class="co">#&gt; [59] utf8_1.2.4                  withr_3.0.1                </span></span>
-<span><span class="co">#&gt; [61] scales_1.3.0                UCSC.utils_1.1.0           </span></span>
-<span><span class="co">#&gt; [63] rmarkdown_2.28              XVector_0.45.0             </span></span>
-<span><span class="co">#&gt; [65] httr_1.4.7                  matrixStats_1.4.1          </span></span>
-<span><span class="co">#&gt; [67] qvalue_2.37.0               ragg_1.3.3                 </span></span>
-<span><span class="co">#&gt; [69] evaluate_1.0.0              knitr_1.48                 </span></span>
-<span><span class="co">#&gt; [71] GenomicRanges_1.57.1        IRanges_2.39.2             </span></span>
-<span><span class="co">#&gt; [73] doParallel_1.0.17           rlang_1.1.4                </span></span>
-<span><span class="co">#&gt; [75] Rcpp_1.0.13                 glue_1.8.0                 </span></span>
-<span><span class="co">#&gt; [77] BiocManager_1.30.25         BiocGenerics_0.51.3        </span></span>
-<span><span class="co">#&gt; [79] jsonlite_1.8.9              plyr_1.8.9                 </span></span>
-<span><span class="co">#&gt; [81] R6_2.5.1                    MatrixGenerics_1.17.0      </span></span>
-<span><span class="co">#&gt; [83] systemfonts_1.1.0           fs_1.6.4                   </span></span>
-<span><span class="co">#&gt; [85] zlibbioc_1.51.1</span></span></code></pre></div>
+<span><span class="co">#&gt;  [5] Biobase_2.64.0              lattice_0.22-6             </span></span>
+<span><span class="co">#&gt;  [7] vctrs_0.6.5                 tools_4.4.1                </span></span>
+<span><span class="co">#&gt;  [9] generics_0.1.3              stats4_4.4.1               </span></span>
+<span><span class="co">#&gt; [11] tibble_3.2.1                fansi_1.0.6                </span></span>
+<span><span class="co">#&gt; [13] highr_0.11                  pkgconfig_2.0.3            </span></span>
+<span><span class="co">#&gt; [15] Matrix_1.7-0                desc_1.4.3                 </span></span>
+<span><span class="co">#&gt; [17] S4Vectors_0.42.1            rngtools_1.5.2             </span></span>
+<span><span class="co">#&gt; [19] lifecycle_1.0.4             GenomeInfoDbData_1.2.12    </span></span>
+<span><span class="co">#&gt; [21] farver_2.1.2                stringr_1.5.1              </span></span>
+<span><span class="co">#&gt; [23] compiler_4.4.1              textshaping_0.4.0          </span></span>
+<span><span class="co">#&gt; [25] munsell_0.5.1               statmod_1.5.0              </span></span>
+<span><span class="co">#&gt; [27] codetools_0.2-20            GenomeInfoDb_1.40.1        </span></span>
+<span><span class="co">#&gt; [29] htmltools_0.5.8.1           sass_0.4.9                 </span></span>
+<span><span class="co">#&gt; [31] yaml_2.3.10                 pkgdown_2.1.1              </span></span>
+<span><span class="co">#&gt; [33] pillar_1.9.0                crayon_1.5.3               </span></span>
+<span><span class="co">#&gt; [35] jquerylib_0.1.4             DelayedArray_0.30.1        </span></span>
+<span><span class="co">#&gt; [37] cachem_1.1.0                limma_3.60.6               </span></span>
+<span><span class="co">#&gt; [39] doRNG_1.8.6                 iterators_1.0.14           </span></span>
+<span><span class="co">#&gt; [41] abind_1.4-8                 foreach_1.5.2              </span></span>
+<span><span class="co">#&gt; [43] tidyselect_1.2.1            digest_0.6.37              </span></span>
+<span><span class="co">#&gt; [45] stringi_1.8.4               reshape2_1.4.4             </span></span>
+<span><span class="co">#&gt; [47] dplyr_1.1.4                 bookdown_0.40              </span></span>
+<span><span class="co">#&gt; [49] labeling_0.4.3              splines_4.4.1              </span></span>
+<span><span class="co">#&gt; [51] fastmap_1.2.0               grid_4.4.1                 </span></span>
+<span><span class="co">#&gt; [53] colorspace_2.1-1            cli_3.6.3                  </span></span>
+<span><span class="co">#&gt; [55] SparseArray_1.4.8           magrittr_2.0.3             </span></span>
+<span><span class="co">#&gt; [57] S4Arrays_1.4.1              utf8_1.2.4                 </span></span>
+<span><span class="co">#&gt; [59] withr_3.0.1                 scales_1.3.0               </span></span>
+<span><span class="co">#&gt; [61] UCSC.utils_1.0.0            rmarkdown_2.28             </span></span>
+<span><span class="co">#&gt; [63] XVector_0.44.0              httr_1.4.7                 </span></span>
+<span><span class="co">#&gt; [65] matrixStats_1.4.1           qvalue_2.36.0              </span></span>
+<span><span class="co">#&gt; [67] ragg_1.3.3                  evaluate_1.0.0             </span></span>
+<span><span class="co">#&gt; [69] knitr_1.48                  GenomicRanges_1.56.1       </span></span>
+<span><span class="co">#&gt; [71] IRanges_2.38.1              doParallel_1.0.17          </span></span>
+<span><span class="co">#&gt; [73] rlang_1.1.4                 Rcpp_1.0.13                </span></span>
+<span><span class="co">#&gt; [75] glue_1.8.0                  BiocManager_1.30.25        </span></span>
+<span><span class="co">#&gt; [77] BiocGenerics_0.50.0         jsonlite_1.8.9             </span></span>
+<span><span class="co">#&gt; [79] plyr_1.8.9                  R6_2.5.1                   </span></span>
+<span><span class="co">#&gt; [81] MatrixGenerics_1.16.0       systemfonts_1.1.0          </span></span>
+<span><span class="co">#&gt; [83] fs_1.6.4                    zlibbioc_1.50.0</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
