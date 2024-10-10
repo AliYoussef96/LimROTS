@@ -4,7 +4,7 @@ Title: A Hybrid Method Integrating Empirical Bayes and
         and Metabolomics Data
 Version: 0.99.0
 Authors@R: 
-    c(person(given = "Ali", family = "Youssef", role = c("aut", "cre"), 
+    c(person(given = "Ali", family = "Mostafa Anwar", role = c("aut", "cre"), 
     email= "aliali.mostafa99@gmail.com",
     comment = c(ORCID = "0000-0002-5201-387X")),
     person(given = "Leo", family = "Lahti", role = c("aut" ,"ths"),
