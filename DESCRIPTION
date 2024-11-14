@@ -2,7 +2,7 @@ Package: LimROTS
 Title: A Hybrid Method Integrating Empirical Bayes and 
         Reproducibility-Optimized Statistics for Robust Analysis of Proteomics 
         and Metabolomics Data
-Version: 0.99.2
+Version: 0.99.3
 Authors@R: 
     c(person(given = "Ali", family = "Mostafa Anwar", role = c("aut", "cre"), 
     email= "aliali.mostafa99@gmail.com",
