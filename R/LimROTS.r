@@ -89,8 +89,8 @@
 #' metabolites. A linear model is subsequently fitted using the design matrix.
 #' Empirical Bayes variance shrinking is then implemented. To obtain the
 #' moderated t-statistics, the adjusted standard error
-#' \eqn{SEpost = √(s2.post)
-#' \times unscaled SD} for each feature is computed, along with the regression
+#' \eqn{SE_{post} = \sqrt{s^2_{\text{post}} } \times unscaled SD} 
+#' for each feature is computed, along with the regression
 #' coefficient for each feature (indicating the impact of variations in the
 #' experimental settings). Then, by adapting a reproducibility-optimized
 #' technique known as \link[ROTS]{ROTS} to establish an optimality
