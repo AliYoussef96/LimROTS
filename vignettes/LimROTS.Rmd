@@ -31,7 +31,7 @@ The **LimROTS** approach initially uses the limma package @limma to simulate the
 intensity data of proteins and metabolites. A linear model is subsequently
 fitted using the design matrix. Empirical Bayes variance shrinking is then
 implemented. To obtain the moderated t-statistics (or f-statistics), the
-adjusted standard error $(SEpost = √(s2.post) * unscaled SD)$ for each feature
+adjusted standard error $(SEpost = \sqrt{(s2.post)} * unscaled SD)$ for each feature
 is computed, along with the regression coefficient for each feature (indicating
 the impact of variations in the experimental settings). Then, by adapting a
 reproducibility-optimized technique known as ROTS @rots to establish an
