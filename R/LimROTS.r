@@ -81,7 +81,7 @@
 #' @importFrom stats model.matrix formula p.adjust
 #' @importFrom dplyr bind_cols
 #' @importFrom qvalue empPvals qvalue
-#' @import utils
+#' @importFrom utils txtProgressBar setTxtProgressBar
 #'
 #' @details The **LimROTS** approach initially uses
 #' \link{limma} package functionality to simulate the intensity data of
@@ -185,7 +185,7 @@ LimROTS <- function(x,
         message("Bootstrapping samples")
 
     if (ncol(meta.info) > 1) {
-        samples <- bootstrapSamples.limRots(B = 2 * B,
+        samples <- bootstrapSamples_limRots(B = 2 * B,
                                             meta.info = meta.info,
                                             group.name = group.name)
         pSamples <- NULL

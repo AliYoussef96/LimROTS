@@ -40,7 +40,7 @@
 #' stopCluster
 #' @importFrom doParallel registerDoParallel
 #' @importFrom foreach foreach
-#' @import doRNG
+#' @importFrom doRNG %dorng%
 #'
 #'
 #'

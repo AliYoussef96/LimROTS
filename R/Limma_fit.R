@@ -45,7 +45,6 @@
 #' @importFrom stats model.matrix formula
 #' @importFrom dplyr bind_cols
 #' @importFrom limma makeContrasts lmFit contrasts.fit eBayes topTable
-#' @import utils
 #'
 
 Limma_fit  <-

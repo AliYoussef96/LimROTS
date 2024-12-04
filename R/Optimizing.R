@@ -62,7 +62,7 @@ Optimizing <- function(B, ssq, N, D, S, pD, pS, verbose, progress) {
     i <- length(ssq) + 1
     overlaps <- matrix(0, nrow = B, ncol = length(N))
     overlaps.P <- matrix(0, nrow = B, ncol = length(N))
-    cResults <- calOverlaps.slr(D, pD, nrow(D), as.integer(N), length(N),
+    cResults <- calOverlaps_slr(D, pD, nrow(D), as.integer(N), length(N),
                                 as.integer(B), overlaps, overlaps.P )
     reprotable[i, ] <- colMeans(cResults[["overlaps"]])
     reprotable.P[i, ] <- colMeans(cResults[["overlaps_P"]])

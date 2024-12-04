@@ -71,19 +71,9 @@ bootstrapS <- function(B, meta.info, group.name) {
 #' entry is a resampled row name from the metadata, stratified by group and
 #' additional factors.
 #'
-#' @export
-#' @examples
-#' # Example usage:
-#' set.seed(123)
-#' meta.info <- data.frame(
-#'     group = rep(c(1, 2), each = 5),
-#'     batch = rep(c("A", "B"), 5),
-#'     row.names = paste0("Sample", 1:10)
-#' )
-#' meta.info$batch <- as.factor(meta.info$batch)
-#' bootstrapSamples.limRots(B = 10, meta.info = meta.info, group.name = "group")
-#'
-bootstrapSamples.limRots <- function(B, meta.info, group.name) {
+#' 
+#' 
+bootstrapSamples_limRots <- function(B, meta.info, group.name) {
     labels <- as.numeric(meta.info[, group.name])
     samples <- matrix(nrow = B, ncol = length(labels))
     for (i in seq_len(B)) {
