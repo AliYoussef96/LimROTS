@@ -75,7 +75,7 @@
 #' formula.str <- "~ 0 + group"
 #' result <- LimROTS(data,
 #'     meta.info = meta.info, group.name = "group",
-#'     formula.str = formula.str, B = 10
+#'     formula.str = formula.str, B = 10, seed.cl = 1234
 #' )
 #'
 #' @importFrom stats model.matrix formula p.adjust
