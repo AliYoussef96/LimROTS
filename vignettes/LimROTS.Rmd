@@ -28,7 +28,21 @@ knitr::opts_chunk$set(
 
 ```
 
-# How LimROTS Work?
+# Introduction
+
+Differential expression analysis is a prevalent method utilised in the 
+examination of diverse biological data. The reproducibility-optimized 
+test statistic (ROTS) @rots has been developed with a modified t-statistic 
+based on the data's intrinsic characteristics and ranks features according 
+to their statistical significance for differential expression between two or 
+more groups, as shown by the f-statistic. Focusing on proteomics and 
+metabolomics, the current ROTS implementation cannot account for technical 
+or biological covariates such as MS batches or gender differences among the 
+samples. Consequently, we developed LimROTS, which employs a 
+reproducibility-optimized test statistic utilizing the limma empirical 
+bayes @limma methodology to simulate more complex experimental designs.
+
+# Algorithm overview
 
 The **LimROTS** approach initially uses the limma package @limma to
 simulate the intensity data of proteins and metabolites. A linear model
@@ -68,70 +82,16 @@ sequential and maybe time-consuming, based on the `k` value; it is
 planned to be modified in order to make the upcoming LimROTS version
 faster.
 
-# Parameter Description for `LimROTS`
+# Parameter Description for LimROTS Main Function
 
-`LimROTS` takes several parameters, and it should be called correctly to
-obtain the desired output.
+The `LimROTS()` function serves as the primary interface function for
+end users, providing core functionality for the analysis implemented
+within the `LimROTS` package.
 
--   **`x`**: The input data, which can be a `SummarizedExperiment`
-    object or a matrix where rows represent features (e.g., genes,
-    proteins) and columns represent samples. The values should be
-    log-transformed.
-
--   **`B`**: An integer representing the amount of bootstrap iterations.
-    Default 1000.
-
--   **`K`**: An optional integer representing the top list size for
-    ranking. If not specified, it is set to one-fourth of the number of
-    features.
-
--   **`a1`**: Optional numeric value used in the optimization process.
-    If defined by the user, no optimization occurs.
-
--   **`a2`**: Optional numeric value used in the optimization process.
-    If defined by the user, no optimization occurs [0,1].
-
--   **`log`**: Logical, indicating whether the data is already
-    log-transformed. Default is `TRUE`.
-
--   **`progress`**: Logical, indicating whether to display a progress
-    bar during bootstrap sampling. Default is `FALSE`.
-
--   **`verbose`**: Logical, indicating whether to display messages
-    during the function's execution. Default is `TRUE`.
-
--   **`meta.info`**: A data frame containing sample-level metadata,
-    where each row corresponds to a sample. It should include the
-    grouping variable specified in `group.name`. If `x` (data) is a
-    `SummarizedExperiment` object, `meta.info` must be a vector of the
-    metadata needed for the model to run and can be retrieved using
-    `colData()`.
-
--   **`group.name`**: A string specifying the column in `meta.info` that
-    represents the groups or conditions for comparison.
-
--   **`seed.cl`**: An integer specifying the seed for randomization; if
-    not provided, the default is 1234.
-
--   **`cluster`**: A parallel cluster object for distributed
-    computation, e.g., created by `makeCluster()`. Default is 2.
-
--   **`formula.str`**: A formula string for modeling. It should include
-    "\~ 0 + ..." to exclude the intercept from the model. All the model
-    parameters must be present in `meta.info.`
-
--   **`robust`**: Logical, indicating whether robust fitting should be
-    used. Default is `TRUE`.
-
--   **`trend`**: Logical, indicating whether to include trend fitting in
-    the differential expression analysis. Default is `TRUE`.
-
--   **`permutating.group`**: Logical, If `TRUE`, the permutation for
-    calculating the null distribution is performed by permuting the
-    target group only specified in `group.name` Preserving all the other
-    sample information. If `FALSE`, the entire sample information
-    retrieved from `meta.info` will be permuted (recommended to be set
-    to TRUE).
+`LimROTS()`takes several parameters, and it should be called correctly
+to obtain the desired output. For a detailed description of all
+parameters and their usage, refer to the function's help page by typing
+`?LimROTS` in the R console.
 
 # UPS1 Case Study
 
@@ -155,7 +115,8 @@ table(UPS1.Case4$fake.batch, UPS1.Case4$Conc.)
 ```
 
 Additionally, 100 E. coli proteins were randomly selected, and an effect
-size of 10 was added to each. The expected outcome is that only the UPS1
+size of 10 was added to each in only one of the fake batches. The expected 
+outcome is that only the UPS1
 human proteins will be identified as truly significant, while none of
 the remaining proteins should show significant differences between the
 concentration groups.
@@ -175,6 +136,7 @@ The original source of the dataset can be found here @GOTTI2022107829
 library(LimROTS)
 library(parallel)
 library(ggplot2)
+library(SummarizedExperiment)
 ```
 
 ```{r}
@@ -285,6 +247,138 @@ hist(limrots.result$q_values,
 # Summary of q-values
 summary(limrots.result$q_values)
 ```
+
+# Comparison of LimROTS, limma, and ROTS
+
+Before comparing the LimROTS, limma, and ROTS packages, we will need to install the necessary packages: limma, ROTS and caret (for the use in the comparison).
+
+```{r, eval=FALSE}
+if (!require("BiocManager", quietly = TRUE)){
+    install.packages("BiocManager")
+}
+if (!require(limma)) {
+  BiocManager::install("limma")
+}
+if (!require(ROTS)) {
+  BiocManager::install("ROTS")
+}
+if(!require(caret)){
+  install.packages(caret)
+}
+
+```
+
+## Run ROTS
+
+```{r}
+library(ROTS)
+groups <- as.numeric(UPS1.Case4@colData@listData[["Conc."]])
+rots.result <- ROTS(data = assay(UPS1.Case4), groups = groups, B = B, 
+                    K = K, seed = 1234)
+rots.result <- data.frame(proteins = row.names(rots.result$data),
+                          logFC = rots.result$logfc, FDR = rots.result$FDR)
+```
+
+## Run limma
+
+```{r}
+library(limma)
+
+design.matrix <- model.matrix(formula(formula.str), data = data.frame(UPS1.Case4@colData@listData))
+fit <- lmFit(assay(UPS1.Case4), design.matrix)
+cont_matrix <- makeContrasts("Conc.1-Conc.2",  levels=design.matrix)
+fit2 <- contrasts.fit(fit, cont_matrix)
+fit.ebayes <- eBayes(fit2, trend=TRUE, robust=TRUE)
+limma.result <- topTable(fit.ebayes, coef="Conc.1-Conc.2" , number = "Inf")
+```
+
+## Generating a Confusion Matrix for Comparison
+
+```{r}
+library(caret, quietly = T, warn.conflicts = T)
+
+
+TP <- UPS1.Case4@elementMetadata@listData[["GeneID"]]
+TP <- TP[grepl("HUMAN" , TP)]
+
+
+predictions_limrots <- limrots.result$q_values$qvalues < 0.05
+predictions_limrots <- factor(predictions_limrots, levels = c(TRUE, FALSE))
+true_labels_limrots <- ifelse(row.names(limrots.result$data) %in% TP , 
+                              TRUE, FALSE)
+true_labels_limrots <- factor(true_labels_limrots, levels = c(TRUE, FALSE))
+conf_matrix_limrots <- confusionMatrix(predictions_limrots, 
+                                       true_labels_limrots)
+
+predictions_rots <- rots.result$FDR < 0.05
+predictions_rots <- factor(predictions_rots, levels = c(TRUE, FALSE))
+true_labels_rots <- ifelse(rots.result$protein %in% TP , TRUE, FALSE)
+true_labels_rots <- factor(true_labels_rots, levels = c(TRUE, FALSE))
+conf_matrix_rots <- confusionMatrix(predictions_rots, true_labels_rots)
+
+
+predictions_limma <- limma.result$adj.P.Val < 0.05
+predictions_limma <- factor(predictions_limma, levels = c(TRUE, FALSE))
+true_labels_limma <- ifelse(row.names(limma.result) %in% TP , TRUE, FALSE)
+true_labels_limma <- factor(true_labels_limma, levels = c(TRUE, FALSE))
+conf_matrix_limma <- confusionMatrix(predictions_limma, true_labels_limma)
+
+```
+
+## Summarizing the Comparison Results
+
+```{r}
+library(ggplot2)
+
+
+extract_metrics <- function(conf_matrix, method_name) {
+  metrics <- c(
+    conf_matrix$byClass["Sensitivity"],
+    conf_matrix$byClass["Specificity"],
+    conf_matrix$byClass["Pos Pred Value"],
+    conf_matrix$byClass["Neg Pred Value"],
+    conf_matrix$byClass["F1"],
+    conf_matrix$byClass["Balanced Accuracy"]
+  )
+  
+  data.frame(Method = method_name, Metric = names(metrics), 
+             Value = as.numeric(metrics))
+}
+
+metrics_limrots <- extract_metrics(conf_matrix_limrots, "limROTS")
+metrics_rots <- extract_metrics(conf_matrix_rots, "ROTS")
+metrics_limma <- extract_metrics(conf_matrix_limma, "limma")
+
+
+all_metrics <- do.call(rbind,list(metrics_limrots, metrics_rots, 
+                                  metrics_limma))
+
+
+ggplot(all_metrics, aes(x = Metric, y = Value, fill = Method)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  theme_bw() +
+  labs(title = "Comparison of Performance Case Study0",
+       y = "Value", x = "Metric") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+    theme(
+    plot.title = element_text(face = "bold", color = "black"),
+    axis.title = element_text(face = "bold", color = "black"),
+    axis.text = element_text(face = "bold", color = "black"),
+    axis.ticks = element_line(color = "black")
+  )
+
+
+```
+
+From the results above, LimROTS performs best on all metrics, achieving 
+perfect scores of 1 in F1 score, balanced accuracy, positive and negative 
+predictive values, sensitivity, and specificity. Despite having a great 
+balanced accuracy (0.91), ROTS has lower sensitivity and positive predictive 
+value scores, which may indicate that it handles class differences differently. 
+Despite having lower positive predictive value and F1 score values than the 
+other approaches, Limma performs well with a balanced accuracy of 0.83. 
+In general, LimROTS seems to offer the most reliable outcomes in terms of all 
+criteria.
 
 ```{r}
 sessionInfo()

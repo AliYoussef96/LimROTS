@@ -62,5 +62,6 @@ Suggests:
     testthat (>= 3.0.0),
     knitr,
     rmarkdown,
+    caret,
     ROTS
 Config/testthat/edition: 3
