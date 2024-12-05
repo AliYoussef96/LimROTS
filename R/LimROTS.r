@@ -45,7 +45,7 @@
 #' \code{meta.info} will be permuted (recommended to be set to TRUE).
 #'
 #'
-#' @return An object of class `"list"` with the following elements:
+#' @return An object of class `"SummarizedExperiment"` with the following elements:
 #' \item{data}{The original data matrix.}
 #' \item{B}{The number of bootstrap samples used.}
 #' \item{d}{The optimized statistics for each feature.}
@@ -289,7 +289,44 @@ LimROTS <- function(x,
             lambda = seq(0.01, 0.95, 0.01)
         )
         BH.pvalue <- p.adjust(p, method = "BH")
-        LimROTS.output <- list(
+        
+        if(inherits(x , "SummarizedExperiment")){
+          
+          new_rowData <- DataFrame(
+            d = d,
+            logfc = logfc,
+            pvalue = p,
+            qvalue = q_values$qvalues,
+            FDR = FDR,
+            R = R,
+            corrected.logfc = corrected.logfc,
+            BH.pvalue = BH.pvalue,
+            row.names = row.names(data)
+          )
+          
+          new_rowData <- new_rowData[match(rownames(x), rownames(new_rowData) ), ]
+          if(!identical(rownames(new_rowData) , rownames(x))){
+            stop("Can not add the LimROTS results to the SummarizedExperiment")
+          }
+          correct.order <- rownames(x)
+          rowData(x) <- cbind(rowData(x) , new_rowData)
+          if(!identical(correct.order , rownames(x))){
+            stop("Can not add the LimROTS results to the SummarizedExperiment")
+          }
+          metadata(x) <- c(metadata(x), list(
+            a1 = a1,
+            a2 = a2,
+            k = k,
+            Z = Z,
+            ztable = ztable,
+            q_values = q_values
+          ))
+          
+          LimROTS.output <- x
+          remove(x)
+          gc()
+        }else{
+          LimROTS.output <- list(
             data = data,
             B = B,
             d = d,
@@ -306,7 +343,9 @@ LimROTS <- function(x,
             corrected.logfc = corrected.logfc,
             q_values = q_values,
             BH.pvalue = BH.pvalue
-        )
+          )
+          }
+        
     } else {
         fit <- Limma_fit(
             x = lapply(split(seq_len(length(
@@ -337,6 +376,41 @@ LimROTS <- function(x,
             lambda = seq(0.01, 0.95, 0.01)
         )
         BH.pvalue <- p.adjust(p, method = "BH")
+        
+        if(inherits(x , "SummarizedExperiment")){
+          new_rowData <- DataFrame(
+            d = d,
+            logfc = logfc,
+            pvalue = p,
+            qvalue = q_values$qvalues,
+            FDR = FDR,
+            R = NULL,
+            corrected.logfc = corrected.logfc,
+            BH.pvalue = BH.pvalue,
+            row.names = row.names(data)
+          )
+          
+          new_rowData <- new_rowData[match(rownames(x), rownames(new_rowData) ), ]
+          if(!identical(rownames(new_rowData) , rownames(x))){
+            stop("Can not add the LimROTS results to the SummarizedExperiment")
+          }
+          correct.order <- rownames(x)
+          rowData(x) <- cbind(rowData(x) , new_rowData)
+          if(!identical(correct.order , rownames(x))){
+            stop("Can not add the LimROTS results to the SummarizedExperiment")
+          }
+          metadata(x) <- c(metadata(x), list(
+            a1 = a1,
+            a2 = a2,
+            k = NULL,
+            Z = NULL,
+            ztable = ztable,
+            q_values = q_values
+          ))
+          LimROTS.output <- x
+          remove(x)
+          gc()
+        }else{
         LimROTS.output <- list(
             data = data,
             B = B,
@@ -354,6 +428,7 @@ LimROTS <- function(x,
             q_values = q_values,
             BH.pvalue = BH.pvalue
         )
+        }
     }
     return(LimROTS.output)
 }

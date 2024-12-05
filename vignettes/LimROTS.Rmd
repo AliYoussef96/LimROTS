@@ -131,7 +131,7 @@ available in LimROTS.
 
 The original source of the dataset can be found here @GOTTI2022107829
 
-```{r}
+```{r, message=FALSE}
 # Load necessary packages
 library(LimROTS)
 library(parallel)
@@ -167,7 +167,7 @@ group.name <- "Conc."
 formula.str <- "~ 0 + Conc. + tool + fake.batch" # Formula for group comparison
 
 # Run LimROTS analysis with trend and robust settings enabled
-limrots.result <- LimROTS(
+UPS1.Case4 <- LimROTS(
     x = UPS1.Case4,
     B = B, K = K, meta.info = meta.info,
     cluster = cluster, group.name = group.name,
@@ -184,6 +184,8 @@ run-time. For actual analyses, it is advisable to utilize a greater
 number of bootstraps (e.g., 1000). Also, for the number of cores to use
 we recommend to use at least 4 cores.
 
+The results from the `LimROTS` function will be appended to the `SummarizedExperiment` object used, in this case, `UPS1.Case4`.
+
 ### Volcano Plot with ggplot2
 
 Utilising a Volcano plot and mapping the human UPS1 proteins at q-values
@@ -194,9 +196,9 @@ simulated E.coli proteins.
 ```{r}
 # Create a data frame from the LimROTS results
 limrots.result.df <- data.frame(
-    proteins = row.names(limrots.result$data),
-    LimROTS.FC = limrots.result$corrected.logf,
-    q.value = limrots.result$q_values$qvalues
+    proteins = rownames(UPS1.Case4),
+    LimROTS.FC = UPS1.Case4@elementMetadata$corrected.logfc,
+    q.value = UPS1.Case4@elementMetadata$qvalur
 )
 # Mark proteins as true positives (HUMAN UPS1 proteins)
 limrots.result.df$TP <- ifelse(grepl("HUMAN", limrots.result.df$proteins),
@@ -233,19 +235,19 @@ adjusted p-values.
 ## Quality Control Plots
 
 # Plot of q-values
-plot(limrots.result$q_values,
+plot(UPS1.Case4@metadata$q_values,
     main = "Q-values", xlab = "Index",
     ylab = "Q-value"
 )
 
 # Histogram of q-values
-hist(limrots.result$q_values,
+hist(UPS1.Case4@metadata$q_values,
     main = "Q-value Distribution",
     xlab = "Q-value", col = "lightgreen", border = "white"
 )
 
 # Summary of q-values
-summary(limrots.result$q_values)
+summary(UPS1.Case4@metadata$q_values)
 ```
 
 # Comparison of LimROTS, limma, and ROTS
@@ -302,9 +304,9 @@ TP <- UPS1.Case4@elementMetadata@listData[["GeneID"]]
 TP <- TP[grepl("HUMAN" , TP)]
 
 
-predictions_limrots <- limrots.result$q_values$qvalues < 0.05
+predictions_limrots <- UPS1.Case4@elementMetadata$qvalur < 0.05
 predictions_limrots <- factor(predictions_limrots, levels = c(TRUE, FALSE))
-true_labels_limrots <- ifelse(row.names(limrots.result$data) %in% TP , 
+true_labels_limrots <- ifelse(rownames(UPS1.Case4) %in% TP , 
                               TRUE, FALSE)
 true_labels_limrots <- factor(true_labels_limrots, levels = c(TRUE, FALSE))
 conf_matrix_limrots <- confusionMatrix(predictions_limrots, 
@@ -371,7 +373,7 @@ ggplot(all_metrics, aes(x = Metric, y = Value, fill = Method)) +
 ```
 
 From the results above, LimROTS performs best on all metrics, achieving 
-perfect scores of 1 in F1 score, balanced accuracy, positive and negative 
+perfect scores of almost 1 (or 1) in F1 score, balanced accuracy, positive and negative 
 predictive values, sensitivity, and specificity. Despite having a great 
 balanced accuracy (0.91), ROTS has lower sensitivity and positive predictive 
 value scores, which may indicate that it handles class differences differently. 
