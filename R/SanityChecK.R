@@ -6,7 +6,7 @@
 #'
 #' @param x A matrix-like object or a `SummarizedExperiment` containing the
 #' data to be analyzed.
-#' @param B Integer. Number of bootstrap samples or resampling iterations.
+#' @param niter Integer. Number of bootstrap samples or resampling iterations.
 #' Default is 1000.
 #' @param K Integer. Top list size. If NULL, it will be set to a quarter of
 #' the number of rows in the data matrix. Default is NULL.
@@ -39,9 +39,10 @@
 #' }
 #'
 #'
-SanityChecK <- function(x, B = 1000, K = NULL, a1 = NULL, a2 = NULL,
-                        meta.info = NULL, group.name = NULL,
-                        formula.str = NULL, verbose = TRUE, log = TRUE) {
+SanityChecK <- function(x, niter = 1000, K = NULL,
+                        meta.info , group.name,
+                        formula.str, verbose = TRUE, log = TRUE) {
+  
     data.exp <- x
     Check_SExp <- Check_SummarizedExperiment(data.exp = x ,
                                                 meta.info = meta.info,

@@ -6,7 +6,7 @@
 #' represent features (e.g., proteins, metabolites) and columns
 #' represent samples.
 #' The values should be log-transformed.
-#' @param B An integer representing the amount of bootstrap iterations.
+#' @param niter An integer representing the amount of bootstrap iterations.
 #' Default is 1000.
 #' @param K An optional integer representing the top list size for ranking.
 #' If not specified, it is set to one-fourth of the number of features.
@@ -47,7 +47,7 @@
 #'
 #' @return An object of class `"SummarizedExperiment"` with the following elements:
 #' \item{data}{The original data matrix.}
-#' \item{B}{The number of bootstrap samples used.}
+#' \item{niter}{The number of bootstrap samples used.}
 #' \item{d}{The optimized statistics for each feature.}
 #' \item{logfc}{Log-fold change values between groups.}
 #' \item{pvalue}{P-values computed based on the permutation samples.}
@@ -75,7 +75,7 @@
 #' formula.str <- "~ 0 + group"
 #' result <- LimROTS(data,
 #'     meta.info = meta.info, group.name = "group",
-#'     formula.str = formula.str, B = 10, seed.cl = 1234
+#'     formula.str = formula.str, niter = 10, seed.cl = 1234
 #' )
 #'
 #' @importFrom stats model.matrix formula p.adjust
@@ -135,17 +135,17 @@
 
 
 LimROTS <- function(x,
-                    B = 1000,
+                    niter = 1000,
                     K = NULL,
                     a1 = NULL,
                     a2 = NULL,
                     log = TRUE,
                     progress = FALSE,
                     verbose = TRUE,
-                    meta.info = NULL,
+                    meta.info,
                     cluster = NULL,
-                    group.name = NULL,
-                    formula.str = NULL,
+                    group.name,
+                    formula.str,
                     seed.cl = 1234,
                     robust = TRUE,
                     trend = TRUE,
@@ -153,13 +153,10 @@ LimROTS <- function(x,
 
     SanityChecK.list <- SanityChecK(
         x,
-        B = B,
+        niter = niter,
         K = K,
-        a1 = a1,
-        a2 = a2,
         meta.info = meta.info,
         group.name = group.name,
-        formula.str = formula.str,
         verbose = verbose,
         log = log
     )
@@ -182,15 +179,15 @@ LimROTS <- function(x,
         logfc <- rep(NA, nrow(data))
     }
     if (verbose)
-        message("Bootstrapping samples")
+        message("Initiating limma on bootstrapped samples")
 
     if (ncol(meta.info) > 1) {
-        samples <- bootstrapSamples_limRots(B = 2 * B,
+        samples <- bootstrapSamples_limRots(niter = 2 * niter,
                                             meta.info = meta.info,
                                             group.name = group.name)
         pSamples <- NULL
     } else {
-        samples <- bootstrapS(2 * B, meta.info, group.name)
+        samples <- bootstrapS(2 * niter, meta.info, group.name)
     }
     D <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
     S <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
@@ -249,7 +246,7 @@ LimROTS <- function(x,
         K <- min(K, nrow(data))
         N <- N[N < K]
         optimized.parameters <-
-            Optimizing(B, ssq, N, D, S, pD, pS, verbose, progress)
+            Optimizing(niter, ssq, N, D, S, pD, pS, verbose, progress)
         a1 <- optimized.parameters$a1
         a2 <- optimized.parameters$a2
         k <- optimized.parameters$k
@@ -272,14 +269,12 @@ LimROTS <- function(x,
         rm(pS)
         gc()
         if (verbose)
-            message("Calculating p-values")
+            message("Computing p-values and FDR")
         p <- empPvals(
             stat = d,
             stat0 = pD,
             pool = TRUE
         )
-        if (verbose)
-            message("Calculating FDR")
         FDR <- calculateFalseDiscoveryRate(d, pD, progress)
         corrected.logfc <- fit$corrected.logfc
         rm(pD)
@@ -328,7 +323,7 @@ LimROTS <- function(x,
         }else{
           LimROTS.output <- list(
             data = data,
-            B = B,
+            niter = niter,
             d = d,
             logfc = logfc,
             pvalue = p,
@@ -361,14 +356,12 @@ LimROTS <- function(x,
         d <- fit$d / (a1 + a2 * fit$s)
         pD <- pD / (a1 + a2 * pS)
         if (verbose)
-            message("Calculating p-values")
+            message("Calculating p-values and FDR")
         p <- empPvals(
             stat = d,
             stat0 = pD,
             pool = TRUE
         )
-        if (verbose)
-            message("Calculating FDR")
         FDR <- calculateFalseDiscoveryRate(d, pD, progress)
         corrected.logfc <- fit$corrected.logfc
         q_values <- qvalue(p,
@@ -413,7 +406,7 @@ LimROTS <- function(x,
         }else{
         LimROTS.output <- list(
             data = data,
-            B = B,
+            niter = niter,
             d = d,
             logfc = logfc,
             pvalue = p,

@@ -4,7 +4,7 @@
 #'  with replacement within each group defined in the metadata, and optionally
 #'  adjusts for paired groups.
 #'
-#' @param B Integer. The number of bootstrap samples to generate.
+#' @param niter Integer. The number of bootstrap samples to generate.
 #' @param meta.info Data frame. Metadata containing sample information, where
 #' each row corresponds to a sample.
 #' @param group.name Character. The name of the column in `meta.info` that
@@ -14,7 +14,7 @@
 #' The function works by resampling the row names of the metadata for each group
 #'  separately.
 #'
-#' @return A matrix of dimension \code{B} x \code{n}, where \code{n} is the
+#' @return A matrix of dimension \code{niter} x \code{n}, where \code{n} is the
 #' number of samples. Each row corresponds to a bootstrap sample, and each
 #' entry is a resampled row name from the metadata.
 #'
@@ -27,14 +27,14 @@
 #'     row.names = paste0("Sample", 1:10)
 #' )
 #' bootstrapS(
-#'     B = 10, meta.info = meta.info, group.name = "group"
+#'     niter = 10, meta.info = meta.info, group.name = "group"
 #' )
 #'
 
-bootstrapS <- function(B, meta.info, group.name) {
+bootstrapS <- function(niter, meta.info, group.name) {
     groups <- meta.info[, group.name]
-    bootsamples <- matrix(nrow = B, ncol = length(groups))
-    for (i in seq_len(B)) {
+    bootsamples <- matrix(nrow = niter, ncol = length(groups))
+    for (i in seq_len(niter)) {
         for (g in unique(groups)) {
             g.names <- row.names(meta.info)[which(groups == g)]
             bootsamples[i, which(groups == g)] <-

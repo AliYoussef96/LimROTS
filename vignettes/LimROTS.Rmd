@@ -158,7 +158,7 @@ set.seed(1234, kind = "default")
 ```{r}
 # Set metadata and formula for LimROTS analysis
 meta.info <- c("Conc.", "tool", "fake.batch")
-B <- 100 # Number of bootstrap samples
+niter <- 100 # Number of bootstrap samples
 K <- 100 # Set the value for K based on the data size
 K <- floor(K)
 num_cores <- 2 # Number of cores for parallel processing
@@ -169,7 +169,7 @@ formula.str <- "~ 0 + Conc. + tool + fake.batch" # Formula for group comparison
 # Run LimROTS analysis with trend and robust settings enabled
 UPS1.Case4 <- LimROTS(
     x = UPS1.Case4,
-    B = B, K = K, meta.info = meta.info,
+    niter = niter, K = K, meta.info = meta.info,
     cluster = cluster, group.name = group.name,
     formula.str = formula.str, trend = TRUE, 
     robust = TRUE, permutating.group = FALSE, 
@@ -178,7 +178,7 @@ UPS1.Case4 <- LimROTS(
 ```
 
 **NOTE:** "In this instance, we configure the number of bootstrap
-iterations (B) and the count of top-ranked features for reproducibility
+iterations (niter) and the count of top-ranked features for reproducibility
 optimization (K) to 100 both, in order to minimize the example's
 run-time. For actual analyses, it is advisable to utilize a greater
 number of bootstraps (e.g., 1000). Also, for the number of cores to use
@@ -275,7 +275,7 @@ if(!require(caret)){
 ```{r}
 library(ROTS)
 groups <- as.numeric(UPS1.Case4@colData@listData[["Conc."]])
-rots.result <- ROTS(data = assay(UPS1.Case4), groups = groups, B = B, 
+rots.result <- ROTS(data = assay(UPS1.Case4), groups = groups, niter = niter, 
                     K = K, seed = 1234)
 rots.result <- data.frame(proteins = row.names(rots.result$data),
                           logFC = rots.result$logfc, FDR = rots.result$FDR)

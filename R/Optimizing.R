@@ -4,7 +4,7 @@
 #' and permuted data for multiple values of a smoothing constant (`ssq`) and a
 #' single-label replicate (SLR) comparison.
 #'
-#' @param B Integer. Number of bootstrap samples or resampling iterations.
+#' @param niter Integer. Number of bootstrap samples or resampling iterations.
 #' @param ssq Numeric vector. Smoothing constants to be evaluated.
 #' @param N Integer vector. Number of top values to consider for overlap
 #' calculation.
@@ -37,8 +37,8 @@
 #'
 #'
 #'
-Optimizing <- function(B, ssq, N, D, S, pD, pS, verbose, progress) {
-    if (verbose) {message("Optimizing parameters")}
+Optimizing <- function(niter, ssq, N, D, S, pD, pS, verbose, progress) {
+    if (verbose) {message("Optimizing a1 and a2")}
     reprotable <- matrix(nrow = length(ssq) + 1, ncol = length(N))
     colnames(reprotable) <- N
     row.names(reprotable) <- c(ssq, "slr")
@@ -49,10 +49,10 @@ Optimizing <- function(B, ssq, N, D, S, pD, pS, verbose, progress) {
     colnames(reprotable.sd) <- N
     row.names(reprotable.sd) <- c(ssq, "slr")
     for (i in seq_len(length(ssq))) {
-        overlaps <- matrix(0, nrow = B, ncol = length(N))
-        overlaps.P <- matrix(0, nrow = B, ncol = length(N))
+        overlaps <- matrix(0, nrow = niter, ncol = length(N))
+        overlaps.P <- matrix(0, nrow = niter, ncol = length(N))
         cResults <- calOverlaps(D, S, pD, pS, nrow(D), as.integer(N), length(N),
-                                ssq[i], as.integer(B), overlaps, overlaps.P)
+                                ssq[i], as.integer(niter), overlaps, overlaps.P)
         reprotable[i, ] <- colMeans(cResults[["overlaps"]])
         reprotable.P[i, ] <- colMeans(cResults[["overlaps_P"]])
         reprotable.sd[i, ] <- sqrt(rowSums((t(cResults[["overlaps"]]) -
@@ -60,10 +60,10 @@ Optimizing <- function(B, ssq, N, D, S, pD, pS, verbose, progress) {
                                             (nrow(cResults[["overlaps"]]) - 1))
     }
     i <- length(ssq) + 1
-    overlaps <- matrix(0, nrow = B, ncol = length(N))
-    overlaps.P <- matrix(0, nrow = B, ncol = length(N))
+    overlaps <- matrix(0, nrow = niter, ncol = length(N))
+    overlaps.P <- matrix(0, nrow = niter, ncol = length(N))
     cResults <- calOverlaps_slr(D, pD, nrow(D), as.integer(N), length(N),
-                                as.integer(B), overlaps, overlaps.P )
+                                as.integer(niter), overlaps, overlaps.P )
     reprotable[i, ] <- colMeans(cResults[["overlaps"]])
     reprotable.P[i, ] <- colMeans(cResults[["overlaps_P"]])
     reprotable.sd[i, ] <- sqrt(rowSums((t(cResults[["overlaps"]]) -
