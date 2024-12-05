@@ -10,12 +10,12 @@ test_that("LiROTS the main function returns expected output structure", {
   formula.str <- "~ 0 + group"
   result <- LimROTS(data,
       meta.info = meta.info, group.name = "group",
-      formula.str = formula.str, B = 10, seed.cl = 1234 )
+      formula.str = formula.str, niter = 10, seed.cl = 1234 )
   
   expect_type(result, "list")
   expect_length(result, 16)
   
-  expected_names <- c("data", "B", "d", "logfc", "pvalue", "FDR",
+  expected_names <- c("data", "niter", "d", "logfc", "pvalue", "FDR",
                       "a1", "a2", "k", "R", "Z", "ztable", "groups",
                       "corrected.logfc" , "q_values", "BH.pvalue")
   

@@ -198,7 +198,7 @@ simulated E.coli proteins.
 limrots.result.df <- data.frame(
     proteins = rownames(UPS1.Case4),
     LimROTS.FC = UPS1.Case4@elementMetadata$corrected.logfc,
-    q.value = UPS1.Case4@elementMetadata$qvalur
+    q.value = UPS1.Case4@elementMetadata$qvalue
 )
 # Mark proteins as true positives (HUMAN UPS1 proteins)
 limrots.result.df$TP <- ifelse(grepl("HUMAN", limrots.result.df$proteins),
@@ -275,7 +275,7 @@ if(!require(caret)){
 ```{r}
 library(ROTS)
 groups <- as.numeric(UPS1.Case4@colData@listData[["Conc."]])
-rots.result <- ROTS(data = assay(UPS1.Case4), groups = groups, niter = niter, 
+rots.result <- ROTS(data = assay(UPS1.Case4), groups = groups, B = niter, 
                     K = K, seed = 1234)
 rots.result <- data.frame(proteins = row.names(rots.result$data),
                           logFC = rots.result$logfc, FDR = rots.result$FDR)
@@ -304,7 +304,7 @@ TP <- UPS1.Case4@elementMetadata@listData[["GeneID"]]
 TP <- TP[grepl("HUMAN" , TP)]
 
 
-predictions_limrots <- UPS1.Case4@elementMetadata$qvalur < 0.05
+predictions_limrots <- UPS1.Case4@elementMetadata$qvalue < 0.05
 predictions_limrots <- factor(predictions_limrots, levels = c(TRUE, FALSE))
 true_labels_limrots <- ifelse(rownames(UPS1.Case4) %in% TP , 
                               TRUE, FALSE)
