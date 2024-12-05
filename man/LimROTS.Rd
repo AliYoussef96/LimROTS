@@ -8,17 +8,17 @@ Metabolomics Data}
 \usage{
 LimROTS(
   x,
-  B = 1000,
+  niter = 1000,
   K = NULL,
   a1 = NULL,
   a2 = NULL,
   log = TRUE,
   progress = FALSE,
   verbose = TRUE,
-  meta.info = NULL,
+  meta.info,
   cluster = NULL,
-  group.name = NULL,
-  formula.str = NULL,
+  group.name,
+  formula.str,
   seed.cl = 1234,
   robust = TRUE,
   trend = TRUE,
@@ -31,7 +31,7 @@ represent features (e.g., proteins, metabolites) and columns
 represent samples.
 The values should be log-transformed.}
 
-\item{B}{An integer representing the amount of bootstrap iterations.
+\item{niter}{An integer representing the amount of bootstrap iterations.
 Default is 1000.}
 
 \item{K}{An optional integer representing the top list size for ranking.
@@ -84,9 +84,9 @@ information. If \code{FALSE}, the entire sample information retrieved from
 \code{meta.info} will be permuted (recommended to be set to TRUE).}
 }
 \value{
-An object of class \code{"list"} with the following elements:
+An object of class \code{"SummarizedExperiment"} with the following elements:
 \item{data}{The original data matrix.}
-\item{B}{The number of bootstrap samples used.}
+\item{niter}{The number of bootstrap samples used.}
 \item{d}{The optimized statistics for each feature.}
 \item{logfc}{Log-fold change values between groups.}
 \item{pvalue}{P-values computed based on the permutation samples.}
@@ -147,7 +147,7 @@ meta.info <- data.frame(
 formula.str <- "~ 0 + group"
 result <- LimROTS(data,
     meta.info = meta.info, group.name = "group",
-    formula.str = formula.str, B = 10, seed.cl = 1234
+    formula.str = formula.str, niter = 10, seed.cl = 1234
 )
 
 }

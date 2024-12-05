@@ -46,14 +46,11 @@ VignetteBuilder:
     knitr 
 Imports: 
     limma,
-    parallel,
-    foreach,
-    doParallel,
     stringr,
     qvalue,
     utils,
     stats,
-    doRNG,
+    BiocParallel,
     dplyr
 Suggests: 
     BiocStyle,

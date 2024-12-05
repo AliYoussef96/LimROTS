@@ -4,10 +4,10 @@
 \alias{bootstrapS}
 \title{Generate Bootstrap Samples}
 \usage{
-bootstrapS(B, meta.info, group.name)
+bootstrapS(niter, meta.info, group.name)
 }
 \arguments{
-\item{B}{Integer. The number of bootstrap samples to generate.}
+\item{niter}{Integer. The number of bootstrap samples to generate.}
 
 \item{meta.info}{Data frame. Metadata containing sample information, where
 each row corresponds to a sample.}
@@ -16,7 +16,7 @@ each row corresponds to a sample.}
 defines the grouping variable for the samples.}
 }
 \value{
-A matrix of dimension \code{B} x \code{n}, where \code{n} is the
+A matrix of dimension \code{niter} x \code{n}, where \code{n} is the
 number of samples. Each row corresponds to a bootstrap sample, and each
 entry is a resampled row name from the metadata.
 }
@@ -37,7 +37,7 @@ meta.info <- data.frame(
     row.names = paste0("Sample", 1:10)
 )
 bootstrapS(
-    B = 10, meta.info = meta.info, group.name = "group"
+    niter = 10, meta.info = meta.info, group.name = "group"
 )
 
 }

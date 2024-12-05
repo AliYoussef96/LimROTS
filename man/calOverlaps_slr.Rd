@@ -4,7 +4,7 @@
 \alias{calOverlaps_slr}
 \title{Calculate Overlaps for Single-Label Replicates (SLR)}
 \usage{
-calOverlaps_slr(D, pD, nrow, N, N_len, B, overlaps, overlaps_P)
+calOverlaps_slr(D, pD, nrow, N, N_len, niter, overlaps, overlaps_P)
 }
 \arguments{
 \item{D}{Numeric vector. Observed data values (e.g., differences).}
@@ -18,7 +18,7 @@ calculation.}
 
 \item{N_len}{Integer. Length of the \code{N} vector.}
 
-\item{B}{Integer. Number of bootstrap samples or resampling iterations.}
+\item{niter}{Integer. Number of bootstrap samples or resampling iterations.}
 
 \item{overlaps}{Numeric matrix. Matrix to store overlap results for
 observed data.}

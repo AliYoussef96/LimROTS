@@ -40,59 +40,59 @@
 #' stopCluster
 #' @importFrom doParallel registerDoParallel
 #' @importFrom foreach foreach
-#' @importFrom doRNG %dorng%
+#' @import doRNG
 #'
 #'
 #'
 
 Boot_parallel <- function(cluster, seed.cl , samples, data,
-                                        formula.str, group.name, groups,
-                                        meta.info, a1, a2, trend, robust,
-                                        permutating.group) {
-    if (is.null(cluster)) {
-        cluster <- makeCluster(2)
-        registerDoParallel(cluster)
-        message("No cluster found; only two cores will be used!")
-    } else {
-        registerDoParallel(cluster)
+                          formula.str, group.name, groups,
+                          meta.info, a1, a2, trend, robust,
+                          permutating.group) {
+  if (is.null(cluster)) {
+    cluster <- makeCluster(2)
+    registerDoParallel(cluster)
+    message("No cluster found; only two cores will be used!")
+  } else {
+    registerDoParallel(cluster)
+  }
+  clusterSetRNGStream(cluster, iseed = seed.cl)
+  clusterExport( cluster,
+                 varlist = c("samples", "data",
+                             "formula.str", "group.name", "groups", "meta.info",
+                             "a1", "a2", "trend", "robust" ,
+                             "permutating.group"),
+                 envir = environment())
+  i <- NULL
+  results_list <- foreach(
+    i = seq_len(nrow(samples)),
+    .combine = "c", .packages = c("utils", "stringr", "stats", "limma"),
+    .export = c("Limma_bootstrap",
+                "Limma_permutating")
+  ) %dorng% {
+    samples.R <- split(samples[i, ], groups)
+    d_result <- s_result <- pd_result <- ps_result <- NULL
+    if (is.null(a1) | is.null(a2)) {
+      fit <- Limma_bootstrap(
+        x = lapply(samples.R, function(x) data[, x]),
+        group.name = group.name, meta.info = meta.info,
+        formula.str = formula.str, trend = trend, robust = robust
+      )
     }
-    clusterSetRNGStream(cluster, iseed = seed.cl)
-    clusterExport( cluster,
-            varlist = c("samples", "data",
-                            "formula.str", "group.name", "groups", "meta.info",
-                                                "a1", "a2", "trend", "robust" ,
-                                                "permutating.group"),
-                        envir = environment())
-    i <- NULL
-    results_list <- foreach(
-        i = seq_len(nrow(samples)),
-        .combine = "c", .packages = c("utils", "stringr", "stats", "limma"),
-        .export = c("Limma_bootstrap",
-                        "Limma_permutating")
-    ) %dorng% {
-        samples.R <- split(samples[i, ], groups)
-        d_result <- s_result <- pd_result <- ps_result <- NULL
-        if (is.null(a1) | is.null(a2)) {
-            fit <- Limma_bootstrap(
-                x = lapply(samples.R, function(x) data[, x]),
-                    group.name = group.name, meta.info = meta.info,
-                formula.str = formula.str, trend = trend, robust = robust
-            )
-        }
-        d_result <- fit$d
-        s_result <- fit$s
-        df1 <- data.frame(d_result = d_result, s_result = s_result)
-        pFit <- Limma_permutating(
-            x = lapply(split(seq_len( length(groups) ), groups), function(x)
-                    data[, x]), group.name = group.name, meta.info = meta.info,
-                        formula.str = formula.str, trend = trend,
-            robust = robust, permutating.group = permutating.group )
-        pd_result <- pFit$d
-        ps_result <- pFit$s
-        df2 <- data.frame(pd_result = pd_result, ps_result = ps_result)
-        # Return results for this iteration as a data frame
-        list(ds = df1, pdps = df2)
-    }
-    stopCluster(cluster)
-    return(results_list)
+    d_result <- fit$d
+    s_result <- fit$s
+    df1 <- data.frame(d_result = d_result, s_result = s_result)
+    pFit <- Limma_permutating(
+      x = lapply(split(seq_len( length(groups) ), groups), function(x)
+        data[, x]), group.name = group.name, meta.info = meta.info,
+      formula.str = formula.str, trend = trend,
+      robust = robust, permutating.group = permutating.group )
+    pd_result <- pFit$d
+    ps_result <- pFit$s
+    df2 <- data.frame(pd_result = pd_result, ps_result = ps_result)
+    # Return results for this iteration as a data frame
+    list(ds = df1, pdps = df2)
+  }
+  stopCluster(cluster)
+  return(results_list)
 }

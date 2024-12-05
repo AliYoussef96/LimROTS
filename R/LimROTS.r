@@ -82,6 +82,7 @@
 #' @importFrom dplyr bind_cols
 #' @importFrom qvalue empPvals qvalue
 #' @importFrom utils txtProgressBar setTxtProgressBar
+#' @importFrom BiocParallel SnowParam MulticoreParam bplapply bpoptions bpRNGseed
 #'
 #' @details The **LimROTS** approach initially uses
 #' \link{limma} package functionality to simulate the intensity data of
@@ -166,7 +167,6 @@ LimROTS <- function(x,
     event <- SanityChecK.list$event
     K <- SanityChecK.list$K
 
-    #### FC
     if (length(unique(groups)) == 2) {
         group1_data <- data[, groups == 1]
         group2_data <- data[, groups == 2]
@@ -201,6 +201,7 @@ LimROTS <- function(x,
     if (progress) {
         setTxtProgressBar(pb, 50)
     }
+    
     results_list <- Boot_parallel(cluster = cluster, seed.cl = seed.cl,
                                         samples = samples, data = data,
                                         formula.str = formula.str,

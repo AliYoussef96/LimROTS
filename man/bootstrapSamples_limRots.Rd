@@ -4,10 +4,10 @@
 \alias{bootstrapSamples_limRots}
 \title{Generate Stratified Bootstrap Samples for limRots}
 \usage{
-bootstrapSamples_limRots(B, meta.info, group.name)
+bootstrapSamples_limRots(niter, meta.info, group.name)
 }
 \arguments{
-\item{B}{Integer. The number of bootstrap samples to generate.}
+\item{niter}{Integer. The number of bootstrap samples to generate.}
 
 \item{meta.info}{Data frame. Metadata containing sample information,
 where each row corresponds to a sample. Factor columns in \code{meta.info}
@@ -17,7 +17,7 @@ are used to define strata for sampling.}
 defines the grouping variable for the samples.}
 }
 \value{
-A matrix of dimension \code{B} x \code{n}, where \code{n} is the
+A matrix of dimension \code{niter} x \code{n}, where \code{n} is the
 number of samples. Each row corresponds to a bootstrap sample, and each
 entry is a resampled row name from the metadata, stratified by group and
 additional factors.
