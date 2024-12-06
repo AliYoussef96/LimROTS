@@ -10,7 +10,6 @@
 #' Default is 1000.
 #' @param K Integer. Top list size. If NULL, it will be set to a quarter of
 #' the number of rows in the data matrix. Default is NULL.
-#' @param a1,a2 Optional numeric parameters related to optimization.
 #' @param meta.info Data frame. Metadata associated with the samples
 #' (columns of `data.exp`). If `data.exp` is a `SummarizedExperiment`,
 #' `meta.info` can be a vector of `colData` column names to use.

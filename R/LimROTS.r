@@ -2,7 +2,7 @@
 #' Reproducibility-Optimized Statistics for Robust Analysis of Proteomics and
 #' Metabolomics Data
 #'
-#' @param x A \code{SummarizedExperiment} object or a matrix where rows
+#' @param x A \code{SummarizedExperiment} object, where rows
 #' represent features (e.g., proteins, metabolites) and columns
 #' represent samples.
 #' The values should be log-transformed.
@@ -16,21 +16,19 @@
 #' If defined by the user, no optimization occurs.
 #' @param log Logical, indicating whether the data is already log-transformed.
 #' Default is \code{TRUE}.
-#' @param progress Logical, indicating whether to display a progress bar the
-#' function's execution. Default is \code{FALSE}.
 #' @param verbose Logical, indicating whether to display messages during the
 #' function's execution. Default is \code{TRUE}.
-#' @param meta.info A data frame containing sample-level metadata, where each
-#' row corresponds to a sample. It should include the grouping variable
-#' specified in \code{group.name}. If \code{x} is a \code{SummarizedExperiment}
-#' object, \code{meta.info} must be a vector of the metadata needed for the
+#' @param meta.info a character vector of the metadata needed for the
 #' model to run and can be retrieved using \code{colData()}.
 #' @param group.name A string specifying the column in \code{meta.info} that
 #' represents the groups or conditions for comparison.
 #' @param seed.cl An integer specifying the seed for randomization;
 #' if not provided, the default is 1234.
-#' @param cluster A parallel cluster object for distributed computation,
-#' e.g., created by \code{makeCluster()}. Default is 2.
+#' @param cluster  A \code{BiocParallelParam} object specifying the  
+#' parallelization backend (e.g., \code{MulticoreParam}, \code{SnowParam}).  
+#' The default depends on the operating system: if the user is on Windows,  
+#' \code{SnowParam(workers = 2)} is used; otherwise, 
+#' \code{MulticoreParam(workers = 2)}.
 #' @param formula.str A formula string for modeling.
 #' It should include "~ 0 + ..." to exclude the intercept from the model.
 #' All the model parameters must be present in \code{meta.info}.
@@ -82,7 +80,9 @@
 #' @importFrom dplyr bind_cols
 #' @importFrom qvalue empPvals qvalue
 #' @importFrom utils txtProgressBar setTxtProgressBar
-#' @importFrom BiocParallel SnowParam MulticoreParam bplapply bpoptions bpRNGseed
+#' @importFrom BiocParallel SnowParam MulticoreParam bplapply bpoptions 
+#' bpRNGseed
+#' @importFrom S4Vectors DataFrame metadata
 #'
 #' @details The **LimROTS** approach initially uses
 #' \link{limma} package functionality to simulate the intensity data of
@@ -112,6 +112,11 @@
 #'          to calculate q-values, were the proportion of true null p-values is
 #'          set to the bootstrap method \link{pi0est}. We recommend using
 #'          permutation-derived p-values and qvalues.
+#'          
+#' This function processes a dataset using parallel computation. It 
+#' leverages the \pkg{BiocParallel} framework to distribute tasks 
+#' across multiple workers, which  can significantly reduce runtime for 
+#' large datasets.
 #'
 #' @references
 #'   Ritchie, M.E., Phipson, B., Wu, D., Hu, Y., Law, C.W., Shi, W., and Smyth,
@@ -141,7 +146,6 @@ LimROTS <- function(x,
                     a1 = NULL,
                     a2 = NULL,
                     log = TRUE,
-                    progress = FALSE,
                     verbose = TRUE,
                     meta.info,
                     cluster = NULL,
@@ -193,15 +197,6 @@ LimROTS <- function(x,
     S <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
     pD <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
     pS <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
-    pb <- txtProgressBar(
-        min = 0,
-        max = 100,
-        style = 3
-    )
-    if (progress) {
-        setTxtProgressBar(pb, 50)
-    }
-    
     results_list <- Boot_parallel(cluster = cluster, seed.cl = seed.cl,
                                         samples = samples, data = data,
                                         formula.str = formula.str,
@@ -211,31 +206,15 @@ LimROTS <- function(x,
                                         a1 = a1, a2 = a2,
                                         trend = trend, robust = robust ,
                                         permutating.group = permutating.group)
-
-    if (progress) {setTxtProgressBar(pb, 80)}
-
-    names(results_list) <- paste0(
-        names(results_list),
-        seq(1, length(names(results_list)))
-    )
-    j <- 0
-    q <- 0
+    
     for (i in seq_along(results_list)) {
-        if (grepl("ds", names(results_list)[i], fixed = TRUE)) {
-            j <- j + 1
-            D[, j] <- results_list[[names(results_list)[i]]]$d_result
-            S[, j] <- results_list[[names(results_list)[i]]]$s_result
-        } else {
-            q <- q + 1
-            pD[, q] <- results_list[[names(results_list)[i]]]$pd_result
-            pS[, q] <- results_list[[names(results_list)[i]]]$ps_result
-        }
+      D[, i] <- results_list[[i]][["ds"]][["d_result"]]
+      S[, i] <- results_list[[i]][["ds"]][["s_result"]]
+      pD[, i] <- results_list[[i]][["pdps"]][["pd_result"]]
+      pS[, i] <- results_list[[i]][["pdps"]][["ps_result"]]
     }
-    if (progress) {setTxtProgressBar(pb, 100)}
-    if (progress){close(pb)}
     rm(samples)
     gc()
-
     if (is.null(a1) | is.null(a2)) {
         ssq <- c(seq(0, 20) / 100, seq(11, 50) / 50, seq(6, 25) / 5)
         N <- c(
@@ -247,7 +226,7 @@ LimROTS <- function(x,
         K <- min(K, nrow(data))
         N <- N[N < K]
         optimized.parameters <-
-            Optimizing(niter, ssq, N, D, S, pD, pS, verbose, progress)
+            Optimizing(niter, ssq, N, D, S, pD, pS, verbose)
         a1 <- optimized.parameters$a1
         a2 <- optimized.parameters$a2
         k <- optimized.parameters$k
@@ -276,13 +255,22 @@ LimROTS <- function(x,
             stat0 = pD,
             pool = TRUE
         )
-        FDR <- calculateFalseDiscoveryRate(d, pD, progress)
+        FDR <- calculateFalseDiscoveryRate(d, pD)
         corrected.logfc <- fit$corrected.logfc
         rm(pD)
         gc()
-        q_values <- qvalue(p,
-            pi0.method = "bootstrap",
-            lambda = seq(0.01, 0.95, 0.01)
+        q_values <- tryCatch(
+          {
+            qvalue(
+              p,
+              pi0.method = "bootstrap",
+              lambda = seq(0.01, 0.95, 0.01)
+            )
+          },
+          error = function(e) {
+            message("qvalue() failed (return NULL): ", e$message)
+            NULL
+          }
         )
         BH.pvalue <- p.adjust(p, method = "BH")
         
@@ -363,11 +351,20 @@ LimROTS <- function(x,
             stat0 = pD,
             pool = TRUE
         )
-        FDR <- calculateFalseDiscoveryRate(d, pD, progress)
+        FDR <- calculateFalseDiscoveryRate(d, pD)
         corrected.logfc <- fit$corrected.logfc
-        q_values <- qvalue(p,
-            pi0.method = "bootstrap",
-            lambda = seq(0.01, 0.95, 0.01)
+        q_values <- tryCatch(
+          {
+            qvalue(
+              p,
+              pi0.method = "bootstrap",
+              lambda = seq(0.01, 0.95, 0.01)
+            )
+          },
+          error = function(e) {
+            message("qvalue() failed (return NULL): ", e$message)
+            NULL
+          }
         )
         BH.pvalue <- p.adjust(p, method = "BH")
         

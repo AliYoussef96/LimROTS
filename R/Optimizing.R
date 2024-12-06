@@ -14,7 +14,6 @@
 #' @param pS Numeric matrix. Standard errors or related values for
 #' permuted data.
 #' @param verbose Logical. If `TRUE`, progress messages will be displayed.
-#' @param progress Logical. If `TRUE`, a progress bar will be shown.
 #'
 #' @details
 #' The function calculates overlaps for a range of smoothing constants and
@@ -37,7 +36,7 @@
 #'
 #'
 #'
-Optimizing <- function(niter, ssq, N, D, S, pD, pS, verbose, progress) {
+Optimizing <- function(niter, ssq, N, D, S, pD, pS, verbose) {
     if (verbose) {message("Optimizing a1 and a2")}
     reprotable <- matrix(nrow = length(ssq) + 1, ncol = length(N))
     colnames(reprotable) <- N

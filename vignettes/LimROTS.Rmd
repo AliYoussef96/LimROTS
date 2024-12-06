@@ -76,7 +76,7 @@ The number of samples, features, bootstrap iterations, and `k`, which
 denotes the top list size for ranking, are the four primary elements
 that determine the amount of computing resources required for the
 optimisation process in LimROTS. It is therefore advised to use at least
-4 cores to execute LimROTS since it uses a parallel processing
+4 workers to execute LimROTS since it uses a parallel processing (using `BiocParallel` @BiocParallel)
 implementation for the bootstrapping step. The optimisation process is
 sequential and maybe time-consuming, based on the `k` value; it is
 planned to be modified in order to make the upcoming LimROTS version
@@ -109,7 +109,7 @@ A synthetic, unbalanced fake batches assigned to the samples. The
 assignment follows the ratio of:
 
 ```{r echo=FALSE}
-library(LimROTS)
+library(LimROTS, quietly = TRUE)
 data("UPS1.Case4")
 table(UPS1.Case4$fake.batch, UPS1.Case4$Conc.)
 ```
@@ -133,10 +133,10 @@ The original source of the dataset can be found here @GOTTI2022107829
 
 ```{r, message=FALSE}
 # Load necessary packages
-library(LimROTS)
-library(parallel)
-library(ggplot2)
-library(SummarizedExperiment)
+library(LimROTS, quietly = TRUE)
+library(BiocParallel, quietly = TRUE)
+library(ggplot2, quietly = TRUE)
+library(SummarizedExperiment, quietly = TRUE)
 ```
 
 ```{r}
@@ -161,8 +161,6 @@ meta.info <- c("Conc.", "tool", "fake.batch")
 niter <- 100 # Number of bootstrap samples
 K <- 100 # Set the value for K based on the data size
 K <- floor(K)
-num_cores <- 2 # Number of cores for parallel processing
-#cluster <- makeCluster(num_cores) # Create a parallel cluster
 group.name <- "Conc."
 formula.str <- "~ 0 + Conc. + tool + fake.batch" # Formula for group comparison
 
@@ -182,7 +180,27 @@ iterations (niter) and the count of top-ranked features for reproducibility
 optimization (K) to 100 both, in order to minimize the example's
 run-time. For actual analyses, it is advisable to utilize a greater
 number of bootstraps (e.g., 1000). Also, for the number of cores to use
-we recommend to use at least 4 cores.
+we recommend to use at least 4 workers
+
+On Windows OS, the user can define a `cluster` to work with more than 2 workers as follows:
+
+```{r}
+# cluster <- SnowParam(workers = 4) 
+# Commented out in the vignette to ensure the limit set by the R_CHECK_LIMIT_CORES environment variable is not exceeded.
+
+```
+
+On Linux and Mac OS
+
+```{r}
+# cluster <- MulticoreParam(workers = 4)
+# Commented out in the vignette to ensure the limit set by the R_CHECK_LIMIT_CORES environment variable is not exceeded.
+
+
+```
+
+And then pass the `cluster` to `LimROTS()`.
+
 
 The results from the `LimROTS` function will be appended to the `SummarizedExperiment` object used, in this case, `UPS1.Case4`.
 

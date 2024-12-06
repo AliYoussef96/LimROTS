@@ -13,7 +13,6 @@ LimROTS(
   a1 = NULL,
   a2 = NULL,
   log = TRUE,
-  progress = FALSE,
   verbose = TRUE,
   meta.info,
   cluster = NULL,
@@ -26,7 +25,7 @@ LimROTS(
 )
 }
 \arguments{
-\item{x}{A \code{SummarizedExperiment} object or a matrix where rows
+\item{x}{A \code{SummarizedExperiment} object, where rows
 represent features (e.g., proteins, metabolites) and columns
 represent samples.
 The values should be log-transformed.}
@@ -46,20 +45,17 @@ If defined by the user, no optimization occurs.}
 \item{log}{Logical, indicating whether the data is already log-transformed.
 Default is \code{TRUE}.}
 
-\item{progress}{Logical, indicating whether to display a progress bar the
-function's execution. Default is \code{FALSE}.}
-
 \item{verbose}{Logical, indicating whether to display messages during the
 function's execution. Default is \code{TRUE}.}
 
-\item{meta.info}{A data frame containing sample-level metadata, where each
-row corresponds to a sample. It should include the grouping variable
-specified in \code{group.name}. If \code{x} is a \code{SummarizedExperiment}
-object, \code{meta.info} must be a vector of the metadata needed for the
+\item{meta.info}{a character vector of the metadata needed for the
 model to run and can be retrieved using \code{colData()}.}
 
-\item{cluster}{A parallel cluster object for distributed computation,
-e.g., created by \code{makeCluster()}. Default is 2.}
+\item{cluster}{A \code{BiocParallelParam} object specifying the
+parallelization backend (e.g., \code{MulticoreParam}, \code{SnowParam}).
+The default depends on the operating system: if the user is on Windows,
+\code{SnowParam(workers = 2)} is used; otherwise,
+\code{MulticoreParam(workers = 2)}.}
 
 \item{group.name}{A string specifying the column in \code{meta.info} that
 represents the groups or conditions for comparison.}
@@ -134,6 +130,11 @@ adapted from ROTS package. Additionally, the qvalue package is used
 to calculate q-values, were the proportion of true null p-values is
 set to the bootstrap method \link{pi0est}. We recommend using
 permutation-derived p-values and qvalues.
+
+This function processes a dataset using parallel computation. It
+leverages the \pkg{BiocParallel} framework to distribute tasks
+across multiple workers, which  can significantly reduce runtime for
+large datasets.
 }
 \examples{
 # Example usage:

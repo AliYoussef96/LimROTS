@@ -4,7 +4,7 @@
 \alias{Optimizing}
 \title{Optimize Parameters Based on Overlap Calculations}
 \usage{
-Optimizing(niter, ssq, N, D, S, pD, pS, verbose, progress)
+Optimizing(niter, ssq, N, D, S, pD, pS, verbose)
 }
 \arguments{
 \item{niter}{Integer. Number of bootstrap samples or resampling iterations.}
@@ -24,8 +24,6 @@ calculation.}
 permuted data.}
 
 \item{verbose}{Logical. If \code{TRUE}, progress messages will be displayed.}
-
-\item{progress}{Logical. If \code{TRUE}, a progress bar will be shown.}
 }
 \value{
 A list containing the optimal parameters:

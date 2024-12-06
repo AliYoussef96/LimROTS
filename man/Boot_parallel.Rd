@@ -5,7 +5,7 @@
 \title{Parallel processing handling function}
 \usage{
 Boot_parallel(
-  cluster,
+  cluster = NULL,
   seed.cl,
   samples,
   data,

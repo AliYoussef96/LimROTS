@@ -40,8 +40,6 @@ function's execution. Default is TRUE.}
 
 \item{log}{Logical, indicating whether the data is already log-transformed.
 Default is TRUE.}
-
-\item{a1, a2}{Optional numeric parameters related to optimization.}
 }
 \value{
 A list containing:

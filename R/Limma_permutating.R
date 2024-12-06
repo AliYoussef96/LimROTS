@@ -47,6 +47,9 @@
 #' @importFrom dplyr bind_cols
 #' @importFrom limma makeContrasts lmFit contrasts.fit eBayes topTable
 #' @importFrom stringr str_split_fixed fixed
+#' @importFrom utils combn
+#' 
+#' 
 #'
 Limma_permutating <- function(x, group.name, meta.info, formula.str, trend,
                                     robust, permutating.group) {
