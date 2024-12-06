@@ -19,8 +19,7 @@
 #' observedValues <- c(2.5, 1.8, 3.1, 0.7, 2.9)
 #' set.seed(123)
 #' permutedValues <- matrix(rnorm(5 * 5, mean = 2, sd = 1), nrow = 5)
-#' fdr <- calculateFalseDiscoveryRate(observedValues, permutedValues
-#' )
+#' fdr <- calculateFalseDiscoveryRate(observedValues, permutedValues)
 #' print(fdr)
 #'
 #' @export
@@ -42,8 +41,9 @@ calculateFalseDiscoveryRate <- function(observedValues, permutedValues) {
     falseDiscoveryRate[ord.obs] <-
         rev(vapply(
             length(falseDiscoveryRate):1,
-            function(x)
-                min(falseDiscoveryRate[ord.obs][x:length(falseDiscoveryRate)]),
+            function(x) {
+                min(falseDiscoveryRate[ord.obs][x:length(falseDiscoveryRate)])
+            },
             numeric(1)
         ))
     return(falseDiscoveryRate)

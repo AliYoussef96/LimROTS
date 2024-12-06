@@ -30,7 +30,6 @@
 #'     niter = 10, meta.info = meta.info, group.name = "group"
 #' )
 #'
-
 bootstrapS <- function(niter, meta.info, group.name) {
     groups <- meta.info[, group.name]
     bootsamples <- matrix(nrow = niter, ncol = length(groups))
@@ -71,8 +70,8 @@ bootstrapS <- function(niter, meta.info, group.name) {
 #' entry is a resampled row name from the metadata, stratified by group and
 #' additional factors.
 #'
-#' 
-#' 
+#'
+#'
 bootstrapSamples_limRots <- function(niter, meta.info, group.name) {
     labels <- as.numeric(meta.info[, group.name])
     samples <- matrix(nrow = niter, ncol = length(labels))

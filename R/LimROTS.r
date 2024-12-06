@@ -24,10 +24,10 @@
 #' represents the groups or conditions for comparison.
 #' @param seed.cl An integer specifying the seed for randomization;
 #' if not provided, the default is 1234.
-#' @param cluster  A \code{BiocParallelParam} object specifying the  
-#' parallelization backend (e.g., \code{MulticoreParam}, \code{SnowParam}).  
-#' The default depends on the operating system: if the user is on Windows,  
-#' \code{SnowParam(workers = 2)} is used; otherwise, 
+#' @param cluster  A \code{BiocParallelParam} object specifying the
+#' parallelization backend (e.g., \code{MulticoreParam}, \code{SnowParam}).
+#' The default depends on the operating system: if the user is on Windows,
+#' \code{SnowParam(workers = 2)} is used; otherwise,
 #' \code{MulticoreParam(workers = 2)}.
 #' @param formula.str A formula string for modeling.
 #' It should include "~ 0 + ..." to exclude the intercept from the model.
@@ -43,7 +43,8 @@
 #' \code{meta.info} will be permuted (recommended to be set to TRUE).
 #'
 #'
-#' @return An object of class `"SummarizedExperiment"` with the following elements:
+#' @return An object of class `"SummarizedExperiment"` with the 
+#' following elements:
 #' \item{data}{The original data matrix.}
 #' \item{niter}{The number of bootstrap samples used.}
 #' \item{d}{The optimized statistics for each feature.}
@@ -80,7 +81,7 @@
 #' @importFrom dplyr bind_cols
 #' @importFrom qvalue empPvals qvalue
 #' @importFrom utils txtProgressBar setTxtProgressBar
-#' @importFrom BiocParallel SnowParam MulticoreParam bplapply bpoptions 
+#' @importFrom BiocParallel SnowParam MulticoreParam bplapply bpoptions
 #' bpRNGseed
 #' @importFrom S4Vectors DataFrame metadata
 #'
@@ -90,7 +91,7 @@
 #' metabolites. A linear model is subsequently fitted using the design matrix.
 #' Empirical Bayes variance shrinking is then implemented. To obtain the
 #' moderated t-statistics, the adjusted standard error
-#' \eqn{SE_{post} = \sqrt{s^2_{\text{post}} } \times unscaled SD} 
+#' \eqn{SE_{post} = \sqrt{s^2_{\text{post}} } \times unscaled SD}
 #' for each feature is computed, along with the regression
 #' coefficient for each feature (indicating the impact of variations in the
 #' experimental settings). Then, by adapting a reproducibility-optimized
@@ -112,10 +113,10 @@
 #'          to calculate q-values, were the proportion of true null p-values is
 #'          set to the bootstrap method \link{pi0est}. We recommend using
 #'          permutation-derived p-values and qvalues.
-#'          
-#' This function processes a dataset using parallel computation. It 
-#' leverages the \pkg{BiocParallel} framework to distribute tasks 
-#' across multiple workers, which  can significantly reduce runtime for 
+#'
+#' This function processes a dataset using parallel computation. It
+#' leverages the \pkg{BiocParallel} framework to distribute tasks
+#' across multiple workers, which  can significantly reduce runtime for
 #' large datasets.
 #'
 #' @references
@@ -141,21 +142,20 @@
 
 
 LimROTS <- function(x,
-                    niter = 1000,
-                    K = NULL,
-                    a1 = NULL,
-                    a2 = NULL,
-                    log = TRUE,
-                    verbose = TRUE,
-                    meta.info,
-                    cluster = NULL,
-                    group.name,
-                    formula.str,
-                    seed.cl = 1234,
-                    robust = TRUE,
-                    trend = TRUE,
-                    permutating.group = FALSE) {
-
+    niter = 1000,
+    K = NULL,
+    a1 = NULL,
+    a2 = NULL,
+    log = TRUE,
+    verbose = TRUE,
+    meta.info,
+    cluster = NULL,
+    group.name,
+    formula.str,
+    seed.cl = 1234,
+    robust = TRUE,
+    trend = TRUE,
+    permutating.group = FALSE) {
     SanityChecK.list <- SanityChecK(
         x,
         niter = niter,
@@ -182,13 +182,16 @@ LimROTS <- function(x,
     } else {
         logfc <- rep(NA, nrow(data))
     }
-    if (verbose)
+    if (verbose) {
         message("Initiating limma on bootstrapped samples")
+    }
 
     if (ncol(meta.info) > 1) {
-        samples <- bootstrapSamples_limRots(niter = 2 * niter,
-                                            meta.info = meta.info,
-                                            group.name = group.name)
+        samples <- bootstrapSamples_limRots(
+            niter = 2 * niter,
+            meta.info = meta.info,
+            group.name = group.name
+        )
         pSamples <- NULL
     } else {
         samples <- bootstrapS(2 * niter, meta.info, group.name)
@@ -197,21 +200,23 @@ LimROTS <- function(x,
     S <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
     pD <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
     pS <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
-    results_list <- Boot_parallel(cluster = cluster, seed.cl = seed.cl,
-                                        samples = samples, data = data,
-                                        formula.str = formula.str,
-                                        group.name = group.name,
-                                        groups = groups,
-                                        meta.info = meta.info,
-                                        a1 = a1, a2 = a2,
-                                        trend = trend, robust = robust ,
-                                        permutating.group = permutating.group)
-    
+    results_list <- Boot_parallel(
+        cluster = cluster, seed.cl = seed.cl,
+        samples = samples, data = data,
+        formula.str = formula.str,
+        group.name = group.name,
+        groups = groups,
+        meta.info = meta.info,
+        a1 = a1, a2 = a2,
+        trend = trend, robust = robust,
+        permutating.group = permutating.group
+    )
+
     for (i in seq_along(results_list)) {
-      D[, i] <- results_list[[i]][["ds"]][["d_result"]]
-      S[, i] <- results_list[[i]][["ds"]][["s_result"]]
-      pD[, i] <- results_list[[i]][["pdps"]][["pd_result"]]
-      pS[, i] <- results_list[[i]][["pdps"]][["ps_result"]]
+        D[, i] <- results_list[[i]][["ds"]][["d_result"]]
+        S[, i] <- results_list[[i]][["ds"]][["s_result"]]
+        pD[, i] <- results_list[[i]][["pdps"]][["pd_result"]]
+        pS[, i] <- results_list[[i]][["pdps"]][["ps_result"]]
     }
     rm(samples)
     gc()
@@ -236,8 +241,9 @@ LimROTS <- function(x,
         fit <- Limma_fit(
             x = lapply(split(seq_len(length(
                 groups
-            )), groups), function(x)
-                data[, x]),
+            )), groups), function(x) {
+                data[, x]
+            }),
             group.name = group.name,
             meta.info = meta.info,
             formula.str = formula.str,
@@ -248,8 +254,9 @@ LimROTS <- function(x,
         pD <- pD / (a1 + a2 * pS)
         rm(pS)
         gc()
-        if (verbose)
+        if (verbose) {
             message("Computing p-values and FDR")
+        }
         p <- empPvals(
             stat = d,
             stat0 = pD,
@@ -260,82 +267,84 @@ LimROTS <- function(x,
         rm(pD)
         gc()
         q_values <- tryCatch(
-          {
-            qvalue(
-              p,
-              pi0.method = "bootstrap",
-              lambda = seq(0.01, 0.95, 0.01)
-            )
-          },
-          error = function(e) {
-            message("qvalue() failed (return NULL): ", e$message)
-            NULL
-          }
+            {
+                qvalue(
+                    p,
+                    pi0.method = "bootstrap",
+                    lambda = seq(0.01, 0.95, 0.01)
+                )
+            },
+            error = function(e) {
+                message("qvalue() failed (return NULL): ", e$message)
+                NULL
+            }
         )
         BH.pvalue <- p.adjust(p, method = "BH")
-        
-        if(inherits(x , "SummarizedExperiment")){
-          
-          new_rowData <- DataFrame(
-            d = d,
-            logfc = logfc,
-            pvalue = p,
-            qvalue = q_values$qvalues,
-            FDR = FDR,
-            R = R,
-            corrected.logfc = corrected.logfc,
-            BH.pvalue = BH.pvalue,
-            row.names = row.names(data)
-          )
-          
-          new_rowData <- new_rowData[match(rownames(x), rownames(new_rowData) ), ]
-          if(!identical(rownames(new_rowData) , rownames(x))){
-            stop("Can not add the LimROTS results to the SummarizedExperiment")
-          }
-          correct.order <- rownames(x)
-          rowData(x) <- cbind(rowData(x) , new_rowData)
-          if(!identical(correct.order , rownames(x))){
-            stop("Can not add the LimROTS results to the SummarizedExperiment")
-          }
-          metadata(x) <- c(metadata(x), list(
-            a1 = a1,
-            a2 = a2,
-            k = k,
-            Z = Z,
-            ztable = ztable,
-            q_values = q_values
-          ))
-          
-          LimROTS.output <- x
-          remove(x)
-          gc()
-        }else{
-          LimROTS.output <- list(
-            data = data,
-            niter = niter,
-            d = d,
-            logfc = logfc,
-            pvalue = p,
-            FDR = FDR,
-            a1 = a1,
-            a2 = a2,
-            k = k,
-            R = R,
-            Z = Z,
-            ztable = ztable,
-            groups = groups,
-            corrected.logfc = corrected.logfc,
-            q_values = q_values,
-            BH.pvalue = BH.pvalue
-          )
-          }
-        
+
+        if (inherits(x, "SummarizedExperiment")) {
+            new_rowData <- DataFrame(
+                d = d,
+                logfc = logfc,
+                pvalue = p,
+                qvalue = q_values$qvalues,
+                FDR = FDR,
+                R = R,
+                corrected.logfc = corrected.logfc,
+                BH.pvalue = BH.pvalue,
+                row.names = row.names(data)
+            )
+
+            new_rowData <- new_rowData[match(rownames(x), 
+                                                    rownames(new_rowData)), ]
+            if (!identical(rownames(new_rowData), rownames(x))) {
+                stop("Can not add the LimROTS results to the 
+                                                        SummarizedExperiment")
+            }
+            correct.order <- rownames(x)
+            rowData(x) <- cbind(rowData(x), new_rowData)
+            if (!identical(correct.order, rownames(x))) {
+                stop("Can not add the LimROTS results to the 
+                                                        SummarizedExperiment")
+            }
+            metadata(x) <- c(metadata(x), list(
+                a1 = a1,
+                a2 = a2,
+                k = k,
+                Z = Z,
+                ztable = ztable,
+                q_values = q_values
+            ))
+
+            LimROTS.output <- x
+            remove(x)
+            gc()
+        } else {
+            LimROTS.output <- list(
+                data = data,
+                niter = niter,
+                d = d,
+                logfc = logfc,
+                pvalue = p,
+                FDR = FDR,
+                a1 = a1,
+                a2 = a2,
+                k = k,
+                R = R,
+                Z = Z,
+                ztable = ztable,
+                groups = groups,
+                corrected.logfc = corrected.logfc,
+                q_values = q_values,
+                BH.pvalue = BH.pvalue
+            )
+        }
     } else {
         fit <- Limma_fit(
             x = lapply(split(seq_len(length(
                 groups
-            )), groups), function(x)
-                data[, x]),
+            )), groups), function(x) {
+                data[, x]
+            }),
             group.name = group.name,
             meta.info = meta.info,
             formula.str = formula.str,
@@ -344,8 +353,9 @@ LimROTS <- function(x,
         )
         d <- fit$d / (a1 + a2 * fit$s)
         pD <- pD / (a1 + a2 * pS)
-        if (verbose)
+        if (verbose) {
             message("Calculating p-values and FDR")
+        }
         p <- empPvals(
             stat = d,
             stat0 = pD,
@@ -354,71 +364,75 @@ LimROTS <- function(x,
         FDR <- calculateFalseDiscoveryRate(d, pD)
         corrected.logfc <- fit$corrected.logfc
         q_values <- tryCatch(
-          {
-            qvalue(
-              p,
-              pi0.method = "bootstrap",
-              lambda = seq(0.01, 0.95, 0.01)
-            )
-          },
-          error = function(e) {
-            message("qvalue() failed (return NULL): ", e$message)
-            NULL
-          }
+            {
+                qvalue(
+                    p,
+                    pi0.method = "bootstrap",
+                    lambda = seq(0.01, 0.95, 0.01)
+                )
+            },
+            error = function(e) {
+                message("qvalue() failed (return NULL): ", e$message)
+                NULL
+            }
         )
         BH.pvalue <- p.adjust(p, method = "BH")
-        
-        if(inherits(x , "SummarizedExperiment")){
-          new_rowData <- DataFrame(
-            d = d,
-            logfc = logfc,
-            pvalue = p,
-            qvalue = q_values$qvalues,
-            FDR = FDR,
-            R = NULL,
-            corrected.logfc = corrected.logfc,
-            BH.pvalue = BH.pvalue,
-            row.names = row.names(data)
-          )
-          
-          new_rowData <- new_rowData[match(rownames(x), rownames(new_rowData) ), ]
-          if(!identical(rownames(new_rowData) , rownames(x))){
-            stop("Can not add the LimROTS results to the SummarizedExperiment")
-          }
-          correct.order <- rownames(x)
-          rowData(x) <- cbind(rowData(x) , new_rowData)
-          if(!identical(correct.order , rownames(x))){
-            stop("Can not add the LimROTS results to the SummarizedExperiment")
-          }
-          metadata(x) <- c(metadata(x), list(
-            a1 = a1,
-            a2 = a2,
-            k = NULL,
-            Z = NULL,
-            ztable = ztable,
-            q_values = q_values
-          ))
-          LimROTS.output <- x
-          remove(x)
-          gc()
-        }else{
-        LimROTS.output <- list(
-            data = data,
-            niter = niter,
-            d = d,
-            logfc = logfc,
-            pvalue = p,
-            FDR = FDR,
-            a1 = a1,
-            a2 = a2,
-            k = NULL,
-            R = NULL,
-            Z = NULL,
-            groups = groups,
-            corrected.logfc = corrected.logfc,
-            q_values = q_values,
-            BH.pvalue = BH.pvalue
-        )
+
+        if (inherits(x, "SummarizedExperiment")) {
+            new_rowData <- DataFrame(
+                d = d,
+                logfc = logfc,
+                pvalue = p,
+                qvalue = q_values$qvalues,
+                FDR = FDR,
+                R = NULL,
+                corrected.logfc = corrected.logfc,
+                BH.pvalue = BH.pvalue,
+                row.names = row.names(data)
+            )
+
+            new_rowData <- new_rowData[match(rownames(x), 
+                                                        rownames(new_rowData))
+                                                            , ]
+            if (!identical(rownames(new_rowData), rownames(x))) {
+                stop("Can not add the LimROTS results to the 
+                                                        SummarizedExperiment")
+            }
+            correct.order <- rownames(x)
+            rowData(x) <- cbind(rowData(x), new_rowData)
+            if (!identical(correct.order, rownames(x))) {
+                stop("Can not add the LimROTS results to the 
+                                                        SummarizedExperiment")
+            }
+            metadata(x) <- c(metadata(x), list(
+                a1 = a1,
+                a2 = a2,
+                k = NULL,
+                Z = NULL,
+                ztable = ztable,
+                q_values = q_values
+            ))
+            LimROTS.output <- x
+            remove(x)
+            gc()
+        } else {
+            LimROTS.output <- list(
+                data = data,
+                niter = niter,
+                d = d,
+                logfc = logfc,
+                pvalue = p,
+                FDR = FDR,
+                a1 = a1,
+                a2 = a2,
+                k = NULL,
+                R = NULL,
+                Z = NULL,
+                groups = groups,
+                corrected.logfc = corrected.logfc,
+                q_values = q_values,
+                BH.pvalue = BH.pvalue
+            )
         }
     }
     return(LimROTS.output)

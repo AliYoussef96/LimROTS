@@ -33,7 +33,7 @@
 #'
 
 calOverlaps <- function(D, S, pD, pS, nrow, N, N_len, ssq, niter, overlaps,
-                                overlaps_P) {
+    overlaps_P) {
     sort2_1R <- function(a, b) {
         order_a <- order(a, b, decreasing = TRUE)
         a <- a[order_a]
@@ -50,7 +50,7 @@ calOverlaps <- function(D, S, pD, pS, nrow, N, N_len, ssq, niter, overlaps,
         res2 <-
             abs(D[((b + idx_offset - 1) * nrow + 1):((b + idx_offset) * nrow)] /
                 (S[((b + idx_offset - 1) *
-                        nrow + 1):((b + idx_offset) * nrow)] + ssq))
+                    nrow + 1):((b + idx_offset) * nrow)] + ssq))
         pres1 <-
             abs(pD[((b - 1) * nrow + 1):(b * nrow)] /
                 (pS[((b - 1) * nrow + 1):(b * nrow)] + ssq))

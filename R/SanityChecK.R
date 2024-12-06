@@ -39,18 +39,19 @@
 #'
 #'
 SanityChecK <- function(x, niter = 1000, K = NULL,
-                        meta.info , group.name,
-                        formula.str, verbose = TRUE, log = TRUE) {
-  
+    meta.info, group.name,
+    formula.str, verbose = TRUE, log = TRUE) {
     data.exp <- x
-    Check_SExp <- Check_SummarizedExperiment(data.exp = x ,
-                                                meta.info = meta.info,
-                                                group.name= group.name)
+    Check_SExp <- Check_SummarizedExperiment(
+        data.exp = x,
+        meta.info = meta.info,
+        group.name = group.name
+    )
     data <- Check_SExp$data
     groups <- Check_SExp$groups
     meta.info <- Check_SExp$meta.info
 
-    Check_meta_info(meta.info = meta.info, data = data , log = log)
+    Check_meta_info(meta.info = meta.info, data = data, log = log)
 
     sort.df <- data.frame(
         sample.id = colnames(data),
@@ -60,8 +61,8 @@ SanityChecK <- function(x, niter = 1000, K = NULL,
     data <- data[, sort.df$sample.id]
     meta.info$temp <- row.names(meta.info)
     meta.info <- data.frame(meta.info[colnames(data), ],
-                            check.rows = FALSE,
-                            check.names = FALSE
+        check.rows = FALSE,
+        check.names = FALSE
     )
     meta.info$temp <- NULL
     if (inherits(meta.info[, group.name], "character")) {
@@ -77,8 +78,9 @@ SanityChecK <- function(x, niter = 1000, K = NULL,
     groups <- groups + (1 - min(groups))
     if (is.null(K)) {
         K <- floor(nrow(data) / 4)
-        if (verbose)
+        if (verbose) {
             message(sprintf("No top list size K given, using %s", K))
+        }
     }
     return(list(
         meta.info = meta.info,

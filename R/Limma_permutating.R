@@ -48,19 +48,25 @@
 #' @importFrom limma makeContrasts lmFit contrasts.fit eBayes topTable
 #' @importFrom stringr str_split_fixed fixed
 #' @importFrom utils combn
-#' 
-#' 
+#'
+#'
 #'
 Limma_permutating <- function(x, group.name, meta.info, formula.str, trend,
-                                    robust, permutating.group) {
+    robust, permutating.group) {
     data <- x
-    combined_data <- data.frame( check.rows = FALSE, check.names = FALSE,
-                                        none = rep("none", nrow(data[[1]])) )
+    combined_data <- data.frame(
+        check.rows = FALSE, check.names = FALSE,
+        none = rep("none", nrow(data[[1]]))
+    )
     for (k.list in names(data)) {
-        combined_data <- cbind(combined_data,
-                                    data.frame(data[[k.list]],
-                                                    check.rows = FALSE,
-                                                    check.names = FALSE))}
+        combined_data <- cbind(
+            combined_data,
+            data.frame(data[[k.list]],
+                check.rows = FALSE,
+                check.names = FALSE
+            )
+        )
+    }
     combined_data <- combined_data[, -1]
     colnames(combined_data) <-
         paste0(colnames(combined_data), ".", seq(1, ncol(combined_data)))
@@ -70,7 +76,7 @@ Limma_permutating <- function(x, group.name, meta.info, formula.str, trend,
     for (i in colnames(combined_data)) {
         real_SampleNames <- str_split_fixed(i, fixed("."), 2)[, 1]
         df.temp <- meta.info.temp[row.names(meta.info.temp) %in%
-                                                    real_SampleNames, ]
+            real_SampleNames, ]
         df.temp$sample.id <- i
         covariates.p <- rbind(covariates.p, df.temp)
     }
@@ -89,25 +95,33 @@ Limma_permutating <- function(x, group.name, meta.info, formula.str, trend,
     if (length(data) == 2) {
         pairwise_contrasts <-
             paste0(group.name, unique(covariates.p[, group.name]))
-        pairwise_contrasts <- combn(pairwise_contrasts, 2, function(x)
-                                                    paste(x[1], "-", x[2]))
-        cont_matrix <- makeContrasts(contrasts = pairwise_contrasts,
-                                                    levels = design.matrix)
+        pairwise_contrasts <- combn(pairwise_contrasts, 2, function(x) {
+            paste(x[1], "-", x[2])
+        })
+        cont_matrix <- makeContrasts(
+            contrasts = pairwise_contrasts,
+            levels = design.matrix
+        )
         fit2 <- contrasts.fit(fit, cont_matrix)
         fit.ebayes <- eBayes(fit2, trend = trend, robust = robust)
-        d_values <- topTable( fit.ebayes, coef = pairwise_contrasts,
-                                            number = "Inf", sort.by = 'none' )
+        d_values <- topTable(fit.ebayes,
+            coef = pairwise_contrasts,
+            number = "Inf", sort.by = "none"
+        )
         d_values <- abs(d_values$logFC)
         s_values <- as.numeric(sqrt(fit.ebayes$s2.post) *
-                                                fit.ebayes$stdev.unscaled[, 1])
+            fit.ebayes$stdev.unscaled[, 1])
         return(list(d = d_values, s = s_values))
     } else if (length(data) > 2 & ncol(covariates.p) == 1) {
         pairwise_contrasts <-
-                    paste0(group.name, unique(covariates.p[, group.name]))
-        pairwise_contrasts <- combn(pairwise_contrasts, 2, function(x)
-                                                        paste(x[1], "-", x[2]))
-        cont_matrix <- makeContrasts(contrasts = pairwise_contrasts,
-                                            levels = design.matrix)
+            paste0(group.name, unique(covariates.p[, group.name]))
+        pairwise_contrasts <- combn(pairwise_contrasts, 2, function(x) {
+            paste(x[1], "-", x[2])
+        })
+        cont_matrix <- makeContrasts(
+            contrasts = pairwise_contrasts,
+            levels = design.matrix
+        )
         fit2 <- contrasts.fit(fit, cont_matrix)
         fit.ebayes <- eBayes(fit2, trend = trend, robust = robust)
         msr <- fit.ebayes$F * fit.ebayes$s2.post

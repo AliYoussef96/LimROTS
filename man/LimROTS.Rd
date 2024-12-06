@@ -80,7 +80,8 @@ information. If \code{FALSE}, the entire sample information retrieved from
 \code{meta.info} will be permuted (recommended to be set to TRUE).}
 }
 \value{
-An object of class \code{"SummarizedExperiment"} with the following elements:
+An object of class \code{"SummarizedExperiment"} with the
+following elements:
 \item{data}{The original data matrix.}
 \item{niter}{The number of bootstrap samples used.}
 \item{d}{The optimized statistics for each feature.}

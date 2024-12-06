@@ -42,77 +42,93 @@
 #'
 
 
-Boot_parallel <- function(cluster = NULL, seed.cl, samples, data,
-                          formula.str, group.name, groups,
-                          meta.info, a1, a2, trend, robust,
-                          permutating.group) {
-  
-  if (is.null(cluster)) {
-    if (isWindows()) {
-      cluster <- SnowParam(workers = 2)
-      message("Using SnowParam (Windows) with two workers.")
+Boot_parallel <- function(cluster = NULL,
+    seed.cl,
+    samples,
+    data,
+    formula.str,
+    group.name,
+    groups,
+    meta.info,
+    a1,
+    a2,
+    trend,
+    robust,
+    permutating.group) {
+    if (is.null(cluster)) {
+        if (isWindows()) {
+            cluster <- SnowParam(workers = 2)
+            message("Using SnowParam (Windows) with two workers.")
+        } else {
+            cluster <- MulticoreParam(workers = 2)
+            message("Using MulticoreParam (Unix-like OS) with two workers.")
+        }
     } else {
-      cluster <- MulticoreParam(workers = 2)
-      message("Using MulticoreParam (Unix-like OS) with two workers.")
+        message("Using provided parallel backend cluster.")
     }
-  } else {
-    message("Using provided parallel backend cluster.")
-  }
-  if ( inherits(cluster, "SnowParam") ){
-    cluster$exportglobals <- FALSE
-  }
-  cluster$RNGseed <- seed.cl
-  export_vars <- list(
-    samples = samples,
-    data = data,
-    formula.str = formula.str,
-    group.name = group.name,
-    groups = groups,
-    meta.info = meta.info,
-    a1 = a1,
-    a2 = a2,
-    trend = trend,
-    robust = robust,
-    permutating.group = permutating.group
-  )
-  
-  export_funcs <- list(
-    Limma_bootstrap = Limma_bootstrap,
-    Limma_permutating = Limma_permutating
-  )
-  
-  results_list <- bplapply(
-    seq_len(nrow(samples)),
-    function(i) {
-      for (name in names(export_vars)) assign(name, export_vars[[name]])
-      for (name in names(export_funcs)) assign(name, export_funcs[[name]])
-      samples.R <- split(samples[i, ], groups)
-      d_result <- s_result <- pd_result <- ps_result <- NULL
-      if (is.null(a1) | is.null(a2)) {
-        fit <- Limma_bootstrap(
-          x = lapply(samples.R, function(x) data[, x]),
-          group.name = group.name, meta.info = meta.info,
-          formula.str = formula.str, trend = trend, robust = robust
+    if (inherits(cluster, "SnowParam")) {
+        cluster$exportglobals <- FALSE
+    }
+    cluster$RNGseed <- seed.cl
+    export_vars <- list(
+        samples = samples,
+        data = data,
+        formula.str = formula.str,
+        group.name = group.name,
+        groups = groups,
+        meta.info = meta.info,
+        a1 = a1,
+        a2 = a2,
+        trend = trend,
+        robust = robust,
+        permutating.group = permutating.group
+    )
+    export_funcs <- list(Limma_bootstrap = Limma_bootstrap, 
+                                    Limma_permutating = Limma_permutating)
+    results_list <- bplapply(seq_len(nrow(samples)), function(i) {
+        for (name in names(export_vars)) {
+            assign(name, export_vars[[name]])
+        }
+        for (name in names(export_funcs)) {
+            assign(name, export_funcs[[name]])
+        }
+        samples.R <- split(samples[i, ], groups)
+        d_result <- s_result <- pd_result <- ps_result <- NULL
+        if (is.null(a1) | is.null(a2)) {
+            fit <- Limma_bootstrap(
+                x = lapply(samples.R, function(x) {
+                    data[, x]
+                }),
+                group.name = group.name,
+                meta.info = meta.info,
+                formula.str = formula.str,
+                trend = trend,
+                robust = robust
+            )
+        }
+        d_result <- fit$d
+        s_result <- fit$s
+        df1 <- data.frame(d_result = d_result, s_result = s_result)
+        pFit <- Limma_permutating(
+            x = lapply(split(seq_len(length(
+                groups
+            )), groups), function(x) {
+                data[, x]
+            }),
+            group.name = group.name,
+            meta.info = meta.info,
+            formula.str = formula.str,
+            trend = trend,
+            robust = robust,
+            permutating.group = permutating.group
         )
-      }
-      d_result <- fit$d
-      s_result <- fit$s
-      df1 <- data.frame(d_result = d_result, s_result = s_result)
-      pFit <- Limma_permutating(
-        x = lapply(split(seq_len(length(groups)), groups), function(x)
-          data[, x]),
-        group.name = group.name, meta.info = meta.info,
-        formula.str = formula.str, trend = trend,
-        robust = robust, permutating.group = permutating.group
-      )
-      
-      pd_result <- pFit$d
-      ps_result <- pFit$s
-      df2 <- data.frame(pd_result = pd_result, ps_result = ps_result)
-      list(ds = df1, pdps = df2)
-    },
-    BPPARAM = cluster, BPOPTIONS = bpoptions(packages = c("utils", "stringr", "stats", "limma"))
-  )
-  
-  return(results_list)
+        pd_result <- pFit$d
+        ps_result <- pFit$s
+        df2 <- data.frame(pd_result = pd_result, ps_result = ps_result)
+        list(ds = df1, pdps = df2)
+    }, BPPARAM = cluster, 
+                BPOPTIONS = bpoptions(packages = c("utils", 
+                                                            "stringr", "stats", 
+                                                                    "limma")))
+    return(results_list)
 }

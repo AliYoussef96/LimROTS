@@ -37,7 +37,9 @@
 #'
 #'
 Optimizing <- function(niter, ssq, N, D, S, pD, pS, verbose) {
-    if (verbose) {message("Optimizing a1 and a2")}
+    if (verbose) {
+        message("Optimizing a1 and a2")
+    }
     reprotable <- matrix(nrow = length(ssq) + 1, ncol = length(N))
     colnames(reprotable) <- N
     row.names(reprotable) <- c(ssq, "slr")
@@ -50,37 +52,46 @@ Optimizing <- function(niter, ssq, N, D, S, pD, pS, verbose) {
     for (i in seq_len(length(ssq))) {
         overlaps <- matrix(0, nrow = niter, ncol = length(N))
         overlaps.P <- matrix(0, nrow = niter, ncol = length(N))
-        cResults <- calOverlaps(D, S, pD, pS, nrow(D), as.integer(N), length(N),
-                                ssq[i], as.integer(niter), overlaps, overlaps.P)
+        cResults <- calOverlaps(
+            D, S, pD, pS, nrow(D), as.integer(N), length(N),
+            ssq[i], as.integer(niter), overlaps, overlaps.P
+        )
         reprotable[i, ] <- colMeans(cResults[["overlaps"]])
         reprotable.P[i, ] <- colMeans(cResults[["overlaps_P"]])
         reprotable.sd[i, ] <- sqrt(rowSums((t(cResults[["overlaps"]]) -
-                                                reprotable[i, ])^2) /
-                                            (nrow(cResults[["overlaps"]]) - 1))
+            reprotable[i, ])^2) /
+            (nrow(cResults[["overlaps"]]) - 1))
     }
     i <- length(ssq) + 1
     overlaps <- matrix(0, nrow = niter, ncol = length(N))
     overlaps.P <- matrix(0, nrow = niter, ncol = length(N))
-    cResults <- calOverlaps_slr(D, pD, nrow(D), as.integer(N), length(N),
-                                as.integer(niter), overlaps, overlaps.P )
+    cResults <- calOverlaps_slr(
+        D, pD, nrow(D), as.integer(N), length(N),
+        as.integer(niter), overlaps, overlaps.P
+    )
     reprotable[i, ] <- colMeans(cResults[["overlaps"]])
     reprotable.P[i, ] <- colMeans(cResults[["overlaps_P"]])
     reprotable.sd[i, ] <- sqrt(rowSums((t(cResults[["overlaps"]]) -
-                                            reprotable[i, ])^2) /
-                                            (nrow(cResults[["overlaps"]]) - 1))
+        reprotable[i, ])^2) /
+        (nrow(cResults[["overlaps"]]) - 1))
     ztable <- (reprotable - reprotable.P) / reprotable.sd
     sel <- which(ztable == max(ztable[is.finite(ztable)]), arr.ind = TRUE)
-    if (length(sel) > 2) {sel <- sel[1, ]}
+    if (length(sel) > 2) {
+        sel <- sel[1, ]
+    }
     if (sel[1] < nrow(reprotable)) {
         a1 <- as.numeric(row.names(reprotable)[sel[1]])
-        a2 <- 1 }
+        a2 <- 1
+    }
     if (sel[1] == nrow(reprotable)) {
         a1 <- 1
-        a2 <- 0 }
+        a2 <- 0
+    }
     k <- as.numeric(colnames(reprotable)[sel[2]])
     R <- reprotable[sel[1], sel[2]]
     Z <- ztable[sel[1], sel[2]]
-    rm(reprotable,D,S,overlaps,overlaps.P,cResults,reprotable.P,reprotable.sd)
+    rm(reprotable, D, S, overlaps, overlaps.P, cResults, reprotable.P, 
+                                                            reprotable.sd)
     gc()
     return(list(a1 = a1, a2 = a2, k = k, R = R, Z = Z, ztable = ztable))
 }
