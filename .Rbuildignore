@@ -10,3 +10,4 @@ inst/extras
 ^Meta$
 CONTRIBUTING.md
 LICENSE
+^\.git/

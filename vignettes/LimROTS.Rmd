@@ -76,7 +76,8 @@ The number of samples, features, bootstrap iterations, and `k`, which
 denotes the top list size for ranking, are the four primary elements
 that determine the amount of computing resources required for the
 optimisation process in LimROTS. It is therefore advised to use at least
-4 workers to execute LimROTS since it uses a parallel processing (using `BiocParallel` @BiocParallel)
+4 workers to execute LimROTS since it uses a parallel processing 
+(using `BiocParallel` @BiocParallel)
 implementation for the bootstrapping step. The optimisation process is
 sequential and maybe time-consuming, based on the `k` value; it is
 planned to be modified in order to make the upcoming LimROTS version
@@ -186,7 +187,8 @@ On Windows OS, the user can define a `cluster` to work with more than 2 workers 
 
 ```{r}
 # cluster <- SnowParam(workers = 4) 
-# Commented out in the vignette to ensure the limit set by the R_CHECK_LIMIT_CORES environment variable is not exceeded.
+# Commented out in the vignette to ensure the limit set by the 
+# R_CHECK_LIMIT_CORES environment variable is not exceeded.
 
 ```
 
@@ -194,7 +196,8 @@ On Linux and Mac OS
 
 ```{r}
 # cluster <- MulticoreParam(workers = 4)
-# Commented out in the vignette to ensure the limit set by the R_CHECK_LIMIT_CORES environment variable is not exceeded.
+# Commented out in the vignette to ensure the limit set by the 
+# R_CHECK_LIMIT_CORES environment variable is not exceeded.
 
 
 ```
@@ -315,7 +318,7 @@ limma.result <- topTable(fit.ebayes, coef="Conc.1-Conc.2" , number = "Inf")
 ## Generating a Confusion Matrix for Comparison
 
 ```{r}
-library(caret, quietly = T, warn.conflicts = T)
+library(caret, quietly = TRUE, warn.conflicts = TRUE)
 
 
 TP <- UPS1.Case4@elementMetadata@listData[["GeneID"]]
