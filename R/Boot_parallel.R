@@ -83,15 +83,15 @@ Boot_parallel <- function(cluster = NULL,
         robust = robust,
         permutating.group = permutating.group
     )
-    export_funcs <- list(Limma_bootstrap = Limma_bootstrap, 
+    export_funcs <- list(Limma_bootstrap = Limma_bootstrap,
                                     Limma_permutating = Limma_permutating)
+    for (name in names(export_vars)) {
+        assign(name, export_vars[[name]])
+    }
+    for (name in names(export_funcs)) {
+        assign(name, export_funcs[[name]])
+    }
     results_list <- bplapply(seq_len(nrow(samples)), function(i) {
-        for (name in names(export_vars)) {
-            assign(name, export_vars[[name]])
-        }
-        for (name in names(export_funcs)) {
-            assign(name, export_funcs[[name]])
-        }
         samples.R <- split(samples[i, ], groups)
         d_result <- s_result <- pd_result <- ps_result <- NULL
         if (is.null(a1) | is.null(a2)) {
