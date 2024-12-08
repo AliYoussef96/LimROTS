@@ -15,6 +15,9 @@ are used to define strata for sampling.}
 
 \item{group.name}{Character. The name of the column in \code{meta.info} that
 defines the grouping variable for the samples.}
+
+\item{seed.cl}{An integer specifying the seed for randomization;
+if not provided, the default is 1234.}
 }
 \value{
 A matrix of dimension \code{niter} x \code{n}, where \code{n} is the

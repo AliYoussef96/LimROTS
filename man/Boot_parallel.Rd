@@ -6,7 +6,6 @@
 \usage{
 Boot_parallel(
   cluster = NULL,
-  seed.cl,
   samples,
   data,
   formula.str,
@@ -17,15 +16,12 @@ Boot_parallel(
   a2,
   trend,
   robust,
-  permutating.group
+  pSamples
 )
 }
 \arguments{
 \item{cluster}{A parallel cluster object for distributed computation,
 e.g., created by \code{makeCluster()}. Default is 2.}
-
-\item{seed.cl}{An integer specifying the seed for randomization;
-if not provided, the default is 1234.}
 
 \item{samples}{bootstrapped samples matrix}
 
@@ -59,11 +55,6 @@ differential expression analysis. Default is TRUE. see \link{eBayes}.}
 
 \item{robust}{indicating whether robust fitting should be used.
 Default is TRUE, see \link{eBayes}.}
-
-\item{permutating.group}{Logical, If \code{TRUE}, the permutation for
-calculating the null distribution is performed by permuting the target
-group only specified in \code{group.name}. If FALSE, the entire
-\code{meta.info} will be permuted (recommended to be set to FALSE).}
 }
 \value{
 A list containing: \code{D, S, pD, pS} for bootstrapped data and

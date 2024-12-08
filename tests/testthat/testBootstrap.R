@@ -13,7 +13,7 @@ test_that("bootstrapS returns expected output structure", {
     group.name <- "group"
 
     # Call the function
-    result <- bootstrapS(niter, meta.info, group.name)
+    result <- bootstrapS(niter, meta.info, group.name, seed.cl = 123)
 
     # Check output structure
     expect_type(result, "character")

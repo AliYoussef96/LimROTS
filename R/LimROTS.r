@@ -190,18 +190,45 @@ LimROTS <- function(x,
         samples <- bootstrapSamples_limRots(
             niter = 2 * niter,
             meta.info = meta.info,
-            group.name = group.name
+            group.name = group.name,
+            seed.cl = seed.cl
         )
-        pSamples <- NULL
+        if(permutating.group == TRUE){
+            pSamples <- list()
+            set.seed(seed = seed.cl) 
+            for (i in seq_len(nrow(samples)) ) {
+                shuffle_df <- meta.info
+                shuffle_df[, group.name] <- sample(shuffle_df[, group.name])
+                colnames(shuffle_df) <- colnames(meta.info)
+                pSamples[[i]] <-  shuffle_df
+            }
+        }else{
+            pSamples <- list()
+            set.seed(seed = seed.cl) 
+            for (i in seq_len(nrow(samples)) ) {
+                shuffle_df <- data.frame(meta.info[sample(nrow(meta.info)), ])
+                colnames(shuffle_df) <- colnames(meta.info)
+                pSamples[[i]] <-  shuffle_df
+            }   
+        }
     } else {
-        samples <- bootstrapS(2 * niter, meta.info, group.name)
+        samples <- bootstrapS(2 * niter, meta.info, group.name, 
+                              seed.cl = seed.cl)
+        pSamples <- list()
+        set.seed(seed = seed.cl) 
+        for (i in seq_len(nrow(samples)) ) {
+            shuffle_df <- data.frame(meta.info[sample(nrow(meta.info)), ])
+            colnames(shuffle_df) <- colnames(meta.info)
+            pSamples[[i]] <-  shuffle_df
+        }
+        
     }
     D <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
     S <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
     pD <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
     pS <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
     results_list <- Boot_parallel(
-        cluster = cluster, seed.cl = seed.cl,
+        cluster = cluster,
         samples = samples, data = data,
         formula.str = formula.str,
         group.name = group.name,
@@ -209,7 +236,7 @@ LimROTS <- function(x,
         meta.info = meta.info,
         a1 = a1, a2 = a2,
         trend = trend, robust = robust,
-        permutating.group = permutating.group
+        pSamples = pSamples
     )
 
     for (i in seq_along(results_list)) {

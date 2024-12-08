@@ -14,8 +14,6 @@
 #' model to run and can be retrieved using \code{colData()}.
 #' @param group.name A string specifying the column in \code{meta.info} that
 #' represents the groups or conditions for comparison.
-#' @param seed.cl An integer specifying the seed for randomization;
-#' if not provided, the default is 1234.
 #' @param cluster A parallel cluster object for distributed computation,
 #' e.g., created by \code{makeCluster()}. Default is 2.
 #' @param formula.str A formula string used when covariates are present in meta.
@@ -25,10 +23,6 @@
 #' Default is TRUE, see \link{eBayes}.
 #' @param trend indicating whether to include trend fitting in the
 #' differential expression analysis. Default is TRUE. see \link{eBayes}.
-#' @param permutating.group Logical, If \code{TRUE}, the permutation for
-#' calculating the null distribution is performed by permuting the target
-#' group only specified in \code{group.name}. If FALSE, the entire
-#' \code{meta.info} will be permuted (recommended to be set to FALSE).
 #' @param samples bootstrapped samples matrix
 #' @param groups groups information from `meta.info`
 #'
@@ -43,7 +37,6 @@
 
 
 Boot_parallel <- function(cluster = NULL,
-    seed.cl,
     samples,
     data,
     formula.str,
@@ -54,13 +47,13 @@ Boot_parallel <- function(cluster = NULL,
     a2,
     trend,
     robust,
-    permutating.group) {
+    pSamples) {
     if (is.null(cluster)) {
         if (isWindows()) {
-            cluster <- SnowParam(workers = 2, RNGseed = seed.cl)
+            cluster <- SnowParam(workers = 2)
             message("Using SnowParam (Windows) with two workers.")
         } else {
-            cluster <- MulticoreParam(workers = 2, RNGseed = seed.cl)
+            cluster <- MulticoreParam(workers = 2)
             message("Using MulticoreParam (Unix-like OS) with two workers.")
         }
     } else {
@@ -68,9 +61,6 @@ Boot_parallel <- function(cluster = NULL,
     }
     if (inherits(cluster, "SnowParam")) {
         cluster$exportglobals <- FALSE
-    }
-    if(is.null(cluster$RNGseed)){
-        stop("RNGseed must be set to the Parallel backend")
     }
     export_vars <- list(
         samples = samples,
@@ -83,7 +73,7 @@ Boot_parallel <- function(cluster = NULL,
         a2 = a2,
         trend = trend,
         robust = robust,
-        permutating.group = permutating.group
+        pSamples = pSamples
     )
     export_funcs <- list(Limma_bootstrap = Limma_bootstrap,
                                     Limma_permutating = Limma_permutating)
@@ -93,8 +83,10 @@ Boot_parallel <- function(cluster = NULL,
     for (name in names(export_funcs)) {
         assign(name, export_funcs[[name]])
     }
+    
     results_list <- bplapply(seq_len(nrow(samples)), function(i) {
         samples.R <- split(samples[i, ], groups)
+        pSamples_i <- pSamples[[i]]
         d_result <- s_result <- pd_result <- ps_result <- NULL
         if (is.null(a1) | is.null(a2)) {
             fit <- Limma_bootstrap(
@@ -112,13 +104,9 @@ Boot_parallel <- function(cluster = NULL,
         s_result <- fit$s
         df1 <- data.frame(d_result = d_result, s_result = s_result)
         pFit <- Limma_permutating(
-            x = lapply(split(seq_len(length(
-                groups
-            )), groups), function(x)
-                data[, x]
-            ),
+            x = data,
             group.name = group.name,
-            meta.info = meta.info,
+            meta.info = pSamples_i,
             formula.str = formula.str,
             trend = trend,
             robust = robust,

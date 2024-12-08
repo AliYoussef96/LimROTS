@@ -4,7 +4,7 @@
 \alias{bootstrapS}
 \title{Generate Bootstrap Samples}
 \usage{
-bootstrapS(niter, meta.info, group.name)
+bootstrapS(niter, meta.info, group.name, seed.cl)
 }
 \arguments{
 \item{niter}{Integer. The number of bootstrap samples to generate.}
@@ -14,6 +14,9 @@ each row corresponds to a sample.}
 
 \item{group.name}{Character. The name of the column in \code{meta.info} that
 defines the grouping variable for the samples.}
+
+\item{seed.cl}{An integer specifying the seed for randomization;
+if not provided, the default is 1234.}
 }
 \value{
 A matrix of dimension \code{niter} x \code{n}, where \code{n} is the
@@ -37,7 +40,8 @@ meta.info <- data.frame(
     row.names = paste0("Sample", 1:10)
 )
 bootstrapS(
-    niter = 10, meta.info = meta.info, group.name = "group"
+    niter = 10, meta.info = meta.info, group.name = "group", 
+    seed.cl = 123
 )
 
 }

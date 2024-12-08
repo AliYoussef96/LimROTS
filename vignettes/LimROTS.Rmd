@@ -147,14 +147,6 @@ print(UPS1.Case4)
 
 ### Run LimROTS
 
-Although `seed.cl` internally control the seed randomization during the
-parallel bootstrapping process. It is advisable to establish a
-consistent seed prior to executing `LimROTS`
-
-```{r}
-set.seed(1234, kind = "default")
-```
-
 ```{r}
 # Set metadata and formula for LimROTS analysis
 meta.info <- c("Conc.", "tool", "fake.batch")
@@ -170,8 +162,8 @@ UPS1.Case4 <- LimROTS(
     niter = niter, K = K, meta.info = meta.info,
     cluster = NULL, group.name = group.name,
     formula.str = formula.str, trend = TRUE,
-    robust = TRUE, permutating.group = FALSE,
-    seed.cl = 123
+    robust = TRUE, permutating.group = TRUE,
+    seed.cl = 5555
 )
 ```
 

@@ -1,6 +1,6 @@
 library(testthat)
 
-test_that("LiROTS the main function returns expected output structure", {
+test_that("LimROTS the main function returns expected output structure", {
     data <- data.frame(matrix(rnorm(500), nrow = 100, ncol = 10))
     meta.info <- data.frame(
         group = factor(rep(1:2, each = 5)),

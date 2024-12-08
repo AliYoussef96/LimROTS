@@ -4,7 +4,7 @@
 #' permutation of the covariates to evaluate the test statistics under random
 #' assignments. It handles two-group comparisons and multi-group settings.
 #'
-#' @param x A list containing two or more data matrices where rows represent
+#' @param x A data matrices where rows represent
 #' features (e.g., genes, proteins) and columns represent samples. The list
 #' should contain at least two matrices for pairwise group comparison.
 #' @param group.name A character string indicating the name of the group
@@ -18,10 +18,6 @@
 #' intensity-dependent trend in the prior variance.
 #' @param robust A logical value indicating whether to use a robust
 #' fitting procedure to protect against outliers.
-#' @param permutating.group Logical, If \code{TRUE}, the permutation for
-#' calculating the null distribution is performed by permuting the target group
-#' only specified in \code{group.name}. If FALSE, the entire \code{meta.info}
-#' will be permuted (recommended to be set to TRUE).
 #'
 #' @details
 #' This function combines the data matrices from different groups and permutes
@@ -53,38 +49,8 @@
 #'
 Limma_permutating <- function(x, group.name, meta.info, formula.str, trend,
     robust, permutating.group) {
-    data <- x
-    combined_data <- data.frame(
-        check.rows = FALSE, check.names = FALSE,
-        none = rep("none", nrow(data[[1]]))
-    )
-    for (k.list in names(data)) {
-        combined_data <- cbind(
-            combined_data,
-            data.frame(data[[k.list]],
-                check.rows = FALSE,
-                check.names = FALSE
-            )
-        )
-    }
-    combined_data <- combined_data[, -1]
-    colnames(combined_data) <-
-        paste0(colnames(combined_data), ".", seq(1, ncol(combined_data)))
-    covariates.p <- data.frame()
-    meta.info.temp <- meta.info
-    meta.info.temp$sample.id <- row.names(meta.info.temp)
-    for (i in colnames(combined_data)) {
-        real_SampleNames <- str_split_fixed(i, fixed("."), 2)[, 1]
-        df.temp <- meta.info.temp[row.names(meta.info.temp) %in%
-            real_SampleNames, ]
-        df.temp$sample.id <- i
-        covariates.p <- rbind(covariates.p, df.temp)
-    }
-    if (permutating.group == TRUE) {
-        covariates.p[, group.name] <- sample(covariates.p[, group.name])
-    } else {
-        covariates.p <- covariates.p[sample(nrow(covariates.p)), ]
-    }
+    combined_data <- x
+    covariates.p <- meta.info
     covariates.p$sample.id <- NULL
     row.names(covariates.p) <- NULL
     design.matrix <-
@@ -92,7 +58,7 @@ Limma_permutating <- function(x, group.name, meta.info, formula.str, trend,
     colnames(design.matrix) <-
         make.names(colnames(design.matrix))
     fit <- lmFit(combined_data, design.matrix)
-    if (length(data) == 2) {
+    if (length( unique( covariates.p[,group.name] ) ) == 2) {
         pairwise_contrasts <-
             paste0(group.name, unique(covariates.p[, group.name]))
         pairwise_contrasts <- combn(pairwise_contrasts, 2, function(x) {
@@ -112,7 +78,7 @@ Limma_permutating <- function(x, group.name, meta.info, formula.str, trend,
         s_values <- as.numeric(sqrt(fit.ebayes$s2.post) *
             fit.ebayes$stdev.unscaled[, 1])
         return(list(d = d_values, s = s_values))
-    } else if (length(data) > 2 & ncol(covariates.p) == 1) {
+    } else if (length( unique( covariates.p[,group.name] ) ) > 2 & ncol(covariates.p) == 1) {
         pairwise_contrasts <-
             paste0(group.name, unique(covariates.p[, group.name]))
         pairwise_contrasts <- combn(pairwise_contrasts, 2, function(x) {
