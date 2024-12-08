@@ -9,7 +9,7 @@ test_that("LimROTS the main function returns expected output structure", {
     formula.str <- "~ 0 + group"
     result <- LimROTS(data,
         meta.info = meta.info, group.name = "group",
-        formula.str = formula.str, niter = 10, seed.cl = 1234
+        formula.str = formula.str, niter = 10
     )
 
     expect_type(result, "list")
