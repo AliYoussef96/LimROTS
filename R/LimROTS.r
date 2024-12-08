@@ -276,7 +276,7 @@ LimROTS <- function(x,
         if (verbose) {
             message("Computing p-values and FDR")
         }
-        p <- qvalue::empPvals(
+        p <- empPvals(
             stat = d,
             stat0 = pD,
             pool = TRUE
@@ -287,11 +287,10 @@ LimROTS <- function(x,
         gc()
         q_values <- tryCatch(
             {
-              qvalue::qvalue(
-                    p,
-                    pi0.method = "bootstrap",
-                    lambda = seq(0.01, 0.95, 0.01)
-                )
+                    qvalue(
+                        p,
+                        pi0.method = "bootstrap",
+                        lambda = seq(0.01, 0.95, 0.01))
             },
             error = function(e) {
                 message("qvalue() failed (return NULL): ", e$message)

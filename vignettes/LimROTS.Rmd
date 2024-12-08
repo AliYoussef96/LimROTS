@@ -109,9 +109,12 @@ each software) and high concentrations (5–50 fmol, labeled as
 A synthetic, unbalanced fake batches assigned to the samples. The
 assignment follows the ratio of:
 
-```{r echo=FALSE}
+```{r echo=FALSE, message=FALSE, results='hide'}
 library(LimROTS, quietly = TRUE)
 data("UPS1.Case4")
+```
+
+```{r echo=FALSE}
 table(UPS1.Case4$fake.batch, UPS1.Case4$Conc.)
 ```
 
