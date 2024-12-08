@@ -96,9 +96,9 @@ Boot_parallel <- function(cluster = NULL,
         d_result <- s_result <- pd_result <- ps_result <- NULL
         if (is.null(a1) | is.null(a2)) {
             fit <- Limma_bootstrap(
-                x = lapply(samples.R, function(x) {
+                x = lapply(samples.R, function(x)
                     data[, x]
-                }),
+                ),
                 group.name = group.name,
                 meta.info = meta.info,
                 formula.str = formula.str,
@@ -112,9 +112,9 @@ Boot_parallel <- function(cluster = NULL,
         pFit <- Limma_permutating(
             x = lapply(split(seq_len(length(
                 groups
-            )), groups), function(x) {
+            )), groups), function(x)
                 data[, x]
-            }),
+            ),
             group.name = group.name,
             meta.info = meta.info,
             formula.str = formula.str,
