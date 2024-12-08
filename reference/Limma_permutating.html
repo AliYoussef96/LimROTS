@@ -60,7 +60,7 @@ assignments. It handles two-group comparisons and multi-group settings.</p>
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">Limma_permutating</span><span class="op">(</span><span class="va">x</span>, <span class="va">group.name</span>, <span class="va">meta.info</span>, <span class="va">formula.str</span>, <span class="va">trend</span>, <span class="va">robust</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">Limma_permutating</span><span class="op">(</span><span class="va">x</span>, <span class="va">group.name</span>, <span class="va">meta.info</span>, <span class="va">formula.str</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -87,16 +87,6 @@ This includes sample grouping and any covariates to be included in the model.</p
 <dd><p>A string specifying the formula to be used in model
 fitting. It should follow the standard R formula syntax
 (e.g., <code>~ covariate1 + covariate2</code>).</p></dd>
-
-
-<dt id="arg-trend">trend<a class="anchor" aria-label="anchor" href="#arg-trend"></a></dt>
-<dd><p>A logical value indicating whether to allow for an
-intensity-dependent trend in the prior variance.</p></dd>
-
-
-<dt id="arg-robust">robust<a class="anchor" aria-label="anchor" href="#arg-robust"></a></dt>
-<dd><p>A logical value indicating whether to use a robust
-fitting procedure to protect against outliers.</p></dd>
 
 </dl></div>
     <div id="value">
