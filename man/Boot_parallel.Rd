@@ -14,8 +14,6 @@ Boot_parallel(
   meta.info,
   a1,
   a2,
-  trend,
-  robust,
   pSamples
 )
 }
@@ -49,12 +47,6 @@ If defined by the user, no optimization occurs.}
 
 \item{a2}{Optional numeric value used in the optimization process.
 If defined by the user, no optimization occurs.}
-
-\item{trend}{indicating whether to include trend fitting in the
-differential expression analysis. Default is TRUE. see \link{eBayes}.}
-
-\item{robust}{indicating whether robust fitting should be used.
-Default is TRUE, see \link{eBayes}.}
 
 \item{pSamples}{a permutated list of samples}
 }

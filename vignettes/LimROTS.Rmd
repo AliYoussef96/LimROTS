@@ -147,10 +147,10 @@ print(UPS1.Case4)
 
 ### Run LimROTS
 
-Before running LimROTS, the seed should be set for reproducibility.
+**Before running LimROTS, the seed should be set for reproducibility.**
 
 ```{r}
-set.seed(1234, kind = "default")
+set.seed(1234, kind = "default" , sample.kind = "default")
 ```
 
 
@@ -169,7 +169,7 @@ UPS1.Case4 <- LimROTS(
     niter = niter, K = K, meta.info = meta.info,
     cluster = NULL, group.name = group.name,
     formula.str = formula.str, trend = TRUE,
-    robust = TRUE, permutating.group = TRUE
+    robust = TRUE, permutating.group = FALSE
 )
 ```
 
@@ -214,7 +214,8 @@ E.coli proteins.
 limrots.result.df <- data.frame(
     proteins = rownames(UPS1.Case4),
     corrected.logfc = elementMetadata(UPS1.Case4)[["corrected.logfc"]],
-    qvalue = elementMetadata(UPS1.Case4)[["qvalue"]]
+    qvalue = elementMetadata(UPS1.Case4)[["qvalue"]],
+    p.value <- elementMetadata(UPS1.Case4)[["pvalue"]]
 )
 # Mark proteins as true positives (HUMAN UPS1 proteins)
 limrots.result.df$TP <- ifelse(grepl("HUMAN", limrots.result.df$proteins),

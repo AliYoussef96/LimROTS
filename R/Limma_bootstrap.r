@@ -16,10 +16,6 @@
 #' @param formula.str A string specifying the formula to be used in model
 #' fitting. It should follow the standard R formula syntax
 #' (e.g., `~ covariate1 + covariate2`).
-#' @param trend A logical value indicating whether to allow for an
-#' intensity-dependent trend in the prior variance.
-#' @param robust A logical value indicating whether to use a robust
-#' fitting procedure to protect against outliers.
 #'
 #' @details
 #' This function first combines the data matrices from different groups and
@@ -48,7 +44,7 @@
 #'
 
 Limma_bootstrap <-
-    function(x, group.name, meta.info, formula.str, trend, robust) {
+    function(x, group.name, meta.info, formula.str) {
         data <- x
         combined_data <- data.frame(
             check.rows = FALSE,
@@ -92,7 +88,7 @@ Limma_bootstrap <-
                     design.matrix
             )
             fit2 <- contrasts.fit(fit, cont_matrix)
-            fit.ebayes <- eBayes(fit2, trend = trend, robust = robust)
+            fit.ebayes <- eBayes(fit2, trend = FALSE, robust = FALSE)
             d_values <- topTable(
                 fit.ebayes,
                 coef = pairwise_contrasts,
@@ -116,7 +112,7 @@ Limma_bootstrap <-
                     levels = design.matrix
                 )
             fit2 <- contrasts.fit(fit, cont_matrix)
-            fit.ebayes <- eBayes(fit2, trend = trend, robust = robust)
+            fit.ebayes <- eBayes(fit2, trend = FALSE, robust = FALSE)
             msr <- fit.ebayes$F * fit.ebayes$s2.post
             return(list(d = msr, s = fit.ebayes$s2.post))
         }

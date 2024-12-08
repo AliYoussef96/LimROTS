@@ -19,10 +19,6 @@
 #' @param formula.str A formula string used when covariates are present in meta.
 #' info for modeling. It should include "~ 0 + ..." to exclude the
 #' intercept from the model.
-#' @param robust indicating whether robust fitting should be used.
-#' Default is TRUE, see \link{eBayes}.
-#' @param trend indicating whether to include trend fitting in the
-#' differential expression analysis. Default is TRUE. see \link{eBayes}.
 #' @param samples bootstrapped samples matrix
 #' @param groups groups information from `meta.info`
 #' @param pSamples a permutated list of samples
@@ -46,8 +42,6 @@ Boot_parallel <- function(cluster = NULL,
     meta.info,
     a1,
     a2,
-    trend,
-    robust,
     pSamples) {
     if (is.null(cluster)) {
         if (isWindows()) {
@@ -72,8 +66,6 @@ Boot_parallel <- function(cluster = NULL,
         meta.info = meta.info,
         a1 = a1,
         a2 = a2,
-        trend = trend,
-        robust = robust,
         pSamples = pSamples
     )
     export_funcs <- list(Limma_bootstrap = Limma_bootstrap,
@@ -96,9 +88,7 @@ Boot_parallel <- function(cluster = NULL,
                 ),
                 group.name = group.name,
                 meta.info = meta.info,
-                formula.str = formula.str,
-                trend = trend,
-                robust = robust
+                formula.str = formula.str
             )
         }
         d_result <- fit$d
@@ -108,9 +98,8 @@ Boot_parallel <- function(cluster = NULL,
             x = data,
             group.name = group.name,
             meta.info = pSamples_i,
-            formula.str = formula.str,
-            trend = trend,
-            robust = robust)
+            formula.str = formula.str
+            )
         pd_result <- pFit$d
         ps_result <- pFit$s
         df2 <- data.frame(pd_result = pd_result, ps_result = ps_result)

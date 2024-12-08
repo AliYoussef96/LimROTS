@@ -14,10 +14,6 @@
 #' @param formula.str A string specifying the formula to be used in model
 #' fitting. It should follow the standard R formula syntax
 #' (e.g., `~ covariate1 + covariate2`).
-#' @param trend A logical value indicating whether to allow for an
-#' intensity-dependent trend in the prior variance.
-#' @param robust A logical value indicating whether to use a robust
-#' fitting procedure to protect against outliers.
 #'
 #' @details
 #' This function combines the data matrices from different groups and permutes
@@ -47,8 +43,8 @@
 #'
 #'
 #'
-Limma_permutating <- function(x, group.name, meta.info, formula.str, trend,
-    robust) {
+Limma_permutating <- function(x, group.name, meta.info, formula.str
+                                        ) {
     combined_data <- x
     covariates.p <- meta.info
     covariates.p$sample.id <- NULL
@@ -69,7 +65,7 @@ Limma_permutating <- function(x, group.name, meta.info, formula.str, trend,
             levels = design.matrix
         )
         fit2 <- contrasts.fit(fit, cont_matrix)
-        fit.ebayes <- eBayes(fit2, trend = trend, robust = robust)
+        fit.ebayes <- eBayes(fit2, trend = FALSE, robust = FALSE)
         d_values <- topTable(fit.ebayes,
             coef = pairwise_contrasts,
             number = "Inf", sort.by = "none"
@@ -90,7 +86,7 @@ Limma_permutating <- function(x, group.name, meta.info, formula.str, trend,
             levels = design.matrix
         )
         fit2 <- contrasts.fit(fit, cont_matrix)
-        fit.ebayes <- eBayes(fit2, trend = trend, robust = robust)
+        fit.ebayes <- eBayes(fit2, trend = FALSE, robust = FALSE)
         msr <- fit.ebayes$F * fit.ebayes$s2.post
         return(list(d = msr, s = fit.ebayes$s2.post))
     }

@@ -12,8 +12,7 @@ test_that("Limma_permutating returns expected output structure", {
     formula.str <- "~ 0 + group"
 
     # Call the function
-    result <- Limma_permutating(data, "group", meta.info, formula.str,
-                                trend = FALSE, robust = FALSE)
+    result <- Limma_permutating(data, "group", meta.info, formula.str)
 
     # Check output structure
     expect_type(result, "list")
