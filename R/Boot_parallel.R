@@ -57,10 +57,10 @@ Boot_parallel <- function(cluster = NULL,
     permutating.group) {
     if (is.null(cluster)) {
         if (isWindows()) {
-            cluster <- SnowParam(workers = 2)
+            cluster <- SnowParam(workers = 2, RNGseed = seed.cl)
             message("Using SnowParam (Windows) with two workers.")
         } else {
-            cluster <- MulticoreParam(workers = 2)
+            cluster <- MulticoreParam(workers = 2, RNGseed = seed.cl)
             message("Using MulticoreParam (Unix-like OS) with two workers.")
         }
     } else {
@@ -69,7 +69,9 @@ Boot_parallel <- function(cluster = NULL,
     if (inherits(cluster, "SnowParam")) {
         cluster$exportglobals <- FALSE
     }
-    cluster$RNGseed <- seed.cl
+    if(is.null(cluster$RNGseed)){
+        stop("RNGseed must be set to the Parallel backend")
+    }
     export_vars <- list(
         samples = samples,
         data = data,
