@@ -18,16 +18,7 @@
 #' number of samples. Each row corresponds to a bootstrap sample, and each
 #' entry is a resampled row name from the metadata.
 #'
-#' @examples
-#' # Example usage:
-#' set.seed(123)
-#' meta.info <- data.frame(
-#'     group = rep(c("A", "B"), each = 5),
-#'     row.names = paste0("Sample", 1:10)
-#' )
-#' bootstrapS(
-#'     niter = 10, meta.info = meta.info, group.name = "group"
-#' )
+#'
 #'
 bootstrapS <- function(niter, meta.info, group.name) {
     groups <- meta.info[, group.name]
