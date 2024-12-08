@@ -29,15 +29,3 @@ adjusts for paired groups.
 The function works by resampling the row names of the metadata for each group
 separately.
 }
-\examples{
-# Example usage:
-set.seed(123)
-meta.info <- data.frame(
-    group = rep(c("A", "B"), each = 5),
-    row.names = paste0("Sample", 1:10)
-)
-bootstrapS(
-    niter = 10, meta.info = meta.info, group.name = "group"
-)
-
-}
