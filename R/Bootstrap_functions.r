@@ -30,7 +30,7 @@
 #'     niter = 10, meta.info = meta.info, group.name = "group"
 #' )
 #'
-bootstrapS <- function(niter, meta.info, group.name, seed.cl) {
+bootstrapS <- function(niter, meta.info, group.name) {
     groups <- meta.info[, group.name]
     bootsamples <- matrix(nrow = niter, ncol = length(groups))
     for (i in seq_len(niter)) {

@@ -4,7 +4,7 @@
 \alias{bootstrapS}
 \title{Generate Bootstrap Samples}
 \usage{
-bootstrapS(niter, meta.info, group.name, seed.cl)
+bootstrapS(niter, meta.info, group.name)
 }
 \arguments{
 \item{niter}{Integer. The number of bootstrap samples to generate.}
