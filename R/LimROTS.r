@@ -38,7 +38,7 @@
 #' calculating the null distribution is performed by permuting the target group
 #' only specified in \code{group.name} Preserving all the other sample
 #' information. If `FALSE`, the entire sample information retrieved from
-#' \code{meta.info} will be permuted (recommended to be set to TRUE).
+#' \code{meta.info} will be permuted (recommended to be set to FALSE).
 #'
 #'
 #' @return An object of class `"SummarizedExperiment"` with the 
@@ -167,7 +167,6 @@ LimROTS <- function(x,
     groups <- SanityChecK.list$groups
     event <- SanityChecK.list$event
     K <- SanityChecK.list$K
-
     if (length(unique(groups)) == 2) {
         group1_data <- data[, groups == 1]
         group2_data <- data[, groups == 2]
@@ -200,6 +199,7 @@ LimROTS <- function(x,
         }else{
             pSamples <- list()
             for (i in seq_len(nrow(samples)) ) {
+                shuffle_df <- meta.info
                 shuffle_df <- data.frame(meta.info[sample(nrow(meta.info)), ])
                 colnames(shuffle_df) <- colnames(meta.info)
                 pSamples[[i]] <-  shuffle_df
@@ -209,6 +209,7 @@ LimROTS <- function(x,
         samples <- bootstrapS(2 * niter, meta.info, group.name)
         pSamples <- list()
         for (i in seq_len(nrow(samples)) ) {
+            shuffle_df <- meta.info
             shuffle_df <- data.frame(meta.info[sample(nrow(meta.info)), ])
             colnames(shuffle_df) <- colnames(meta.info)
             pSamples[[i]] <-  shuffle_df
@@ -227,7 +228,6 @@ LimROTS <- function(x,
         groups = groups,
         meta.info = meta.info,
         a1 = a1, a2 = a2,
-        trend = trend, robust = robust,
         pSamples = pSamples
     )
 
@@ -287,11 +287,10 @@ LimROTS <- function(x,
         gc()
         q_values <- tryCatch(
             {
-                qvalue(
-                    p,
-                    pi0.method = "bootstrap",
-                    lambda = seq(0.01, 0.95, 0.01)
-                )
+                    qvalue(
+                        p,
+                        pi0.method = "bootstrap",
+                        lambda = seq(0.01, 0.95, 0.01))
             },
             error = function(e) {
                 message("qvalue() failed (return NULL): ", e$message)

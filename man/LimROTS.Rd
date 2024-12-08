@@ -73,7 +73,7 @@ differential expression analysis. Default is TRUE. see \link{eBayes}.}
 calculating the null distribution is performed by permuting the target group
 only specified in \code{group.name} Preserving all the other sample
 information. If \code{FALSE}, the entire sample information retrieved from
-\code{meta.info} will be permuted (recommended to be set to TRUE).}
+\code{meta.info} will be permuted (recommended to be set to FALSE).}
 }
 \value{
 An object of class \code{"SummarizedExperiment"} with the

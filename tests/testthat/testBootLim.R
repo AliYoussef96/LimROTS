@@ -24,7 +24,7 @@ test_that("Limma_bootstrap returns expected output structure", {
     formula.str <- "~ 0 + group"
 
     # Call the function
-    result <- Limma_bootstrap(data, "group", meta.info, formula.str, trend = FALSE, robust = FALSE)
+    result <- Limma_bootstrap(data, "group", meta.info, formula.str)
 
     # Check output structure
     expect_type(result, "list")

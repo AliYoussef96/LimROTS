@@ -4,7 +4,7 @@
 \alias{Limma_bootstrap}
 \title{Perform Linear Modeling with Covariates using Limma}
 \usage{
-Limma_bootstrap(x, group.name, meta.info, formula.str, trend, robust)
+Limma_bootstrap(x, group.name, meta.info, formula.str)
 }
 \arguments{
 \item{x}{A list containing two or more data matrices where rows represent
@@ -20,12 +20,6 @@ This includes sample grouping and any covariates to be included in the model.}
 \item{formula.str}{A string specifying the formula to be used in model
 fitting. It should follow the standard R formula syntax
 (e.g., \code{~ covariate1 + covariate2}).}
-
-\item{trend}{A logical value indicating whether to allow for an
-intensity-dependent trend in the prior variance.}
-
-\item{robust}{A logical value indicating whether to use a robust
-fitting procedure to protect against outliers.}
 }
 \value{
 A list containing the following elements:
