@@ -15,12 +15,8 @@
 #' the estimated FDR for each observed value.
 #' @importFrom stats median
 #'
-#' @examples
-#' observedValues <- c(2.5, 1.8, 3.1, 0.7, 2.9)
-#' set.seed(123)
-#' permutedValues <- matrix(rnorm(5 * 5, mean = 2, sd = 1), nrow = 5)
-#' fdr <- calculateFalseDiscoveryRate(observedValues, permutedValues)
-#' print(fdr)
+#'
+#'
 #'
 
 calculateFalseDiscoveryRate <- function(observedValues, permutedValues) {
