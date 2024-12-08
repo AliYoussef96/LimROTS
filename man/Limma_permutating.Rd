@@ -4,18 +4,10 @@
 \alias{Limma_permutating}
 \title{Perform Permutation-Based Linear Modeling with Covariates using Limma}
 \usage{
-Limma_permutating(
-  x,
-  group.name,
-  meta.info,
-  formula.str,
-  trend,
-  robust,
-  permutating.group
-)
+Limma_permutating(x, group.name, meta.info, formula.str, trend, robust)
 }
 \arguments{
-\item{x}{A list containing two or more data matrices where rows represent
+\item{x}{A data matrices where rows represent
 features (e.g., genes, proteins) and columns represent samples. The list
 should contain at least two matrices for pairwise group comparison.}
 
@@ -34,11 +26,6 @@ intensity-dependent trend in the prior variance.}
 
 \item{robust}{A logical value indicating whether to use a robust
 fitting procedure to protect against outliers.}
-
-\item{permutating.group}{Logical, If \code{TRUE}, the permutation for
-calculating the null distribution is performed by permuting the target group
-only specified in \code{group.name}. If FALSE, the entire \code{meta.info}
-will be permuted (recommended to be set to TRUE).}
 }
 \value{
 A list containing the following elements:

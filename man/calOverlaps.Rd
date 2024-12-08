@@ -4,7 +4,7 @@
 \alias{calOverlaps}
 \title{Calculate Overlaps Between Observed and Permuted Data}
 \usage{
-calOverlaps(D, S, pD, pS, nrow, N, N_len, ssq, B, overlaps, overlaps_P)
+calOverlaps(D, S, pD, pS, nrow, N, N_len, ssq, niter, overlaps, overlaps_P)
 }
 \arguments{
 \item{D}{Numeric vector. Observed data values (e.g., differences).}
@@ -26,7 +26,7 @@ calculation.}
 
 \item{ssq}{Numeric. A small constant added to standard errors for stability.}
 
-\item{B}{Integer. Number of bootstrap samples or resampling iterations.}
+\item{niter}{Integer. Number of bootstrap samples or resampling iterations.}
 
 \item{overlaps}{Numeric matrix. Matrix to store overlap results for observed
 data.}

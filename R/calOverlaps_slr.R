@@ -11,7 +11,7 @@
 #' @param N Integer vector. Number of top values to consider for overlap
 #' calculation.
 #' @param N_len Integer. Length of the `N` vector.
-#' @param B Integer. Number of bootstrap samples or resampling iterations.
+#' @param niter Integer. Number of bootstrap samples or resampling iterations.
 #' @param overlaps Numeric matrix. Matrix to store overlap results for
 #' observed data.
 #' @param overlaps_P Numeric matrix. Matrix to store overlap results for
@@ -30,15 +30,16 @@
 
 
 
-calOverlaps.slr <- function(D, pD, nrow, N, N_len, B, overlaps, overlaps_P) {
+calOverlaps_slr <- function(D, pD, nrow, N, N_len, niter, 
+                                            overlaps, overlaps_P) {
     sort2_1R <- function(a, b) {
         order_a <- order(a, b, decreasing = TRUE)
         a <- a[order_a]
         b <- b[order_a]
         list(a = a, b = b)
     }
-    idx_b <- seq_len(B)
-    idx_offset <- B
+    idx_b <- seq_len(niter)
+    idx_offset <- niter
     D <- abs(D)
     for (b in idx_b) {
         res1 <- abs(D[((b - 1) * nrow + 1):(b * nrow)])

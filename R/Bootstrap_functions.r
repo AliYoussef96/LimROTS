@@ -4,17 +4,17 @@
 #'  with replacement within each group defined in the metadata, and optionally
 #'  adjusts for paired groups.
 #'
-#' @param B Integer. The number of bootstrap samples to generate.
+#' @param niter Integer. The number of bootstrap samples to generate.
 #' @param meta.info Data frame. Metadata containing sample information, where
 #' each row corresponds to a sample.
 #' @param group.name Character. The name of the column in `meta.info` that
 #' defines the grouping variable for the samples.
-#'
+#' 
 #' @details
 #' The function works by resampling the row names of the metadata for each group
 #'  separately.
 #'
-#' @return A matrix of dimension \code{B} x \code{n}, where \code{n} is the
+#' @return A matrix of dimension \code{niter} x \code{n}, where \code{n} is the
 #' number of samples. Each row corresponds to a bootstrap sample, and each
 #' entry is a resampled row name from the metadata.
 #'
@@ -27,14 +27,13 @@
 #'     row.names = paste0("Sample", 1:10)
 #' )
 #' bootstrapS(
-#'     B = 10, meta.info = meta.info, group.name = "group"
+#'     niter = 10, meta.info = meta.info, group.name = "group"
 #' )
 #'
-
-bootstrapS <- function(B, meta.info, group.name) {
+bootstrapS <- function(niter, meta.info, group.name) {
     groups <- meta.info[, group.name]
-    bootsamples <- matrix(nrow = B, ncol = length(groups))
-    for (i in seq_len(B)) {
+    bootsamples <- matrix(nrow = niter, ncol = length(groups))
+    for (i in seq_len(niter)) {
         for (g in unique(groups)) {
             g.names <- row.names(meta.info)[which(groups == g)]
             bootsamples[i, which(groups == g)] <-
@@ -52,7 +51,7 @@ bootstrapS <- function(B, meta.info, group.name) {
 #' are drawn proportionally based on strata defined by the interaction of
 #' factor columns in the metadata.
 #'
-#' @param B Integer. The number of bootstrap samples to generate.
+#' @param niter Integer. The number of bootstrap samples to generate.
 #' @param meta.info Data frame. Metadata containing sample information,
 #' where each row corresponds to a sample. Factor columns in `meta.info`
 #' are used to define strata for sampling.
@@ -66,27 +65,17 @@ bootstrapS <- function(B, meta.info, group.name) {
 #' ensuring that samples are drawn from the correct groups and strata in a
 #' proportional manner.
 #'
-#' @return A matrix of dimension \code{B} x \code{n}, where \code{n} is the
+#' @return A matrix of dimension \code{niter} x \code{n}, where \code{n} is the
 #' number of samples. Each row corresponds to a bootstrap sample, and each
 #' entry is a resampled row name from the metadata, stratified by group and
 #' additional factors.
 #'
-#' @export
-#' @examples
-#' # Example usage:
-#' set.seed(123)
-#' meta.info <- data.frame(
-#'     group = rep(c(1, 2), each = 5),
-#'     batch = rep(c("A", "B"), 5),
-#'     row.names = paste0("Sample", 1:10)
-#' )
-#' meta.info$batch <- as.factor(meta.info$batch)
-#' bootstrapSamples.limRots(B = 10, meta.info = meta.info, group.name = "group")
 #'
-bootstrapSamples.limRots <- function(B, meta.info, group.name) {
+#'
+bootstrapSamples_limRots <- function(niter, meta.info, group.name) {
     labels <- as.numeric(meta.info[, group.name])
-    samples <- matrix(nrow = B, ncol = length(labels))
-    for (i in seq_len(B)) {
+    samples <- matrix(nrow = niter, ncol = length(labels))
+    for (i in seq_len(niter)) {
         for (label in unique(labels)) {
             pos <- which(labels == label)
             meta.info.pos <- meta.info[meta.info[, group.name] == label, ]
@@ -99,7 +88,7 @@ bootstrapSamples.limRots <- function(B, meta.info, group.name) {
             }
             if (is.null(meta.info.factors)) {
                 samples <- bootstrapS(
-                    B = B,
+                    niter = niter,
                     meta.info = meta.info,
                     group.name = group.name
                 )

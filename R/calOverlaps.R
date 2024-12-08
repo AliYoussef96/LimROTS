@@ -15,7 +15,7 @@
 #' calculation.
 #' @param N_len Integer. Length of the `N` vector.
 #' @param ssq Numeric. A small constant added to standard errors for stability.
-#' @param B Integer. Number of bootstrap samples or resampling iterations.
+#' @param niter Integer. Number of bootstrap samples or resampling iterations.
 #' @param overlaps Numeric matrix. Matrix to store overlap results for observed
 #' data.
 #' @param overlaps_P Numeric matrix. Matrix to store overlap results for
@@ -32,16 +32,16 @@
 #'
 #'
 
-calOverlaps <- function(D, S, pD, pS, nrow, N, N_len, ssq, B, overlaps,
-                                overlaps_P) {
+calOverlaps <- function(D, S, pD, pS, nrow, N, N_len, ssq, niter, overlaps,
+    overlaps_P) {
     sort2_1R <- function(a, b) {
         order_a <- order(a, b, decreasing = TRUE)
         a <- a[order_a]
         b <- b[order_a]
         list(a = a, b = b)
     }
-    idx_b <- seq_len(B)
-    idx_offset <- B
+    idx_b <- seq_len(niter)
+    idx_offset <- niter
     D <- abs(D)
     for (b in idx_b) {
         res1 <-
@@ -50,7 +50,7 @@ calOverlaps <- function(D, S, pD, pS, nrow, N, N_len, ssq, B, overlaps,
         res2 <-
             abs(D[((b + idx_offset - 1) * nrow + 1):((b + idx_offset) * nrow)] /
                 (S[((b + idx_offset - 1) *
-                        nrow + 1):((b + idx_offset) * nrow)] + ssq))
+                    nrow + 1):((b + idx_offset) * nrow)] + ssq))
         pres1 <-
             abs(pD[((b - 1) * nrow + 1):(b * nrow)] /
                 (pS[((b - 1) * nrow + 1):(b * nrow)] + ssq))

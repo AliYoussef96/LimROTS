@@ -8,30 +8,28 @@ Metabolomics Data}
 \usage{
 LimROTS(
   x,
-  B = 1000,
+  niter = 1000,
   K = NULL,
   a1 = NULL,
   a2 = NULL,
   log = TRUE,
-  progress = FALSE,
   verbose = TRUE,
-  meta.info = NULL,
+  meta.info,
   cluster = NULL,
-  group.name = NULL,
-  formula.str = NULL,
-  seed.cl = 1234,
+  group.name,
+  formula.str,
   robust = TRUE,
   trend = TRUE,
   permutating.group = FALSE
 )
 }
 \arguments{
-\item{x}{A \code{SummarizedExperiment} object or a matrix where rows
+\item{x}{A \code{SummarizedExperiment} object, where rows
 represent features (e.g., proteins, metabolites) and columns
 represent samples.
 The values should be log-transformed.}
 
-\item{B}{An integer representing the amount of bootstrap iterations.
+\item{niter}{An integer representing the amount of bootstrap iterations.
 Default is 1000.}
 
 \item{K}{An optional integer representing the top list size for ranking.
@@ -46,20 +44,17 @@ If defined by the user, no optimization occurs.}
 \item{log}{Logical, indicating whether the data is already log-transformed.
 Default is \code{TRUE}.}
 
-\item{progress}{Logical, indicating whether to display a progress bar the
-function's execution. Default is \code{FALSE}.}
-
 \item{verbose}{Logical, indicating whether to display messages during the
 function's execution. Default is \code{TRUE}.}
 
-\item{meta.info}{A data frame containing sample-level metadata, where each
-row corresponds to a sample. It should include the grouping variable
-specified in \code{group.name}. If \code{x} is a \code{SummarizedExperiment}
-object, \code{meta.info} must be a vector of the metadata needed for the
+\item{meta.info}{a character vector of the metadata needed for the
 model to run and can be retrieved using \code{colData()}.}
 
-\item{cluster}{A parallel cluster object for distributed computation,
-e.g., created by \code{makeCluster()}. Default is 2.}
+\item{cluster}{A \code{BiocParallelParam} object specifying the
+parallelization backend (e.g., \code{MulticoreParam}, \code{SnowParam}).
+The default depends on the operating system: if the user is on Windows,
+\code{SnowParam(workers = 2)} is used; otherwise,
+\code{MulticoreParam(workers = 2)}.}
 
 \item{group.name}{A string specifying the column in \code{meta.info} that
 represents the groups or conditions for comparison.}
@@ -67,9 +62,6 @@ represents the groups or conditions for comparison.}
 \item{formula.str}{A formula string for modeling.
 It should include "~ 0 + ..." to exclude the intercept from the model.
 All the model parameters must be present in \code{meta.info}.}
-
-\item{seed.cl}{An integer specifying the seed for randomization;
-if not provided, the default is 1234.}
 
 \item{robust}{indicating whether robust fitting should be used.
 Default is TRUE, see \link{eBayes}.}
@@ -84,9 +76,10 @@ information. If \code{FALSE}, the entire sample information retrieved from
 \code{meta.info} will be permuted (recommended to be set to TRUE).}
 }
 \value{
-An object of class \code{"list"} with the following elements:
+An object of class \code{"SummarizedExperiment"} with the
+following elements:
 \item{data}{The original data matrix.}
-\item{B}{The number of bootstrap samples used.}
+\item{niter}{The number of bootstrap samples used.}
 \item{d}{The optimized statistics for each feature.}
 \item{logfc}{Log-fold change values between groups.}
 \item{pvalue}{P-values computed based on the permutation samples.}
@@ -112,8 +105,8 @@ proteins and
 metabolites. A linear model is subsequently fitted using the design matrix.
 Empirical Bayes variance shrinking is then implemented. To obtain the
 moderated t-statistics, the adjusted standard error
-\eqn{SEpost = √(s2.post)
-\times unscaled SD} for each feature is computed, along with the regression
+\eqn{SE_{post} = \sqrt{s^2_{\text{post}} } \times unscaled SD}
+for each feature is computed, along with the regression
 coefficient for each feature (indicating the impact of variations in the
 experimental settings). Then, by adapting a reproducibility-optimized
 technique known as \link[ROTS]{ROTS} to establish an optimality
@@ -134,6 +127,11 @@ adapted from ROTS package. Additionally, the qvalue package is used
 to calculate q-values, were the proportion of true null p-values is
 set to the bootstrap method \link{pi0est}. We recommend using
 permutation-derived p-values and qvalues.
+
+This function processes a dataset using parallel computation. It
+leverages the \pkg{BiocParallel} framework to distribute tasks
+across multiple workers, which  can significantly reduce runtime for
+large datasets.
 }
 \examples{
 # Example usage:
@@ -147,7 +145,7 @@ meta.info <- data.frame(
 formula.str <- "~ 0 + group"
 result <- LimROTS(data,
     meta.info = meta.info, group.name = "group",
-    formula.str = formula.str, B = 10
+    formula.str = formula.str, niter = 10
 )
 
 }

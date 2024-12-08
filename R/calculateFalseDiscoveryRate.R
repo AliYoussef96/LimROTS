@@ -10,8 +10,6 @@
 #' @param permutedValues Numeric matrix. The permuted test statistics or values,
 #'  with rows corresponding to the same values as in `observedValues` and
 #'  columns representing different permutations.
-#' @param showProgress Logical. If `TRUE`, a progress bar will be shown during
-#' the computation.
 #'
 #' @return A numeric vector of the same length as `observedValues`, containing
 #' the estimated FDR for each observed value.
@@ -21,42 +19,31 @@
 #' observedValues <- c(2.5, 1.8, 3.1, 0.7, 2.9)
 #' set.seed(123)
 #' permutedValues <- matrix(rnorm(5 * 5, mean = 2, sd = 1), nrow = 5)
-#' fdr <- calculateFalseDiscoveryRate(observedValues, permutedValues,
-#'     showProgress = FALSE
-#' )
+#' fdr <- calculateFalseDiscoveryRate(observedValues, permutedValues)
 #' print(fdr)
 #'
 #' @export
 
-calculateFalseDiscoveryRate <- function(observedValues, permutedValues,
-                                        showProgress = FALSE) {
+calculateFalseDiscoveryRate <- function(observedValues, permutedValues) {
     observedAbs <- abs(observedValues)
     permutedAbs <- abs(permutedValues)
     ord.obs <- order(observedAbs, decreasing = TRUE, na.last = TRUE)
     abs.obs <- observedAbs[ord.obs]
     numPermutations <- ncol(permutedValues)
     FDRmatrix <- matrix(NA, nrow = length(abs.obs), ncol = numPermutations)
-    if (showProgress) {
-        progressBar <- txtProgressBar(min = 0, max = numPermutations, style = 3)
-    }
     for (i in seq_len(numPermutations)) {
         a.rand <- sort(permutedAbs[, i], decreasing = TRUE, na.last = TRUE)
         bigger <- countLargerThan(abs.obs, a.rand)
         FDRmatrix[ord.obs, i] <- bigger / seq_along(abs.obs)
-        if (showProgress) {
-            setTxtProgressBar(progressBar, i)
-        }
-    }
-    if (showProgress) {
-        close(progressBar)
     }
     falseDiscoveryRate <- apply(FDRmatrix, 1, median)
     falseDiscoveryRate[falseDiscoveryRate > 1] <- 1
     falseDiscoveryRate[ord.obs] <-
         rev(vapply(
             length(falseDiscoveryRate):1,
-            function(x)
-                min(falseDiscoveryRate[ord.obs][x:length(falseDiscoveryRate)]),
+            function(x) {
+                min(falseDiscoveryRate[ord.obs][x:length(falseDiscoveryRate)])
+            },
             numeric(1)
         ))
     return(falseDiscoveryRate)

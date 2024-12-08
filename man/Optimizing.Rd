@@ -4,10 +4,10 @@
 \alias{Optimizing}
 \title{Optimize Parameters Based on Overlap Calculations}
 \usage{
-Optimizing(B, ssq, N, D, S, pD, pS, verbose, progress)
+Optimizing(niter, ssq, N, D, S, pD, pS, verbose)
 }
 \arguments{
-\item{B}{Integer. Number of bootstrap samples or resampling iterations.}
+\item{niter}{Integer. Number of bootstrap samples or resampling iterations.}
 
 \item{ssq}{Numeric vector. Smoothing constants to be evaluated.}
 
@@ -24,8 +24,6 @@ calculation.}
 permuted data.}
 
 \item{verbose}{Logical. If \code{TRUE}, progress messages will be displayed.}
-
-\item{progress}{Logical. If \code{TRUE}, a progress bar will be shown.}
 }
 \value{
 A list containing the optimal parameters:

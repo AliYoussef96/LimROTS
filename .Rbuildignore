@@ -1,16 +1,3 @@
-^doc$
-^Meta$
-^.*\.Rproj$
-^\.Rproj\.user$
-
-CONTRIBUTING.md
-
-^_pkgdown\.yml$
-^docs$
-^pkgdown$
-^\.github$
-
-
 ^.*\.Rproj$
 ^\.Rproj\.user$
 .github
@@ -21,3 +8,7 @@ pkgdown
 inst/extras
 ^doc$
 ^Meta$
+CONTRIBUTING.md
+LICENSE
+^\.git/
+^\\.git$

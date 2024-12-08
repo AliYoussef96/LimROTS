@@ -6,13 +6,11 @@
 \usage{
 SanityChecK(
   x,
-  B = 1000,
+  niter = 1000,
   K = NULL,
-  a1 = NULL,
-  a2 = NULL,
-  meta.info = NULL,
-  group.name = NULL,
-  formula.str = NULL,
+  meta.info,
+  group.name,
+  formula.str,
   verbose = TRUE,
   log = TRUE
 )
@@ -21,13 +19,11 @@ SanityChecK(
 \item{x}{A matrix-like object or a \code{SummarizedExperiment} containing the
 data to be analyzed.}
 
-\item{B}{Integer. Number of bootstrap samples or resampling iterations.
+\item{niter}{Integer. Number of bootstrap samples or resampling iterations.
 Default is 1000.}
 
 \item{K}{Integer. Top list size. If NULL, it will be set to a quarter of
 the number of rows in the data matrix. Default is NULL.}
-
-\item{a1, a2}{Optional numeric parameters related to optimization.}
 
 \item{meta.info}{Data frame. Metadata associated with the samples
 (columns of \code{data.exp}). If \code{data.exp} is a \code{SummarizedExperiment},

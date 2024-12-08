@@ -48,5 +48,5 @@ Check_SummarizedExperiment <- function(data.exp, meta.info, group.name) {
         groups <- meta.info[, group.name]
         meta.info <- meta.info
     }
-    return(list(data = data, groups = groups , meta.info = meta.info))
+    return(list(data = data, groups = groups, meta.info = meta.info))
 }

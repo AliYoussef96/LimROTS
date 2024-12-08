@@ -2,7 +2,7 @@ Package: LimROTS
 Title: A Hybrid Method Integrating Empirical Bayes and 
         Reproducibility-Optimized Statistics for Robust Analysis of Proteomics 
         and Metabolomics Data
-Version: 0.99.0
+Version: 0.99.4
 Authors@R: 
     c(person(given = "Ali", family = "Mostafa Anwar", role = c("aut", "cre"), 
     email= "aliali.mostafa99@gmail.com",
@@ -35,7 +35,9 @@ License: Artistic-2.0
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
-Depends: R (>= 4.4.0)
+Depends: 
+    R (>= 4.5.0),
+    SummarizedExperiment
 biocViews: Software, GeneExpression, DifferentialExpression,
         Microarray, RNASeq, Proteomics, ImmunoOncology, Metabolomics, mRNAMicroarray
 URL: https://github.com/AliYoussef96/LimROTS, https://aliyoussef96.github.io/LimROTS/
@@ -44,15 +46,13 @@ VignetteBuilder:
     knitr 
 Imports: 
     limma,
-    parallel,
-    foreach,
-    doParallel,
     stringr,
     qvalue,
-    SummarizedExperiment,
     utils,
     stats,
-    doRNG,
+    BiocParallel,
+    basilisk.utils,
+    S4Vectors,
     dplyr
 Suggests: 
     BiocStyle,
@@ -61,5 +61,6 @@ Suggests:
     testthat (>= 3.0.0),
     knitr,
     rmarkdown,
+    caret,
     ROTS
 Config/testthat/edition: 3

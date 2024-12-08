@@ -1,4 +1,4 @@
-#'Check if meta info is correct
+#' Check if meta info is correct
 #'
 #' @param meta.info Data frame. Metadata associated with the samples
 #' (columns of `data.exp`). If `data.exp` is a `SummarizedExperiment`,

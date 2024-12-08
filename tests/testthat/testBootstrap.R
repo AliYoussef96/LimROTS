@@ -9,19 +9,19 @@ test_that("bootstrapS returns expected output structure", {
     row.names(meta.info) <- meta.info$sample_id
 
     # Parameters
-    B <- 5 # Number of bootstrap samples
+    niter <- 5 # Number of bootstrap samples
     group.name <- "group"
 
     # Call the function
-    result <- bootstrapS(B, meta.info, group.name)
+    result <- bootstrapS(niter, meta.info, group.name)
 
     # Check output structure
     expect_type(result, "character")
-    expect_equal(dim(result), c(B, nrow(meta.info))) # Expecting B rows and nrow(meta.info) columns
+    expect_equal(dim(result), c(niter, nrow(meta.info))) # Expecting niter rows and nrow(meta.info) columns
 
     # Check that all samples are from the correct groups
     groups <- meta.info[, group.name]
-    for (i in seq_len(B)) {
+    for (i in seq_len(niter)) {
         for (g in unique(groups)) {
             expect_true(all(result[i, groups == g] %in% row.names(meta.info)[groups == g]))
         }
