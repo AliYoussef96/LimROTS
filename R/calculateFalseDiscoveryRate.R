@@ -22,7 +22,6 @@
 #' fdr <- calculateFalseDiscoveryRate(observedValues, permutedValues)
 #' print(fdr)
 #'
-#' @export
 
 calculateFalseDiscoveryRate <- function(observedValues, permutedValues) {
     observedAbs <- abs(observedValues)

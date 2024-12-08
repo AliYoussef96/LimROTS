@@ -18,7 +18,6 @@
 #' number of samples. Each row corresponds to a bootstrap sample, and each
 #' entry is a resampled row name from the metadata.
 #'
-#' @export
 #' @examples
 #' # Example usage:
 #' set.seed(123)
