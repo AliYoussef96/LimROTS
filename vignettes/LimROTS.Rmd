@@ -260,7 +260,7 @@ plot(metadata(UPS1.Case4)[["q_values"]])
 hist(metadata(UPS1.Case4)[["q_values"]])
 
 # Summary of q-values
-summary(metadata(UPS1.Case4)[["q_values"]])
+print(summary(metadata(UPS1.Case4)[["q_values"]]))
 ```
 
 # Comparison of LimROTS, limma, and ROTS
