@@ -22,8 +22,6 @@
 #' model to run and can be retrieved using \code{colData()}.
 #' @param group.name A string specifying the column in \code{meta.info} that
 #' represents the groups or conditions for comparison.
-#' @param seed.cl An integer specifying the seed for randomization;
-#' if not provided, the default is 1234.
 #' @param cluster  A \code{BiocParallelParam} object specifying the
 #' parallelization backend (e.g., \code{MulticoreParam}, \code{SnowParam}).
 #' The default depends on the operating system: if the user is on Windows,
@@ -74,7 +72,7 @@
 #' formula.str <- "~ 0 + group"
 #' result <- LimROTS(data,
 #'     meta.info = meta.info, group.name = "group",
-#'     formula.str = formula.str, niter = 10, seed.cl = 1234
+#'     formula.str = formula.str, niter = 10
 #' )
 #'
 #' @importFrom stats model.matrix formula p.adjust
@@ -152,7 +150,6 @@ LimROTS <- function(x,
     cluster = NULL,
     group.name,
     formula.str,
-    seed.cl = 1234,
     robust = TRUE,
     trend = TRUE,
     permutating.group = FALSE) {
@@ -190,12 +187,10 @@ LimROTS <- function(x,
         samples <- bootstrapSamples_limRots(
             niter = 2 * niter,
             meta.info = meta.info,
-            group.name = group.name,
-            seed.cl = seed.cl
-        )
+            group.name = group.name
+            )
         if(permutating.group == TRUE){
             pSamples <- list()
-            set.seed(seed = seed.cl) 
             for (i in seq_len(nrow(samples)) ) {
                 shuffle_df <- meta.info
                 shuffle_df[, group.name] <- sample(shuffle_df[, group.name])
@@ -204,7 +199,6 @@ LimROTS <- function(x,
             }
         }else{
             pSamples <- list()
-            set.seed(seed = seed.cl) 
             for (i in seq_len(nrow(samples)) ) {
                 shuffle_df <- data.frame(meta.info[sample(nrow(meta.info)), ])
                 colnames(shuffle_df) <- colnames(meta.info)
@@ -212,10 +206,8 @@ LimROTS <- function(x,
             }   
         }
     } else {
-        samples <- bootstrapS(2 * niter, meta.info, group.name, 
-                              seed.cl = seed.cl)
+        samples <- bootstrapS(2 * niter, meta.info, group.name)
         pSamples <- list()
-        set.seed(seed = seed.cl) 
         for (i in seq_len(nrow(samples)) ) {
             shuffle_df <- data.frame(meta.info[sample(nrow(meta.info)), ])
             colnames(shuffle_df) <- colnames(meta.info)
@@ -315,7 +307,6 @@ LimROTS <- function(x,
                 pvalue = p,
                 qvalue = q_values$qvalues,
                 FDR = FDR,
-                R = R,
                 corrected.logfc = corrected.logfc,
                 BH.pvalue = BH.pvalue,
                 row.names = row.names(data)
@@ -338,6 +329,7 @@ LimROTS <- function(x,
                 a2 = a2,
                 k = k,
                 Z = Z,
+                R = R,
                 ztable = ztable,
                 q_values = q_values
             ))
@@ -412,7 +404,6 @@ LimROTS <- function(x,
                 pvalue = p,
                 qvalue = q_values$qvalues,
                 FDR = FDR,
-                R = NULL,
                 corrected.logfc = corrected.logfc,
                 BH.pvalue = BH.pvalue,
                 row.names = row.names(data)
@@ -436,6 +427,7 @@ LimROTS <- function(x,
                 a2 = a2,
                 k = NULL,
                 Z = NULL,
+                R = NULL,
                 ztable = ztable,
                 q_values = q_values
             ))

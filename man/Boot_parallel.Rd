@@ -55,6 +55,8 @@ differential expression analysis. Default is TRUE. see \link{eBayes}.}
 
 \item{robust}{indicating whether robust fitting should be used.
 Default is TRUE, see \link{eBayes}.}
+
+\item{pSamples}{a permutated list of samples}
 }
 \value{
 A list containing: \code{D, S, pD, pS} for bootstrapped data and

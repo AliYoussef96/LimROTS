@@ -4,15 +4,7 @@
 \alias{Limma_permutating}
 \title{Perform Permutation-Based Linear Modeling with Covariates using Limma}
 \usage{
-Limma_permutating(
-  x,
-  group.name,
-  meta.info,
-  formula.str,
-  trend,
-  robust,
-  permutating.group
-)
+Limma_permutating(x, group.name, meta.info, formula.str, trend, robust)
 }
 \arguments{
 \item{x}{A data matrices where rows represent

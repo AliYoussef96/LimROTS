@@ -25,6 +25,7 @@
 #' differential expression analysis. Default is TRUE. see \link{eBayes}.
 #' @param samples bootstrapped samples matrix
 #' @param groups groups information from `meta.info`
+#' @param pSamples a permutated list of samples
 #'
 #'
 #' @return A list containing: \code{D, S, pD, pS} for bootstrapped data and
@@ -109,9 +110,7 @@ Boot_parallel <- function(cluster = NULL,
             meta.info = pSamples_i,
             formula.str = formula.str,
             trend = trend,
-            robust = robust,
-            permutating.group = permutating.group
-        )
+            robust = robust)
         pd_result <- pFit$d
         ps_result <- pFit$s
         df2 <- data.frame(pd_result = pd_result, ps_result = ps_result)

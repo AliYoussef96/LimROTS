@@ -18,7 +18,6 @@ LimROTS(
   cluster = NULL,
   group.name,
   formula.str,
-  seed.cl = 1234,
   robust = TRUE,
   trend = TRUE,
   permutating.group = FALSE
@@ -63,9 +62,6 @@ represents the groups or conditions for comparison.}
 \item{formula.str}{A formula string for modeling.
 It should include "~ 0 + ..." to exclude the intercept from the model.
 All the model parameters must be present in \code{meta.info}.}
-
-\item{seed.cl}{An integer specifying the seed for randomization;
-if not provided, the default is 1234.}
 
 \item{robust}{indicating whether robust fitting should be used.
 Default is TRUE, see \link{eBayes}.}
@@ -149,7 +145,7 @@ meta.info <- data.frame(
 formula.str <- "~ 0 + group"
 result <- LimROTS(data,
     meta.info = meta.info, group.name = "group",
-    formula.str = formula.str, niter = 10, seed.cl = 1234
+    formula.str = formula.str, niter = 10
 )
 
 }

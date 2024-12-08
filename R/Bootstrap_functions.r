@@ -9,9 +9,7 @@
 #' each row corresponds to a sample.
 #' @param group.name Character. The name of the column in `meta.info` that
 #' defines the grouping variable for the samples.
-#' @param seed.cl An integer specifying the seed for randomization;
-#' if not provided, the default is 1234.
-#'
+#' 
 #' @details
 #' The function works by resampling the row names of the metadata for each group
 #'  separately.
@@ -29,12 +27,10 @@
 #'     row.names = paste0("Sample", 1:10)
 #' )
 #' bootstrapS(
-#'     niter = 10, meta.info = meta.info, group.name = "group", 
-#'     seed.cl = 123
+#'     niter = 10, meta.info = meta.info, group.name = "group"
 #' )
 #'
 bootstrapS <- function(niter, meta.info, group.name, seed.cl) {
-    set.seed(seed = seed.cl) 
     groups <- meta.info[, group.name]
     bootsamples <- matrix(nrow = niter, ncol = length(groups))
     for (i in seq_len(niter)) {
@@ -61,8 +57,6 @@ bootstrapS <- function(niter, meta.info, group.name, seed.cl) {
 #' are used to define strata for sampling.
 #' @param group.name Character. The name of the column in `meta.info` that
 #' defines the grouping variable for the samples.
-#' @param seed.cl An integer specifying the seed for randomization;
-#' if not provided, the default is 1234.
 #'
 #' @details
 #' The function works by first identifying the factors in the `meta.info` data
@@ -78,9 +72,7 @@ bootstrapS <- function(niter, meta.info, group.name, seed.cl) {
 #'
 #'
 #'
-bootstrapSamples_limRots <- function(niter, meta.info, group.name,
-                                     seed.cl) {
-    set.seed(seed = seed.cl)
+bootstrapSamples_limRots <- function(niter, meta.info, group.name) {
     labels <- as.numeric(meta.info[, group.name])
     samples <- matrix(nrow = niter, ncol = length(labels))
     for (i in seq_len(niter)) {
