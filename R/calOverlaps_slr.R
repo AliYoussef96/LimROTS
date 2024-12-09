@@ -28,44 +28,65 @@
 #'
 #'
 
-
-
-calOverlaps_slr <- function(D, pD, nrow, N, N_len, niter, 
-                                            overlaps, overlaps_P) {
+calOverlaps_slr <- function(D, pD, nrow, N, N_len, niter, overlaps, overlaps_P, cluster = NULL) {
+    # Helper function to sort paired vectors
     sort2_1R <- function(a, b) {
         order_a <- order(a, b, decreasing = TRUE)
-        a <- a[order_a]
-        b <- b[order_a]
-        list(a = a, b = b)
+        list(a = a[order_a], b = b[order_a])
     }
+    
+    # Create a parallel backend if not provided
+    if (is.null(cluster)) {
+        cluster <- if (isWindows()) {
+            SnowParam(workers = 2)
+        } else {
+            MulticoreParam(workers = 2)
+        }
+        message("Using ", class(cluster)[1], " with two workers.")
+    }
+    
+    # Prepare data for parallel processing
     idx_b <- seq_len(niter)
     idx_offset <- niter
     D <- abs(D)
-    for (b in idx_b) {
-        res1 <- abs(D[((b - 1) * nrow + 1):(b * nrow)])
-        res2 <-
-            abs(D[((b + idx_offset - 1) * nrow + 1):((b + idx_offset) * nrow)])
-        pres1 <- abs(pD[((b - 1) * nrow + 1):(b * nrow)])
-        pres2 <-
-            abs(pD[((b + idx_offset - 1) * nrow + 1):((b + idx_offset) * nrow)])
+    
+    # Parallelized computation
+    results <- bplapply(idx_b, function(b) {
+        # Compute indices for the current iteration
+        idx1 <- ((b - 1) * nrow + 1):(b * nrow)
+        idx2 <- ((b + idx_offset - 1) * nrow + 1):((b + idx_offset) * nrow)
+        
+        # Extract observed and permuted subsets
+        res1 <- abs(D[idx1])
+        res2 <- abs(D[idx2])
+        pres1 <- abs(pD[idx1])
+        pres2 <- abs(pD[idx2])
+        
+        # Sort results
         sorted_res <- sort2_1R(res1, res2)
-        res1 <- sorted_res$a
-        res2 <- sorted_res$b
-        r3_res <- sort(res2, decreasing = TRUE)
-        for (i in seq_len(N_len)) {
-            N_i <- N[i]
-            sum_overlap <- sum(res2[seq_len(N_i)] >= r3_res[N_i])
-            overlaps[b, i] <- sum_overlap / N_i
-        }
+        r3_res <- sort(sorted_res$b, decreasing = TRUE)
+        
         sorted_pres <- sort2_1R(pres1, pres2)
-        pres1 <- sorted_pres$a
-        pres2 <- sorted_pres$b
-        r3_pres <- sort(pres2, decreasing = TRUE)
+        r3_pres <- sort(sorted_pres$b, decreasing = TRUE)
+        
+        # Calculate overlaps for observed and permuted data
+        overlaps_b <- numeric(N_len)
+        overlaps_P_b <- numeric(N_len)
         for (i in seq_len(N_len)) {
             N_i <- N[i]
-            sum_overlap <- sum(pres2[seq_len(N_i)] >= r3_pres[N_i])
-            overlaps_P[b, i] <- sum_overlap / N_i
+            overlaps_b[i] <- sum(sorted_res$b[seq_len(N_i)] >= r3_res[N_i]) / N_i
+            overlaps_P_b[i] <- sum(sorted_pres$b[seq_len(N_i)] >= r3_pres[N_i]) / N_i
         }
+        
+        # Return results for this iteration
+        list(overlaps = overlaps_b, overlaps_P = overlaps_P_b)
+    }, BPPARAM = cluster)
+    
+    # Combine results
+    for (b in seq_len(niter)) {
+        overlaps[b, ] <- results[[b]]$overlaps
+        overlaps_P[b, ] <- results[[b]]$overlaps_P
     }
+    
     return(list(overlaps = overlaps, overlaps_P = overlaps_P))
 }

@@ -19,30 +19,50 @@
 #'
 #'
 
-calculateFalseDiscoveryRate <- function(observedValues, permutedValues) {
+calculateFalseDiscoveryRate <- function(observedValues, permutedValues, cluster = NULL) {
+    # Prepare observed and permuted data
     observedAbs <- abs(observedValues)
     permutedAbs <- abs(permutedValues)
     ord.obs <- order(observedAbs, decreasing = TRUE, na.last = TRUE)
     abs.obs <- observedAbs[ord.obs]
     numPermutations <- ncol(permutedValues)
-    FDRmatrix <- matrix(NA, nrow = length(abs.obs), ncol = numPermutations)
-    for (i in seq_len(numPermutations)) {
-        a.rand <- sort(permutedAbs[, i], decreasing = TRUE, na.last = TRUE)
-        bigger <- countLargerThan(abs.obs, a.rand)
-        FDRmatrix[ord.obs, i] <- bigger / seq_along(abs.obs)
+    
+    # Create a parallel backend if not provided
+    if (is.null(cluster)) {
+        cluster <- if (isWindows()) {
+            SnowParam(workers = 2)
+        } else {
+            MulticoreParam(workers = 2)
+        }
+        message("Using ", class(cluster)[1], " with two workers.")
     }
+    
+    # Parallelize across permutations
+    FDRmatrix <- bplapply(seq_len(numPermutations), function(i) {
+        permutedVec <- sort(permutedAbs[, i], decreasing = TRUE, na.last = TRUE)
+        bigger <- countLargerThan(abs.obs, permutedVec)
+        bigger / seq_along(abs.obs) # Compute FDR for this permutation
+    }, BPPARAM = cluster)
+    
+    # Combine results into a matrix
+    FDRmatrix <- do.call(cbind, FDRmatrix)
+    
+    # Calculate the median FDR
     falseDiscoveryRate <- apply(FDRmatrix, 1, median)
     falseDiscoveryRate[falseDiscoveryRate > 1] <- 1
-    falseDiscoveryRate[ord.obs] <-
-        rev(vapply(
-            length(falseDiscoveryRate):1,
-            function(x) {
-                min(falseDiscoveryRate[ord.obs][x:length(falseDiscoveryRate)])
-            },
-            numeric(1)
-        ))
+    
+    # Adjust FDR to be monotonic
+    falseDiscoveryRate[ord.obs] <- rev(vapply(
+        length(falseDiscoveryRate):1,
+        function(x) {
+            min(falseDiscoveryRate[ord.obs][x:length(falseDiscoveryRate)])
+        },
+        numeric(1)
+    ))
+    
     return(falseDiscoveryRate)
 }
+
 
 #' Count Larger Permuted Values (Modified)
 #'
