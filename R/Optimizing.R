@@ -36,7 +36,7 @@
 #'
 #'
 #'
-Optimizing <- function(niter, ssq, N, D, S, pD, pS, verbose) {
+Optimizing <- function(niter, ssq, N, D, S, pD, pS, verbose, cluster = NULL) {
     if (verbose) {
         message("Optimizing a1 and a2")
     }
@@ -54,7 +54,7 @@ Optimizing <- function(niter, ssq, N, D, S, pD, pS, verbose) {
         overlaps.P <- matrix(0, nrow = niter, ncol = length(N))
         cResults <- calOverlaps(
             D, S, pD, pS, nrow(D), as.integer(N), length(N),
-            ssq[i], as.integer(niter), overlaps, overlaps.P
+            ssq[i], as.integer(niter), overlaps, overlaps.P, cluster = cluster
         )
         reprotable[i, ] <- colMeans(cResults[["overlaps"]])
         reprotable.P[i, ] <- colMeans(cResults[["overlaps_P"]])
@@ -67,7 +67,7 @@ Optimizing <- function(niter, ssq, N, D, S, pD, pS, verbose) {
     overlaps.P <- matrix(0, nrow = niter, ncol = length(N))
     cResults <- calOverlaps_slr(
         D, pD, nrow(D), as.integer(N), length(N),
-        as.integer(niter), overlaps, overlaps.P
+        as.integer(niter), overlaps, overlaps.P, , cluster = cluster
     )
     reprotable[i, ] <- colMeans(cResults[["overlaps"]])
     reprotable.P[i, ] <- colMeans(cResults[["overlaps_P"]])

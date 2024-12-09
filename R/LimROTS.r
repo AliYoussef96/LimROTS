@@ -250,7 +250,7 @@ LimROTS <- function(x,
         K <- min(K, nrow(data))
         N <- N[N < K]
         optimized.parameters <-
-            Optimizing(niter, ssq, N, D, S, pD, pS, verbose)
+            Optimizing(niter, ssq, N, D, S, pD, pS, verbose, cluster = cluster)
         a1 <- optimized.parameters$a1
         a2 <- optimized.parameters$a2
         k <- optimized.parameters$k
@@ -281,7 +281,7 @@ LimROTS <- function(x,
             stat0 = pD,
             pool = TRUE
         )
-        FDR <- calculateFalseDiscoveryRate(d, pD)
+        FDR <- calculateFalseDiscoveryRate(d, pD,cluster = cluster)
         corrected.logfc <- fit$corrected.logfc
         rm(pD)
         gc()
