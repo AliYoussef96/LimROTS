@@ -76,7 +76,9 @@ bootstrapSamples_limRots <- function(niter, meta.info, group.name) {
                         c(meta.info.factors, colnames(meta.info.pos)[j])
                 }
             }
-            if (is.null(meta.info.factors)) {
+            meta.info.factors <-
+              meta.info.factors[meta.info.factors != group.name]
+            if (is.null(meta.info.factors) | length(meta.info.factors) == 0) {
                 samples <- bootstrapS(
                     niter = niter,
                     meta.info = meta.info,
@@ -84,8 +86,6 @@ bootstrapSamples_limRots <- function(niter, meta.info, group.name) {
                 )
                 return(samples)
             }
-            meta.info.factors <-
-                meta.info.factors[meta.info.factors != group.name]
             meta.info.pos$stratum <-
                 interaction(meta.info.pos[, meta.info.factors])
             stratum_sizes <- table(meta.info.pos$stratum)
