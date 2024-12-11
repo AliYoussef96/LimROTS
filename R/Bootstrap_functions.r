@@ -77,8 +77,9 @@ bootstrapSamples_limRots <- function(niter, meta.info, group.name) {
                 }
             }
             meta.info.factors <-
-              meta.info.factors[meta.info.factors != group.name]
-            if (is.null(meta.info.factors) | length(meta.info.factors) == 0) {
+                    meta.info.factors[meta.info.factors != group.name]
+            if (is.null(meta.info.factors) | 
+                length(meta.info.factors) == 0) {
                 samples <- bootstrapS(
                     niter = niter,
                     meta.info = meta.info,
