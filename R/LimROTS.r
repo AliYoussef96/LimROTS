@@ -307,7 +307,6 @@ LimROTS <- function(x,
                 FDR = FDR,
                 corrected.logfc = corrected.logfc,
                 BH.pvalue = BH.pvalue,
-                null.statistics = as.vector(pD),
                 row.names = row.names(data)
             )
 
@@ -330,7 +329,8 @@ LimROTS <- function(x,
                 Z = Z,
                 R = R,
                 ztable = ztable,
-                q_values = q_values
+                q_values = q_values,
+                null.statistics = as.vector(pD)
             ))
 
             LimROTS.output <- x
@@ -353,8 +353,7 @@ LimROTS <- function(x,
                 groups = groups,
                 corrected.logfc = corrected.logfc,
                 q_values = q_values,
-                BH.pvalue = BH.pvalue,
-                null.statistics = as.vector(pD)
+                BH.pvalue = BH.pvalue
             )
         }
     } else {
@@ -406,7 +405,6 @@ LimROTS <- function(x,
                 FDR = FDR,
                 corrected.logfc = corrected.logfc,
                 BH.pvalue = BH.pvalue,
-                null.statistics = as.vector(pD),
                 row.names = row.names(data)
             )
 
@@ -430,7 +428,8 @@ LimROTS <- function(x,
                 Z = NULL,
                 R = NULL,
                 ztable = ztable,
-                q_values = q_values
+                q_values = q_values,
+                null.statistics = as.vector(pD)
             ))
             LimROTS.output <- x
             remove(x)
