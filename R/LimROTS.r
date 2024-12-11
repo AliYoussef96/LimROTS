@@ -307,7 +307,7 @@ LimROTS <- function(x,
                 FDR = FDR,
                 corrected.logfc = corrected.logfc,
                 BH.pvalue = BH.pvalue,
-                null.statistics = pD,
+                null.statistics = as.vector(pD),
                 row.names = row.names(data)
             )
 
@@ -354,7 +354,7 @@ LimROTS <- function(x,
                 corrected.logfc = corrected.logfc,
                 q_values = q_values,
                 BH.pvalue = BH.pvalue,
-                null.statistics = pD,
+                null.statistics = as.vector(pD),
             )
         }
     } else {
@@ -406,7 +406,7 @@ LimROTS <- function(x,
                 FDR = FDR,
                 corrected.logfc = corrected.logfc,
                 BH.pvalue = BH.pvalue,
-                null.statistics = pD,
+                null.statistics = as.vector(pD),
                 row.names = row.names(data)
             )
 
@@ -452,7 +452,7 @@ LimROTS <- function(x,
                 corrected.logfc = corrected.logfc,
                 q_values = q_values,
                 BH.pvalue = BH.pvalue,
-                null.statistics = pD,
+                null.statistics = as.vector(pD),
             )
         }
     }
