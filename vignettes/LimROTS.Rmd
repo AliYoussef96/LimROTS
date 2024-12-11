@@ -215,7 +215,8 @@ E.coli proteins.
 ```{r}
 # Create a data frame from the LimROTS results
 
-limrots.result.df <- data.frame(rowData(UPS1.Case4), row.names = rownames(UPS1.Case4))
+limrots.result.df <- data.frame(rowData(UPS1.Case4), 
+                                row.names = rownames(UPS1.Case4))
 
 # Mark proteins as true positives (HUMAN UPS1 proteins)
 limrots.result.df$TP <- ifelse(grepl("HUMAN", limrots.result.df$GeneID),
