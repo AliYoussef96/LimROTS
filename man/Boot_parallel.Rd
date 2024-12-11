@@ -5,7 +5,7 @@
 \title{Parallel processing handling function}
 \usage{
 Boot_parallel(
-  cluster = NULL,
+  BPPARAM = NULL,
   samples,
   data,
   formula.str,
@@ -18,8 +18,7 @@ Boot_parallel(
 )
 }
 \arguments{
-\item{cluster}{A parallel cluster object for distributed computation,
-e.g., created by \code{makeCluster()}. Default is 2.}
+\item{BPPARAM}{A parallel BPPARAM object for distributed computation.}
 
 \item{samples}{bootstrapped samples matrix}
 

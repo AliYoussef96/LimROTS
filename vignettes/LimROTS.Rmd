@@ -183,11 +183,11 @@ example's run-time. For actual analyses, it is advisable to utilize a
 greater number of bootstraps (e.g., 1000). Also, for the number of cores
 to use we recommend to use at least 4 workers
 
-On Windows OS, the user can define a `cluster` to work with more than 2
+On Windows OS, the user can define a `BPPARAM ` to work with more than 2
 workers as follows:
 
 ```{r}
-# cluster <- SnowParam(workers = 4)
+# BPPARAM  <- SnowParam(workers = 4)
 # Commented out in the vignette to ensure the limit set by the
 # R_CHECK_LIMIT_CORES environment variable is not exceeded.
 ```
@@ -195,12 +195,12 @@ workers as follows:
 On Linux and Mac OS
 
 ```{r}
-# cluster <- MulticoreParam(workers = 4)
+# BPPARAM  <- MulticoreParam(workers = 4)
 # Commented out in the vignette to ensure the limit set by the
 # R_CHECK_LIMIT_CORES environment variable is not exceeded.
 ```
 
-And then pass the `cluster` to `LimROTS()`.
+And then pass the `BPPARAM ` to `LimROTS()`.
 
 The results from the `LimROTS` function will be appended to the
 `SummarizedExperiment` object used, in this case, `UPS1.Case4`.
@@ -214,14 +214,11 @@ E.coli proteins.
 
 ```{r}
 # Create a data frame from the LimROTS results
-limrots.result.df <- data.frame(
-    proteins = rownames(UPS1.Case4),
-    corrected.logfc = elementMetadata(UPS1.Case4)[["corrected.logfc"]],
-    qvalue = elementMetadata(UPS1.Case4)[["qvalue"]],
-    p.value <- elementMetadata(UPS1.Case4)[["pvalue"]]
-)
+
+limrots.result.df <- data.frame(rowData(UPS1.Case4), row.names = rownames(UPS1.Case4))
+
 # Mark proteins as true positives (HUMAN UPS1 proteins)
-limrots.result.df$TP <- ifelse(grepl("HUMAN", limrots.result.df$proteins),
+limrots.result.df$TP <- ifelse(grepl("HUMAN", limrots.result.df$GeneID),
     "HUMAN_TP", "ECOLI_FP"
 )
 

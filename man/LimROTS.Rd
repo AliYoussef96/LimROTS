@@ -15,7 +15,7 @@ LimROTS(
   log = TRUE,
   verbose = TRUE,
   meta.info,
-  cluster = NULL,
+  BPPARAM = NULL,
   group.name,
   formula.str,
   robust = TRUE,
@@ -50,7 +50,7 @@ function's execution. Default is \code{TRUE}.}
 \item{meta.info}{a character vector of the metadata needed for the
 model to run and can be retrieved using \code{colData()}.}
 
-\item{cluster}{A \code{BiocParallelParam} object specifying the
+\item{BPPARAM}{A \code{BiocParallelParam} object specifying the
 parallelization backend (e.g., \code{MulticoreParam}, \code{SnowParam}).
 The default depends on the operating system: if the user is on Windows,
 \code{SnowParam(workers = 2)} is used; otherwise,
@@ -80,7 +80,7 @@ An object of class \code{"SummarizedExperiment"} with the
 following elements:
 \item{data}{The original data matrix.}
 \item{niter}{The number of bootstrap samples used.}
-\item{d}{The optimized statistics for each feature.}
+\item{statistics}{The optimized statistics for each feature.}
 \item{logfc}{Log-fold change values between groups.}
 \item{pvalue}{P-values computed based on the permutation samples.}
 \item{FDR}{False discovery rate estimates.}
@@ -92,6 +92,7 @@ corresponding to the effect corrected by the s model
 see \link{topTable}.}
 \item{q_values}{Estimated q-values using the \code{qvalue} package.}
 \item{BH.pvalue}{Benjamini-Hochberg adjusted p-values.}
+\item{null.statistics}{The optimized null statistics for each feature.}
 }
 \description{
 \code{LimROTS}: A Hybrid Method Integrating Empirical Bayes and
