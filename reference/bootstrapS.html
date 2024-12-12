@@ -19,7 +19,7 @@ adjusts for paired groups."><!-- mathjax --><script src="https://cdnjs.cloudflar
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">LimROTS</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.4</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.11</span>
       </span>
     </div>
 
@@ -93,42 +93,6 @@ entry is a resampled row name from the metadata.</p>
 separately.</p>
     </div>
 
-    <div id="ref-examples">
-    <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Example usage:</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">meta.info</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>    group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>    row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"Sample"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">bootstrapS</span><span class="op">(</span></span></span>
-<span class="r-in"><span>    niter <span class="op">=</span> <span class="fl">10</span>, meta.info <span class="op">=</span> <span class="va">meta.info</span>, group.name <span class="op">=</span> <span class="st">"group"</span></span></span>
-<span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       [,1]      [,2]      [,3]      [,4]      [,5]      [,6]       [,7]      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [1,] "Sample3" "Sample3" "Sample2" "Sample2" "Sample3" "Sample10" "Sample9" </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [2,] "Sample5" "Sample3" "Sample3" "Sample1" "Sample4" "Sample6"  "Sample6" </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [3,] "Sample2" "Sample1" "Sample3" "Sample4" "Sample1" "Sample8"  "Sample10"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [4,] "Sample1" "Sample1" "Sample2" "Sample3" "Sample4" "Sample10" "Sample10"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [5,] "Sample5" "Sample5" "Sample4" "Sample5" "Sample2" "Sample6"  "Sample6" </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [6,] "Sample1" "Sample2" "Sample4" "Sample4" "Sample3" "Sample6"  "Sample7" </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [7,] "Sample5" "Sample5" "Sample3" "Sample1" "Sample4" "Sample6"  "Sample6" </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [8,] "Sample3" "Sample5" "Sample3" "Sample2" "Sample5" "Sample10" "Sample8" </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [9,] "Sample4" "Sample2" "Sample2" "Sample4" "Sample4" "Sample6"  "Sample8" </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [10,] "Sample5" "Sample2" "Sample3" "Sample2" "Sample5" "Sample10" "Sample8" </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       [,8]       [,9]      [,10]     </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [1,] "Sample6"  "Sample7" "Sample8" </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [2,] "Sample10" "Sample8" "Sample7" </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [3,] "Sample9"  "Sample7" "Sample10"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [4,] "Sample8"  "Sample6" "Sample7" </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [5,] "Sample8"  "Sample6" "Sample10"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [6,] "Sample6"  "Sample7" "Sample9" </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [7,] "Sample8"  "Sample9" "Sample6" </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [8,] "Sample7"  "Sample7" "Sample7" </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [9,] "Sample8"  "Sample6" "Sample8" </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [10,] "Sample9"  "Sample9" "Sample9" </span>
-<span class="r-in"><span></span></span>
-</code></pre></div>
-    </div>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top"><h2 data-toc-skip>Contents</h2>

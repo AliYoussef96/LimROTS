@@ -19,7 +19,7 @@ Metabolomics Data"><!-- mathjax --><script src="https://cdnjs.cloudflare.com/aja
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">LimROTS</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.4</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.11</span>
       </span>
     </div>
 
@@ -69,7 +69,7 @@ Metabolomics Data</p>
 <span>  log <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">meta.info</span>,</span>
-<span>  cluster <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  BPPARAM <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">group.name</span>,</span>
 <span>  <span class="va">formula.str</span>,</span>
 <span>  robust <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -124,7 +124,7 @@ function's execution. Default is <code>TRUE</code>.</p></dd>
 model to run and can be retrieved using <code>colData()</code>.</p></dd>
 
 
-<dt id="arg-cluster">cluster<a class="anchor" aria-label="anchor" href="#arg-cluster"></a></dt>
+<dt id="arg-bpparam">BPPARAM<a class="anchor" aria-label="anchor" href="#arg-bpparam"></a></dt>
 <dd><p>A <code>BiocParallelParam</code> object specifying the
 parallelization backend (e.g., <code>MulticoreParam</code>, <code>SnowParam</code>).
 The default depends on the operating system: if the user is on Windows,
@@ -171,7 +171,7 @@ following elements:</p>
 <dt>niter</dt>
 <dd><p>The number of bootstrap samples used.</p></dd>
 
-<dt>d</dt>
+<dt>statistics</dt>
 <dd><p>The optimized statistics for each feature.</p></dd>
 
 <dt>logfc</dt>
@@ -202,6 +202,9 @@ see topTable.</p></dd>
 
 <dt>BH.pvalue</dt>
 <dd><p>Benjamini-Hochberg adjusted p-values.</p></dd>
+
+<dt>null.statistics</dt>
+<dd><p>The optimized null statistics for each feature.</p></dd>
 
 </dl></div>
     <div id="details">

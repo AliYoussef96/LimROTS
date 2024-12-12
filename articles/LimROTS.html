@@ -32,7 +32,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">LimROTS</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.4</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.11</span>
       </span>
     </div>
 
@@ -230,7 +230,7 @@ reproducibility.</strong></p>
 <span><span class="va">UPS1.Case4</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/LimROTS.html">LimROTS</a></span><span class="op">(</span></span>
 <span>    x <span class="op">=</span> <span class="va">UPS1.Case4</span>,</span>
 <span>    niter <span class="op">=</span> <span class="va">niter</span>, K <span class="op">=</span> <span class="va">K</span>, meta.info <span class="op">=</span> <span class="va">meta.info</span>,</span>
-<span>    cluster <span class="op">=</span> <span class="cn">NULL</span>, group.name <span class="op">=</span> <span class="va">group.name</span>,</span>
+<span>    BPPARAM  <span class="op">=</span> <span class="cn">NULL</span>, group.name <span class="op">=</span> <span class="va">group.name</span>,</span>
 <span>    formula.str <span class="op">=</span> <span class="va">formula.str</span>, trend <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>    robust <span class="op">=</span> <span class="cn">TRUE</span>, permutating.group <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
@@ -246,18 +246,18 @@ reproducibility optimization (K) to 100 both, in order to minimize the
 example’s run-time. For actual analyses, it is advisable to utilize a
 greater number of bootstraps (e.g., 1000). Also, for the number of cores
 to use we recommend to use at least 4 workers</p>
-<p>On Windows OS, the user can define a <code>cluster</code> to work
+<p>On Windows OS, the user can define a <code>BPPARAM</code> to work
 with more than 2 workers as follows:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># cluster &lt;- SnowParam(workers = 4)</span></span>
+<code class="sourceCode R"><span><span class="co"># BPPARAM  &lt;- SnowParam(workers = 4)</span></span>
 <span><span class="co"># Commented out in the vignette to ensure the limit set by the</span></span>
 <span><span class="co"># R_CHECK_LIMIT_CORES environment variable is not exceeded.</span></span></code></pre></div>
 <p>On Linux and Mac OS</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># cluster &lt;- MulticoreParam(workers = 4)</span></span>
+<code class="sourceCode R"><span><span class="co"># BPPARAM  &lt;- MulticoreParam(workers = 4)</span></span>
 <span><span class="co"># Commented out in the vignette to ensure the limit set by the</span></span>
 <span><span class="co"># R_CHECK_LIMIT_CORES environment variable is not exceeded.</span></span></code></pre></div>
-<p>And then pass the <code>cluster</code> to <code><a href="../reference/LimROTS.html">LimROTS()</a></code>.</p>
+<p>And then pass the <code>BPPARAM</code> to <code><a href="../reference/LimROTS.html">LimROTS()</a></code>.</p>
 <p>The results from the <code>LimROTS</code> function will be appended
 to the <code>SummarizedExperiment</code> object used, in this case,
 <code>UPS1.Case4</code>.</p>
@@ -271,14 +271,12 @@ majority of actual positive proteins while detecting a limited number of
 simulated E.coli proteins.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create a data frame from the LimROTS results</span></span>
-<span><span class="va">limrots.result.df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
-<span>    proteins <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">UPS1.Case4</span><span class="op">)</span>,</span>
-<span>    corrected.logfc <span class="op">=</span> <span class="fu">elementMetadata</span><span class="op">(</span><span class="va">UPS1.Case4</span><span class="op">)</span><span class="op">[[</span><span class="st">"corrected.logfc"</span><span class="op">]</span><span class="op">]</span>,</span>
-<span>    qvalue <span class="op">=</span> <span class="fu">elementMetadata</span><span class="op">(</span><span class="va">UPS1.Case4</span><span class="op">)</span><span class="op">[[</span><span class="st">"qvalue"</span><span class="op">]</span><span class="op">]</span>,</span>
-<span>    <span class="va">p.value</span> <span class="op">&lt;-</span> <span class="fu">elementMetadata</span><span class="op">(</span><span class="va">UPS1.Case4</span><span class="op">)</span><span class="op">[[</span><span class="st">"pvalue"</span><span class="op">]</span><span class="op">]</span></span>
-<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">limrots.result.df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">UPS1.Case4</span><span class="op">)</span>, </span>
+<span>                                row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">UPS1.Case4</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
 <span><span class="co"># Mark proteins as true positives (HUMAN UPS1 proteins)</span></span>
-<span><span class="va">limrots.result.df</span><span class="op">$</span><span class="va">TP</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"HUMAN"</span>, <span class="va">limrots.result.df</span><span class="op">$</span><span class="va">proteins</span><span class="op">)</span>,</span>
+<span><span class="va">limrots.result.df</span><span class="op">$</span><span class="va">TP</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"HUMAN"</span>, <span class="va">limrots.result.df</span><span class="op">$</span><span class="va">GeneID</span><span class="op">)</span>,</span>
 <span>    <span class="st">"HUMAN_TP"</span>, <span class="st">"ECOLI_FP"</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -321,7 +319,7 @@ Benjamini-Hochberg adjusted p-values.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Summary of q-values</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="fu">metadata</span><span class="op">(</span><span class="va">UPS1.Case4</span><span class="op">)</span><span class="op">[[</span><span class="st">"q_values"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="fu">metadata</span><span class="op">(</span><span class="va">UPS1.Case4</span><span class="op">)</span><span class="op">[[</span><span class="st">"q_values"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -507,10 +505,10 @@ performance for general use cases.</p>
 <span><span class="co">#&gt; [8] base     </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; other attached packages:</span></span>
-<span><span class="co">#&gt;  [1] caret_6.0-94                lattice_0.22-6             </span></span>
+<span><span class="co">#&gt;  [1] caret_7.0-1                 lattice_0.22-6             </span></span>
 <span><span class="co">#&gt;  [3] limma_3.63.2                ROTS_1.35.0                </span></span>
 <span><span class="co">#&gt;  [5] ggplot2_3.5.1               BiocParallel_1.41.0        </span></span>
-<span><span class="co">#&gt;  [7] LimROTS_0.99.4              SummarizedExperiment_1.37.0</span></span>
+<span><span class="co">#&gt;  [7] LimROTS_0.99.11             SummarizedExperiment_1.37.0</span></span>
 <span><span class="co">#&gt;  [9] Biobase_2.67.0              GenomicRanges_1.59.1       </span></span>
 <span><span class="co">#&gt; [11] GenomeInfoDb_1.43.2         IRanges_2.41.2             </span></span>
 <span><span class="co">#&gt; [13] S4Vectors_0.45.2            BiocGenerics_0.53.3        </span></span>

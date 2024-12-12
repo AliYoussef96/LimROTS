@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">LimROTS</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.4</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.11</span>
       </span>
     </div>
 
@@ -57,7 +57,7 @@
 
     <div id="ref-usage">
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">Boot_parallel</span><span class="op">(</span></span>
-<span>  cluster <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  BPPARAM <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">samples</span>,</span>
 <span>  <span class="va">data</span>,</span>
 <span>  <span class="va">formula.str</span>,</span>
@@ -74,9 +74,8 @@
     <h2>Arguments</h2>
 
 
-<dl><dt id="arg-cluster">cluster<a class="anchor" aria-label="anchor" href="#arg-cluster"></a></dt>
-<dd><p>A parallel cluster object for distributed computation,
-e.g., created by <code>makeCluster()</code>. Default is 2.</p></dd>
+<dl><dt id="arg-bpparam">BPPARAM<a class="anchor" aria-label="anchor" href="#arg-bpparam"></a></dt>
+<dd><p>A parallel BPPARAM object for distributed computation.</p></dd>
 
 
 <dt id="arg-samples">samples<a class="anchor" aria-label="anchor" href="#arg-samples"></a></dt>
