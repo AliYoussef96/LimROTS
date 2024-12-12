@@ -13,12 +13,12 @@ test_that("LimROTS the main function returns expected output structure", {
     )
 
     expect_type(result, "list")
-    expect_length(result, 16)
+    expect_length(result, 17)
 
     expected_names <- c(
-        "data", "niter", "d", "logfc", "pvalue", "FDR",
+        "data", "niter", "statistics", "logfc", "pvalue", "FDR",
         "a1", "a2", "k", "R", "Z", "ztable", "groups",
-        "corrected.logfc", "q_values", "BH.pvalue"
+        "corrected.logfc", "q_values", "BH.pvalue", "null.statistics"
     )
 
     expect_true(all(expected_names %in% names(result)),

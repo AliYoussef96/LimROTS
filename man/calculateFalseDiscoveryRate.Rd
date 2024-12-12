@@ -24,11 +24,3 @@ observed values to permuted values.The function sorts observed values,
 compares them against permuted data, and computes FDR using the median of
 permutation results.
 }
-\examples{
-observedValues <- c(2.5, 1.8, 3.1, 0.7, 2.9)
-set.seed(123)
-permutedValues <- matrix(rnorm(5 * 5, mean = 2, sd = 1), nrow = 5)
-fdr <- calculateFalseDiscoveryRate(observedValues, permutedValues)
-print(fdr)
-
-}

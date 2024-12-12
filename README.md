@@ -33,7 +33,7 @@ if (!requireNamespace("LimROTS", quietly = TRUE)) {
 ```
 
 ``` r
-remotes::install_github("AliYoussef96/LimROTS")
+remotes::install_github("AliYoussef96/LimROTS" , ref  = "devel")
 ```
 
 ## Code of Conduct

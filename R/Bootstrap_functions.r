@@ -18,17 +18,7 @@
 #' number of samples. Each row corresponds to a bootstrap sample, and each
 #' entry is a resampled row name from the metadata.
 #'
-#' @export
-#' @examples
-#' # Example usage:
-#' set.seed(123)
-#' meta.info <- data.frame(
-#'     group = rep(c("A", "B"), each = 5),
-#'     row.names = paste0("Sample", 1:10)
-#' )
-#' bootstrapS(
-#'     niter = 10, meta.info = meta.info, group.name = "group"
-#' )
+#'
 #'
 bootstrapS <- function(niter, meta.info, group.name) {
     groups <- meta.info[, group.name]
@@ -86,7 +76,10 @@ bootstrapSamples_limRots <- function(niter, meta.info, group.name) {
                         c(meta.info.factors, colnames(meta.info.pos)[j])
                 }
             }
-            if (is.null(meta.info.factors)) {
+            meta.info.factors <-
+                    meta.info.factors[meta.info.factors != group.name]
+            if (is.null(meta.info.factors) | 
+                length(meta.info.factors) == 0) {
                 samples <- bootstrapS(
                     niter = niter,
                     meta.info = meta.info,
@@ -94,8 +87,6 @@ bootstrapSamples_limRots <- function(niter, meta.info, group.name) {
                 )
                 return(samples)
             }
-            meta.info.factors <-
-                meta.info.factors[meta.info.factors != group.name]
             meta.info.pos$stratum <-
                 interaction(meta.info.pos[, meta.info.factors])
             stratum_sizes <- table(meta.info.pos$stratum)

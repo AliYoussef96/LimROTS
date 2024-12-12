@@ -22,7 +22,7 @@
 #' model to run and can be retrieved using \code{colData()}.
 #' @param group.name A string specifying the column in \code{meta.info} that
 #' represents the groups or conditions for comparison.
-#' @param cluster  A \code{BiocParallelParam} object specifying the
+#' @param BPPARAM   A \code{BiocParallelParam} object specifying the
 #' parallelization backend (e.g., \code{MulticoreParam}, \code{SnowParam}).
 #' The default depends on the operating system: if the user is on Windows,
 #' \code{SnowParam(workers = 2)} is used; otherwise,
@@ -45,7 +45,7 @@
 #' following elements:
 #' \item{data}{The original data matrix.}
 #' \item{niter}{The number of bootstrap samples used.}
-#' \item{d}{The optimized statistics for each feature.}
+#' \item{statistics}{The optimized statistics for each feature.}
 #' \item{logfc}{Log-fold change values between groups.}
 #' \item{pvalue}{P-values computed based on the permutation samples.}
 #' \item{FDR}{False discovery rate estimates.}
@@ -57,6 +57,7 @@
 #' see \link{topTable}.}
 #' \item{q_values}{Estimated q-values using the `qvalue` package.}
 #' \item{BH.pvalue}{Benjamini-Hochberg adjusted p-values.}
+#' \item{null.statistics}{The optimized null statistics for each feature.}
 #'
 #'
 #'
@@ -147,7 +148,7 @@ LimROTS <- function(x,
     log = TRUE,
     verbose = TRUE,
     meta.info,
-    cluster = NULL,
+    BPPARAM  = NULL,
     group.name,
     formula.str,
     robust = TRUE,
@@ -221,7 +222,7 @@ LimROTS <- function(x,
     pD <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
     pS <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
     results_list <- Boot_parallel(
-        cluster = cluster,
+        BPPARAM  = BPPARAM ,
         samples = samples, data = data,
         formula.str = formula.str,
         group.name = group.name,
@@ -283,8 +284,6 @@ LimROTS <- function(x,
         )
         FDR <- calculateFalseDiscoveryRate(d, pD)
         corrected.logfc <- fit$corrected.logfc
-        rm(pD)
-        gc()
         q_values <- tryCatch(
             {
                     qvalue(
@@ -301,7 +300,7 @@ LimROTS <- function(x,
 
         if (inherits(x, "SummarizedExperiment")) {
             new_rowData <- DataFrame(
-                d = d,
+                statistics = d,
                 logfc = logfc,
                 pvalue = p,
                 qvalue = q_values$qvalues,
@@ -330,7 +329,8 @@ LimROTS <- function(x,
                 Z = Z,
                 R = R,
                 ztable = ztable,
-                q_values = q_values
+                q_values = q_values,
+                null.statistics = pD
             ))
 
             LimROTS.output <- x
@@ -340,7 +340,7 @@ LimROTS <- function(x,
             LimROTS.output <- list(
                 data = data,
                 niter = niter,
-                d = d,
+                statistics = d,
                 logfc = logfc,
                 pvalue = p,
                 FDR = FDR,
@@ -353,7 +353,8 @@ LimROTS <- function(x,
                 groups = groups,
                 corrected.logfc = corrected.logfc,
                 q_values = q_values,
-                BH.pvalue = BH.pvalue
+                BH.pvalue = BH.pvalue,
+                null.statistics = pD
             )
         }
     } else {
@@ -398,7 +399,7 @@ LimROTS <- function(x,
 
         if (inherits(x, "SummarizedExperiment")) {
             new_rowData <- DataFrame(
-                d = d,
+                statistics = d,
                 logfc = logfc,
                 pvalue = p,
                 qvalue = q_values$qvalues,
@@ -428,7 +429,8 @@ LimROTS <- function(x,
                 Z = NULL,
                 R = NULL,
                 ztable = ztable,
-                q_values = q_values
+                q_values = q_values,
+                null.statistics = pD
             ))
             LimROTS.output <- x
             remove(x)
@@ -437,7 +439,7 @@ LimROTS <- function(x,
             LimROTS.output <- list(
                 data = data,
                 niter = niter,
-                d = d,
+                statistics = d,
                 logfc = logfc,
                 pvalue = p,
                 FDR = FDR,
@@ -449,7 +451,8 @@ LimROTS <- function(x,
                 groups = groups,
                 corrected.logfc = corrected.logfc,
                 q_values = q_values,
-                BH.pvalue = BH.pvalue
+                BH.pvalue = BH.pvalue,
+                null.statistics = pD
             )
         }
     }

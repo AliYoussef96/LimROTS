@@ -14,8 +14,7 @@
 #' model to run and can be retrieved using \code{colData()}.
 #' @param group.name A string specifying the column in \code{meta.info} that
 #' represents the groups or conditions for comparison.
-#' @param cluster A parallel cluster object for distributed computation,
-#' e.g., created by \code{makeCluster()}. Default is 2.
+#' @param BPPARAM A parallel BPPARAM object for distributed computation.
 #' @param formula.str A formula string used when covariates are present in meta.
 #' info for modeling. It should include "~ 0 + ..." to exclude the
 #' intercept from the model.
@@ -33,7 +32,7 @@
 #'
 
 
-Boot_parallel <- function(cluster = NULL,
+Boot_parallel <- function(BPPARAM = NULL,
     samples,
     data,
     formula.str,
@@ -43,19 +42,19 @@ Boot_parallel <- function(cluster = NULL,
     a1,
     a2,
     pSamples) {
-    if (is.null(cluster)) {
+    if (is.null(BPPARAM)) {
         if (isWindows()) {
-            cluster <- SnowParam(workers = 2)
+            BPPARAM <- SnowParam(workers = 2)
             message("Using SnowParam (Windows) with two workers.")
         } else {
-            cluster <- MulticoreParam(workers = 2)
+            BPPARAM <- MulticoreParam(workers = 2)
             message("Using MulticoreParam (Unix-like OS) with two workers.")
         }
     } else {
-        message("Using provided parallel backend cluster.")
+        message("Using provided parallel backend BPPARAM.")
     }
-    if (inherits(cluster, "SnowParam")) {
-        cluster$exportglobals <- FALSE
+    if (inherits(BPPARAM, "SnowParam")) {
+        BPPARAM$exportglobals <- FALSE
     }
     export_vars <- list(
         samples = samples,
@@ -104,7 +103,7 @@ Boot_parallel <- function(cluster = NULL,
         ps_result <- pFit$s
         df2 <- data.frame(pd_result = pd_result, ps_result = ps_result)
         list(ds = df1, pdps = df2)
-    }, BPPARAM = cluster, 
+    }, BPPARAM = BPPARAM, 
                 BPOPTIONS = bpoptions(packages = c("utils", 
                                                             "stringr", "stats", 
                                                                     "limma")))
