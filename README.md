@@ -23,14 +23,29 @@ simulate more complex experimental designs.
 
 ## Installation instructions
 
-The devel version of LimROTS can be installed from GitHub as follows:
+## Option 1: Install from Bioconductor (recommended)
+
+The package is available on Bioconductor as a development (devel) version. To install it, follow these steps,
+
+```{r}
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install(version='devel')
+
+BiocManager::install("LimROTS")
+```
+
+## Option 2: Install from GitHub
+
+You can install the package directly from GitHub,
 
 ``` r
-# Install LimROTS if not already installed
 if (!requireNamespace("LimROTS", quietly = TRUE)) {
   remotes::install_github("AliYoussef96/LimROTS")
 }
 ```
+or
 
 ``` r
 remotes::install_github("AliYoussef96/LimROTS" , ref  = "devel")
