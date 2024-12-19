@@ -23,7 +23,7 @@ simulate more complex experimental designs.
 
 ## Installation instructions
 
-## Option 1: Install from Bioconductor (recommended)
+### Option 1: Install from Bioconductor (recommended)
 
 The package is available on Bioconductor as a development (devel) version. To install it, follow these steps,
 
@@ -36,7 +36,7 @@ BiocManager::install(version='devel')
 BiocManager::install("LimROTS")
 ```
 
-## Option 2: Install from GitHub
+### Option 2: Install from GitHub
 
 You can install the package directly from GitHub,
 
