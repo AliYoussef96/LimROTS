@@ -27,7 +27,7 @@ simulate more complex experimental designs.
 
 The package is available on Bioconductor as a development (devel) version. To install it, follow these steps,
 
-```{r}
+``` r
 if (!require("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 
