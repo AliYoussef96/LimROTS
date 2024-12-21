@@ -37,8 +37,8 @@ jobs:
     - name: Install dependencies for Windows
       if: runner.os == 'Windows'
       run: |
-        install.packages("BiocManager")
-        BiocManager::install(c("GenomicRanges", "GenomeInfoDb", "IRanges"), dependencies=TRUE, force = TRUE)
+        Rscript -e "install.packages('BiocManager')"
+        Rscript -e "BiocManager::install(c('GenomicRanges', 'GenomeInfoDb', 'IRanges'), dependencies=TRUE)"
 
     - uses: neurogenomics/rworkflows@master
       with:
