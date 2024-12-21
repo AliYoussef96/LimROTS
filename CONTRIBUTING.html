@@ -268,13 +268,13 @@
 <p>A minimal workflow for package development is as follows.</p>
 <ol style="list-style-type: decimal"><li><p><em>Fork</em> (with Git) LimROTS R package from [<a href="https://github.com/AliYoussef96/LimROTS" class="external-link uri">https://github.com/AliYoussef96/LimROTS</a>]</p></li>
 <li><p><em>Clone</em> (with Git) your own fork of LimROTS; or if you have cloned it earlier, then make sure that your branch is in sync with the <em>upstream</em> repository (see next section)</p></li>
-<li><p>Test package (in R): <code>devtools::test()</code> (and fix possible issues)</p></li>
-<li><p>Test examples: <code>devtools::run_examples()</code></p></li>
-<li><p>Update documentation (convert R files to man/ files): <code>devtools::document()</code></p></li>
-<li><p>Build package: <code>devtools::build()</code></p></li>
+<li><p>Test package (in R): <code><a href="https://devtools.r-lib.org/reference/test.html" class="external-link">devtools::test()</a></code> (and fix possible issues)</p></li>
+<li><p>Test examples: <code><a href="https://devtools.r-lib.org/reference/run_examples.html" class="external-link">devtools::run_examples()</a></code></p></li>
+<li><p>Update documentation (convert R files to man/ files): <code><a href="https://devtools.r-lib.org/reference/document.html" class="external-link">devtools::document()</a></code></p></li>
+<li><p>Build package: <code><a href="https://devtools.r-lib.org/reference/build.html" class="external-link">devtools::build()</a></code></p></li>
 <li><p>Run Bioconductor checks: <code>BiocCheck::BiocCheck()</code> (for more details on Bioconductor formatting guidelines and automated checks, see <a href="https://bioconductor.org/packages/devel/bioc/vignettes/BiocCheck/inst/doc/BiocCheck.html" class="external-link">Bioconductor package guidelines</a> and instructions on <a href="https://contributions.bioconductor.org/" class="external-link">Bioconductor packages: Development, Maintenance, and Peer Review</a>)</p></li>
-<li><p>Load the updated package: <code>devtools::load_all()</code></p></li>
-<li><p>Install the package: <code>devtools::install()</code></p></li>
+<li><p>Load the updated package: <code><a href="https://devtools.r-lib.org/reference/load_all.html" class="external-link">devtools::load_all()</a></code></p></li>
+<li><p>Install the package: <code><a href="https://devtools.r-lib.org/reference/install.html" class="external-link">devtools::install()</a></code></p></li>
 <li><p>Once the package passes all build checks, commit &amp; push to your own fork, then make a pull request (PR) to the original repository. This will trigger additional automated checks. If they fail, inspect the reason, fix accordingly, and update your PR (simply commit + push new material to your fork; the PR is already open).</p></li>
 </ol><p>Final checks after the R tests; run on command line (replace “R” with your custom R path if necessary):</p>
 <ul><li>
