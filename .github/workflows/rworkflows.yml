@@ -27,7 +27,7 @@ jobs:
           cont: ~
           rspm: ~
         - os: windows-latest
-          bioc: 3.20
+          bioc: release
           r: devel
           cont: ~
           rspm: ~
