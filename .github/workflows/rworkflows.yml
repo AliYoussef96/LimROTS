@@ -27,25 +27,11 @@ jobs:
           cont: ~
           rspm: ~
         - os: windows-latest
-          bioc: devel
+          bioc: 3.20
           r: devel
           cont: ~
           rspm: ~
     steps:
-    - uses: actions/checkout@v3
-
-    # Install dependencies specifically on Windows
-    - name: Install R and Bioconductor dependencies
-      if: runner.os == 'Windows'
-      run: |
-        Rscript -e "options(repos = c(CRAN = 'https://cloud.r-project.org')); install.packages('BiocManager')"
-        Rscript -e "lib_path <- .libPaths()[1]; BiocManager::install(c('GenomicRanges', 'GenomeInfoDb', 'IRanges', 'XVector'), lib = lib_path, dependencies = TRUE, force = TRUE)"
-
-    # Add the R library path to the environment for subsequent steps
-    - name: Set R library path
-      if: runner.os == 'Windows'
-      run: echo "R_LIBS_USER=$(Rscript -e 'cat(.libPaths()[1])')" >> $GITHUB_ENV
-
     # Run neurogenomics/rworkflows
     - uses: neurogenomics/rworkflows@master
       with:
