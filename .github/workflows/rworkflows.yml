@@ -38,7 +38,7 @@ jobs:
       if: runner.os == 'Windows'
       run: |
         Rscript -e "options(repos = c(CRAN = 'https://cloud.r-project.org')); install.packages('BiocManager')"
-        Rscript -e "BiocManager::install(c('GenomicRanges', 'GenomeInfoDb', 'IRanges'), dependencies=TRUE)"
+        Rscript -e "BiocManager::install(c('GenomicRanges', 'GenomeInfoDb', 'IRanges' , 'XVector'), dependencies=TRUE, force = TRUE)"
 
     - uses: neurogenomics/rworkflows@master
       with:
