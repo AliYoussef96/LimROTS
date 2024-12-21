@@ -32,6 +32,14 @@ jobs:
           cont: ~
           rspm: ~
     steps:
+    - uses: actions/checkout@v3
+
+    - name: Install dependencies for Windows
+      if: runner.os == 'Windows'
+      run: |
+        install.packages("BiocManager")
+        BiocManager::install(c("GenomicRanges", "GenomeInfoDb", "IRanges"), dependencies=TRUE, force = TRUE)
+
     - uses: neurogenomics/rworkflows@master
       with:
         run_bioccheck: false
