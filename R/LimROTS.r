@@ -184,7 +184,7 @@ LimROTS <- function(x,
     }
 
     if (ncol(meta.info) > 1) {
-        samples <- bootstrapSamples_limRots(
+        samples <- bootstrapS(
             niter = 2 * niter,
             meta.info = meta.info,
             group.name = group.name
