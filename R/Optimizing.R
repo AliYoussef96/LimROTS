@@ -37,8 +37,6 @@
 #'
 #'
 
-library(BiocParallel)
-
 Optimizing <- function(niter, ssq, N, D, S, pD, pS, verbose) {
     if (verbose) {
         message("Optimizing a1 and a2")
@@ -61,7 +59,6 @@ Optimizing <- function(niter, ssq, N, D, S, pD, pS, verbose) {
     colnames(reprotable.sd) <- N
     row.names(reprotable.sd) <- c(ssq, "slr")
     
-    # Parallelize the ssq loop
     parallel_results <- bplapply(seq_along(ssq), function(i) {
         overlaps <- matrix(0, nrow = niter, ncol = length(N))
         overlaps.P <- matrix(0, nrow = niter, ncol = length(N))
@@ -78,14 +75,12 @@ Optimizing <- function(niter, ssq, N, D, S, pD, pS, verbose) {
         )
     }, BPPARAM = bpparam)
     
-    # Fill in the results from parallel computation
     for (i in seq_along(ssq)) {
         reprotable[i, ] <- parallel_results[[i]]$mean
         reprotable.P[i, ] <- parallel_results[[i]]$mean_P
         reprotable.sd[i, ] <- parallel_results[[i]]$sd
     }
     
-    # Process the slr case (not parallelized as it's just one iteration)
     i <- length(ssq) + 1
     overlaps <- matrix(0, nrow = niter, ncol = length(N))
     overlaps.P <- matrix(0, nrow = niter, ncol = length(N))
@@ -96,7 +91,6 @@ Optimizing <- function(niter, ssq, N, D, S, pD, pS, verbose) {
     reprotable.sd[i, ] <- sqrt(rowSums((t(cResults[["overlaps"]]) - 
                                       reprotable[i, ])^2)/(nrow(cResults[["overlaps"]]) - 1))
     
-    # Rest of the function remains the same
     ztable <- (reprotable - reprotable.P)/reprotable.sd
     sel <- which(ztable == max(ztable[is.finite(ztable)]), arr.ind = TRUE)
     if (length(sel) > 2) {
