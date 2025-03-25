@@ -43,9 +43,9 @@ Optimizing <- function(niter, ssq, N, D, S, pD, pS, verbose) {
     }
     
     if (.Platform$OS.type == "windows") {
-        bpparam <- SnowParam(workers = 10, progressbar = T)
+        bpparam <- SnowParam(workers = 20, progressbar = T)
     } else {
-        bpparam <- MulticoreParam(workers = 10, progressbar = T)
+        bpparam <- MulticoreParam(workers = 20, progressbar = T)
     }
     
     # Initialize result matrices
