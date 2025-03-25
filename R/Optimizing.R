@@ -42,11 +42,8 @@ Optimizing <- function(niter, ssq, N, D, S, pD, pS, verbose) {
         message("Optimizing a1 and a2")
     }
     
-    if (.Platform$OS.type == "windows") {
-        bpparam <- SnowParam(workers = 20, progressbar = T)
-    } else {
-        bpparam <- MulticoreParam(workers = 20, progressbar = T)
-    }
+    bpparam <- SnowParam(workers = 20, progressbar = T)
+
     
     # Initialize result matrices
     reprotable <- matrix(nrow = length(ssq) + 1, ncol = length(N))
