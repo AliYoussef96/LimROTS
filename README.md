@@ -31,8 +31,6 @@ The package is available on Bioconductor as a development (devel) version. To in
 if (!require("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 
-BiocManager::install(version='devel')
-
 BiocManager::install("LimROTS")
 ```
 
@@ -48,7 +46,7 @@ if (!requireNamespace("LimROTS", quietly = TRUE)) {
 or
 
 ``` r
-remotes::install_github("AliYoussef96/LimROTS" , ref  = "devel")
+remotes::install_github("AliYoussef96/LimROTS" , ref  = "RELEASE_3_21")
 ```
 
 ## Code of Conduct
