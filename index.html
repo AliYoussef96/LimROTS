@@ -33,7 +33,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">LimROTS</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.99.12</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.1.0</span>
       </span>
     </div>
 
@@ -69,7 +69,7 @@
       </header><div class="row">
   <div class="contents col-md-9">
 <div class="section level1">
-<div class="page-header"><h1 id="limrots-a-hybrid-method-integrating-empirical-bayes-and-reproducibility-optimized-statistics-for-robust-analysis-of-proteomics-and-metabolomics-data">LimROTS: A Hybrid Method Integrating Empirical Bayes and Reproducibility-Optimized Statistics for Robust Analysis of Proteomics and Metabolomics Data<a class="anchor" aria-label="anchor" href="#limrots-a-hybrid-method-integrating-empirical-bayes-and-reproducibility-optimized-statistics-for-robust-analysis-of-proteomics-and-metabolomics-data"></a>
+<div class="page-header"><h1 id="limrots-a-hybrid-method-integrating-empirical-bayes-and-reproducibility-optimized-statistics-for-robust-differential-expression-analysis">LimROTS: A Hybrid Method Integrating Empirical Bayes and Reproducibility-Optimized Statistics for Robust Differential Expression Analysis<a class="anchor" aria-label="anchor" href="#limrots-a-hybrid-method-integrating-empirical-bayes-and-reproducibility-optimized-statistics-for-robust-differential-expression-analysis"></a>
 </h1></div>
 <p><a href="https://github.com/AliYoussef96/LimROTS/issues" class="external-link"><img src="https://img.shields.io/github/issues/AliYoussef96/LimROTS" alt="issues"></a> <a href="https://github.com/AliYoussef96/LimROTS/pulls" class="external-link"><img src="https://img.shields.io/github/issues-pr/AliYoussef96/LimROTS" alt="pulls"></a> <a href="https://github.com/AliYoussef96/LimROTS/actions" class="external-link"><img src="https://github.com/AliYoussef96/LimROTS/workflows/rworkflows/badge.svg" alt="R-CMD-check"></a> <!--[![codecov](https://codecov.io/gh/AliYoussef96/LimROTS/branch/devel/graph/badge.svg)](https://app.codecov.io/gh/AliYoussef96/LimROTS?branch=devel)--> <!--[![codefactor](https://www.codefactor.io/repository/github/AliYoussef96/LimROTS/badge)](https://www.codefactor.io/repository/github/AliYoussef96/LimROTS)--></p>
 <p>Differential expression analysis is a prevalent method utilised in the examination of diverse biological data. The reproducibility-optimized test statistic (ROTS) (<a href="https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1005562" class="external-link">Tomi Suomi et al.,</a>) has been developed with a modified t-statistic based on the data’s intrinsic characteristics and ranks features according to their statistical significance for differential expression between two or more groups, as shown by the f-statistic. Focusing on proteomics and metabolomics, the current ROTS implementation cannot account for technical or biological covariates such as MS batches or gender differences among the samples. Consequently, we developed LimROTS, which employs a reproducibility-optimized test statistic utilizing the limma empirical bayes (<a href="https://academic.oup.com/nar/article/43/7/e47/2414268" class="external-link">Ritchie ME et al.,</a>) methodology to simulate more complex experimental designs.</p>
