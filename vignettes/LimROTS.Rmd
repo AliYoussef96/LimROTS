@@ -1,7 +1,7 @@
 ---
 title: "LimROTS: A Hybrid Method Integrating Empirical Bayes and 
-        Reproducibility-Optimized Statistics for Robust Analysis of Proteomics 
-        and Metabolomics Data"
+        Reproducibility-Optimized Statistics for Robust 
+        Differential Expression Analysis"
 bibliography: references.bib
 output:
     BiocStyle::html_document:
