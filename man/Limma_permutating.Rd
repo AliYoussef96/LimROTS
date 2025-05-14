@@ -44,7 +44,8 @@ covariate, pairwise contrasts are computed, and the moderated F-statistic is
 calculated for each feature.
 }
 \seealso{
-\code{\link[limma]{lmFit}}, \code{\link[limma]{eBayes}},
-\code{\link[limma]{topTable}},
-\code{\link[limma]{makeContrasts}}
+  \code{\link[limma]{lmFit}}, \code{\link[limma]{eBayes}},
+  \code{\link[limma]{topTable}},
+  \code{\link[limma]{makeContrasts}},
+  \pkg{limma}
 }
