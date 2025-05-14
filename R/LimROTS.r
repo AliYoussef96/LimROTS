@@ -1,6 +1,6 @@
-#' `LimROTS`: A Hybrid Method Integrating Empirical Bayes and
-#' Reproducibility-Optimized Statistics for Robust Analysis of Proteomics and
-#' Metabolomics Data
+#' `LimROTS`: A Hybrid Method Integrating Empirical Bayes and 
+#' Reproducibility-Optimized Statistics for Robust Differential 
+#' Expression Analysis
 #'
 #' @param x A \code{SummarizedExperiment} object, where rows
 #' represent features (e.g., proteins, metabolites) and columns
@@ -21,7 +21,8 @@
 #' @param meta.info a character vector of the metadata needed for the
 #' model to run and can be retrieved using \code{colData()}.
 #' @param group.name A string specifying the column in \code{meta.info} that
-#' represents the groups or conditions for comparison.
+#' represents the groups or conditions for comparison. group.name should be 
+#' retrieved using \code{colData()} as factor.
 #' @param BPPARAM   A \code{BiocParallelParam} object specifying the
 #' parallelization backend (e.g., \code{MulticoreParam}, \code{SnowParam}).
 #' The default depends on the operating system: if the user is on Windows,
@@ -31,9 +32,9 @@
 #' It should include "~ 0 + ..." to exclude the intercept from the model.
 #' All the model parameters must be present in \code{meta.info}.
 #' @param robust indicating whether robust fitting should be used.
-#' Default is TRUE, see \link{eBayes}.
+#' Default is TRUE, see \link[limma]{eBayes}.
 #' @param trend indicating whether to include trend fitting in the
-#' differential expression analysis. Default is TRUE. see \link{eBayes}.
+#' differential expression analysis. Default is TRUE. see \link[limma]{eBayes}.
 #' @param permutating.group Logical, If \code{TRUE}, the permutation for
 #' calculating the null distribution is performed by permuting the target group
 #' only specified in \code{group.name} Preserving all the other sample
@@ -54,7 +55,7 @@
 #' \item{k}{Top list size used for ranking.}
 #' \item{corrected.logfc}{estimate of the log2-fold-change
 #' corresponding to the effect corrected by the s model
-#' see \link{topTable}.}
+#' see \link[limma]{topTable}.}
 #' \item{q_values}{Estimated q-values using the `qvalue` package.}
 #' \item{BH.pvalue}{Benjamini-Hochberg adjusted p-values.}
 #' \item{null.statistics}{The optimized null statistics for each feature.}
@@ -85,7 +86,7 @@
 #' @importFrom S4Vectors DataFrame metadata
 #'
 #' @details The **LimROTS** approach initially uses
-#' \link{limma} package functionality to simulate the intensity data of
+#' \pkg{limma} package functionality to simulate the intensity data of
 #' proteins and
 #' metabolites. A linear model is subsequently fitted using the design matrix.
 #' Empirical Bayes variance shrinking is then implemented. To obtain the
@@ -107,10 +108,10 @@
 #'          is the the adjusted
 #'          standard error. LimROTS generates p-values from permutation samples
 #'          using the implementation available in
-#'          \link{qvalue} package, along with internal implementation of FDR
+#'          \link[qvalue]{qvalue} package, along with internal implementation of FDR
 #'          adapted from ROTS package. Additionally, the qvalue package is used
 #'          to calculate q-values, were the proportion of true null p-values is
-#'          set to the bootstrap method \link{pi0est}. We recommend using
+#'          set to the bootstrap method \link[qvalue]{pi0est}. We recommend using
 #'          permutation-derived p-values and qvalues.
 #'
 #' This function processes a dataset using parallel computation. It
@@ -168,6 +169,8 @@ LimROTS <- function(x,
     groups <- SanityChecK.list$groups
     event <- SanityChecK.list$event
     K <- SanityChecK.list$K
+    
+    
     if (length(unique(groups)) == 2) {
         group1_data <- data[, groups == 1]
         group2_data <- data[, groups == 2]
