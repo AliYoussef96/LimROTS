@@ -45,8 +45,7 @@ associated statistics. In multi-group settings with a single covariate,
 it calculates pairwise contrasts and moderated F-statistics.
 }
 \seealso{
-  \code{\link[limma]{lmFit}}, \code{\link[limma]{eBayes}},
-  \code{\link[limma]{topTable}},
-  \code{\link[limma]{makeContrasts}},
-  \pkg{limma}
+\code{\link[limma]{lmFit}}, \code{\link[limma]{eBayes}},
+\code{\link[limma]{topTable}},
+\code{\link[limma]{makeContrasts}}
 }
