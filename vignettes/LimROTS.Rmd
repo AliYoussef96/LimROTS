@@ -1,7 +1,7 @@
 ---
 title: "LimROTS: A Hybrid Method Integrating Empirical Bayes and 
-        Reproducibility-Optimized Statistics for Robust Analysis of Proteomics 
-        and Metabolomics Data"
+        Reproducibility-Optimized Statistics for Robust Differential 
+        Expression Analysis"
 bibliography: references.bib
 output:
     BiocStyle::html_document:
@@ -155,9 +155,11 @@ print(UPS1.Case4)
 ```{r}
 set.seed(1234, kind = "default" , sample.kind = "default")
 ```
-NOTE: The target groups in the comparison should be factors 1 and 2. 
-For example, here, "Conc." should have the factor levels "low" = 1 
-and "high" = 2, so the "Conc." variable should be a factor.
+
+**NOTE:** The target groups in the comparison should be factors 1 and 2. 
+For example, here, "Conc." should have the factor levels "low" = 1 and 
+"high" = 2, so the "Conc." variable should be a factor.
+
 
 ```{r}
 # Set metadata and formula for LimROTS analysis
