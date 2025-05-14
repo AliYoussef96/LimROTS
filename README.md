@@ -25,7 +25,16 @@ simulate more complex experimental designs.
 
 ### Option 1: Install from Bioconductor (recommended)
 
-The package is available on Bioconductor as a development (devel) version. To install it, follow these steps,
+The package is available on Bioconductor release version. To install it, follow these steps,
+
+```r
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install("LimROTS")
+```
+
+The package is also available on Bioconductor as a development (devel) version. To install it, follow these steps,
 
 ``` r
 if (!require("BiocManager", quietly = TRUE))
