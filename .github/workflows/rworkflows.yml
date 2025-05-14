@@ -26,11 +26,6 @@ jobs:
           r: devel
           cont: ~
           rspm: ~
-        - os: windows-latest
-          bioc: devel
-          r: devel
-          cont: ~
-          rspm: ~
     steps:
     # Run neurogenomics/rworkflows
     - uses: neurogenomics/rworkflows@master
