@@ -1,6 +1,6 @@
-#' `LimROTS`: A Hybrid Method Integrating Empirical Bayes and
-#' Reproducibility-Optimized Statistics for Robust Analysis of Proteomics and
-#' Metabolomics Data
+#' `LimROTS`: A Hybrid Method Integrating Empirical Bayes and 
+#' Reproducibility-Optimized Statistics for Robust 
+#' Differential Expression Analysis
 #'
 #' @param x A \code{SummarizedExperiment} object, where rows
 #' represent features (e.g., proteins, metabolites) and columns
