@@ -28,7 +28,6 @@
 #'
 #' @importFrom BiocParallel SnowParam MulticoreParam bplapply
 #' @importFrom stats model.matrix formula p.adjust
-#' @importFrom basilisk.utils isWindows
 #'
 
 
