@@ -28,7 +28,6 @@
 #'
 #' @importFrom BiocParallel SnowParam MulticoreParam bplapply
 #' @importFrom stats model.matrix formula p.adjust
-#' @importFrom basilisk.utils isWindows
 #'
 
 
@@ -43,7 +42,7 @@ Boot_parallel <- function(BPPARAM = NULL,
     a2,
     pSamples) {
     if (is.null(BPPARAM)) {
-        if (isWindows()) {
+        if (.Platform$OS.type == "windows") {
             BPPARAM <- SnowParam(workers = 2)
             message("Using SnowParam (Windows) with two workers.")
         } else {
