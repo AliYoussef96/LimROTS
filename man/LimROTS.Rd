@@ -3,8 +3,8 @@
 \name{LimROTS}
 \alias{LimROTS}
 \title{\code{LimROTS}: A Hybrid Method Integrating Empirical Bayes and
-Reproducibility-Optimized Statistics for Robust
-Differential Expression Analysis}
+Reproducibility-Optimized Statistics for Robust Differential
+Expression Analysis}
 \usage{
 LimROTS(
   x,
@@ -97,8 +97,8 @@ see \link[limma]{topTable}.}
 }
 \description{
 \code{LimROTS}: A Hybrid Method Integrating Empirical Bayes and
-Reproducibility-Optimized Statistics for Robust
-Differential Expression Analysis
+Reproducibility-Optimized Statistics for Robust Differential
+Expression Analysis
 }
 \details{
 The \strong{LimROTS} approach initially uses
