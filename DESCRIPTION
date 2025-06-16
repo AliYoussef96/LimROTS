@@ -1,8 +1,8 @@
 Package: LimROTS
-Title: A Hybrid Method Integrating Empirical Bayes and 
-        Reproducibility-Optimized Statistics for Robust Analysis of Proteomics 
-        and Metabolomics Data
-Version: 1.1.4
+Title: LimROTS: A Hybrid Method Integrating Empirical Bayes and 
+	Reproducibility-Optimized Statistics for Robust 
+	Differential Expression Analysis
+Version: 1.0.3
 Authors@R: 
     c(person(given = "Ali", family = "Mostafa Anwar", role = c("aut", "cre"), 
     email= "aliali.mostafa99@gmail.com",
@@ -36,7 +36,7 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 Depends: 
-    R (>= 4.4.0),
+    R (>= 4.5.0),
     SummarizedExperiment
 biocViews: Software, GeneExpression, DifferentialExpression,
         Microarray, RNASeq, Proteomics, ImmunoOncology, Metabolomics, mRNAMicroarray
@@ -51,7 +51,6 @@ Imports:
     utils,
     stats,
     BiocParallel,
-    basilisk.utils,
     S4Vectors,
     dplyr
 Suggests: 
