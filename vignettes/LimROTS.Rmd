@@ -156,9 +156,17 @@ print(UPS1.Case4)
 set.seed(1234, kind = "default" , sample.kind = "default")
 ```
 
-**NOTE:** The target groups in the comparison should be factors 1 and 2. 
-For example, here, "Conc." should have the factor levels "low" = 1 and 
-"high" = 2, so the "Conc." variable should be a factor.
+
+**NOTE:** It is important to define the condition column in the colData
+of a SummarizedExperiment object as a factor to ensure correct fold
+change calculations. For example, the "Conc." variable should have
+factor levels defined as "low" = 2 and "high" = 1. This can be defined
+as
+
+```{r}
+# colData(se)$Conc. <- factor(c("low" , "low", "high", "high" ,  
+# levels = c("high" , "low")))
+```
 
 
 ```{r}
@@ -187,7 +195,7 @@ example's run-time. For actual analyses, it is advisable to utilize a
 greater number of bootstraps (e.g., 1000). Also, for the number of cores
 to use we recommend to use at least 4 workers
 
-On Windows OS, the user can define a `BPPARAM ` to work with more than 2
+On Windows OS, the user can define a `BPPARAM` to work with more than 2
 workers as follows:
 
 ```{r}
@@ -204,7 +212,7 @@ On Linux and Mac OS
 # R_CHECK_LIMIT_CORES environment variable is not exceeded.
 ```
 
-And then pass the `BPPARAM ` to `LimROTS()`.
+And then pass the `BPPARAM` to `LimROTS()`.
 
 The results from the `LimROTS` function will be appended to the
 `SummarizedExperiment` object used, in this case, `UPS1.Case4`.

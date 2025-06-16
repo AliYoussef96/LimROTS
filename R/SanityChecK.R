@@ -67,13 +67,21 @@ SanityChecK <- function(x, niter = 1000, K = NULL,
     meta.info$temp <- NULL
     if (inherits(meta.info[, group.name], "character")) {
         meta.info[, group.name] <- as.factor(meta.info[, group.name])
+        message(paste("Group Level: ", levels(meta.info[, group.name]), 
+                      collapse = " & "))
         meta.info[, group.name] <- as.numeric(meta.info[, group.name])
         groups <- as.numeric(meta.info[, group.name])
         meta.info[, group.name] <- as.factor(meta.info[, group.name])
     } else if (inherits(meta.info[, group.name], "factor")) {
         groups <- as.numeric(meta.info[, group.name])
+        message(paste("Group Level: ", levels(meta.info[, group.name]), 
+                      collapse = " & "))
+        meta.info[, group.name] <- as.numeric(meta.info[, group.name])
+        meta.info[, group.name] <- as.factor(meta.info[, group.name])
     } else {
         meta.info[, group.name] <- as.factor(meta.info[, group.name])
+        message(paste("Group Level: ", levels(meta.info[, group.name]), 
+                      collapse = " & "))
         meta.info[, group.name] <- as.numeric(meta.info[, group.name])
         groups <- as.numeric(meta.info[, group.name])
         meta.info[, group.name] <- as.factor(meta.info[, group.name])
