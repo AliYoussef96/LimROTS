@@ -2,7 +2,7 @@ Package: LimROTS
 Title: LimROTS: A Hybrid Method Integrating Empirical Bayes and 
         Reproducibility-Optimized Statistics for Robust 
         Differential Expression Analysis
-Version: 1.1.3
+Version: 1.1.4
 Authors@R: 
     c(person(given = "Ali", family = "Mostafa Anwar", role = c("aut", "cre"), 
     email= "aliali.mostafa99@gmail.com",
