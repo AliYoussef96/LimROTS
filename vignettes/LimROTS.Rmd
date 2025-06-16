@@ -156,9 +156,16 @@ print(UPS1.Case4)
 set.seed(1234, kind = "default" , sample.kind = "default")
 ```
 
-**NOTE:** The target groups in the comparison should be factors 1 and 2. 
-For example, here, "Conc." should have the factor levels "low" = 1 and 
-"high" = 2, so the "Conc." variable should be a factor.
+**NOTE:** It is important to define the condition column in the colData
+of a SummarizedExperiment object as a factor to ensure correct fold
+change calculations. For example, the "Conc." variable should have
+factor levels defined as "low" = 2 and "high" = 1. This can be defined
+as
+
+```{r}
+# colData(se)$Conc. <- factor(c("low" , "low", "high", "high" ,  
+# levels = c("high" , "low")))
+```
 
 
 ```{r}
