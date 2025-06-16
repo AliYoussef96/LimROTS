@@ -32,7 +32,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">LimROTS</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.0.3</span>
       </span>
     </div>
 
@@ -217,11 +217,15 @@ available in LimROTS.</p>
 reproducibility.</strong></p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1234</span>, kind <span class="op">=</span> <span class="st">"default"</span> , sample.kind <span class="op">=</span> <span class="st">"default"</span><span class="op">)</span></span></code></pre></div>
-<p><strong>NOTE:</strong> The target groups in the comparison should be
-factors 1 and 2. For example, here, “Conc.” should have the factor
-levels “low” = 1 and “high” = 2, so the “Conc.” variable should be a
-factor.</p>
+<p><strong>NOTE:</strong> It is important to define the condition column
+in the colData of a SummarizedExperiment object as a factor to ensure
+correct fold change calculations. For example, the “Conc.” variable
+should have factor levels defined as “low” = 2 and “high” = 1. This can
+be defined as</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># colData(se)$Conc. &lt;- factor(c("low" , "low", "high", "high" ,  </span></span>
+<span><span class="co"># levels = c("high" , "low")))</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Set metadata and formula for LimROTS analysis</span></span>
 <span><span class="va">meta.info</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Conc."</span>, <span class="st">"tool"</span>, <span class="st">"fake.batch"</span><span class="op">)</span></span>
 <span><span class="va">niter</span> <span class="op">&lt;-</span> <span class="fl">100</span> <span class="co"># Number of bootstrap samples</span></span>
@@ -252,12 +256,12 @@ greater number of bootstraps (e.g., 1000). Also, for the number of cores
 to use we recommend to use at least 4 workers</p>
 <p>On Windows OS, the user can define a <code>BPPARAM</code> to work
 with more than 2 workers as follows:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># BPPARAM  &lt;- SnowParam(workers = 4)</span></span>
 <span><span class="co"># Commented out in the vignette to ensure the limit set by the</span></span>
 <span><span class="co"># R_CHECK_LIMIT_CORES environment variable is not exceeded.</span></span></code></pre></div>
 <p>On Linux and Mac OS</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># BPPARAM  &lt;- MulticoreParam(workers = 4)</span></span>
 <span><span class="co"># Commented out in the vignette to ensure the limit set by the</span></span>
 <span><span class="co"># R_CHECK_LIMIT_CORES environment variable is not exceeded.</span></span></code></pre></div>
@@ -273,7 +277,7 @@ to the <code>SummarizedExperiment</code> object used, in this case,
 q-values 5%, it is evident that LimROTS accurately identified the
 majority of actual positive proteins while detecting a limited number of
 simulated E.coli proteins.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create a data frame from the LimROTS results</span></span>
 <span></span>
 <span><span class="va">limrots.result.df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">rowData</a></span><span class="op">(</span><span class="va">UPS1.Case4</span><span class="op">)</span>, </span>
@@ -297,7 +301,7 @@ simulated E.coli proteins.</p>
 <span>    <span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_color_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"grey"</span>, <span class="st">"red"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_hline</a></span><span class="op">(</span>yintercept <span class="op">=</span> <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log10</a></span><span class="op">(</span><span class="fl">0.05</span><span class="op">)</span>, linetype <span class="op">=</span> <span class="st">"dashed"</span>, color <span class="op">=</span> <span class="st">"blue"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="LimROTS_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
+<p><img src="LimROTS_files/figure-html/unnamed-chunk-11-1.png" width="700"></p>
 </div>
 <div class="section level4">
 <h4 id="quality-control-plots">Quality Control Plots<a class="anchor" aria-label="anchor" href="#quality-control-plots"></a>
@@ -309,18 +313,18 @@ permutation-derived p-values. These can be used as Quality Control for
 the LimROTS results. We recommend using permutation-derived p-values and
 qvalues, though they should generally be very similar to the FDR and
 Benjamini-Hochberg adjusted p-values.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">## Quality Control Plots</span></span>
 <span></span>
 <span><span class="co"># Plot of q-values</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu">metadata</span><span class="op">(</span><span class="va">UPS1.Case4</span><span class="op">)</span><span class="op">[[</span><span class="st">"q_values"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
-<p><img src="LimROTS_files/figure-html/unnamed-chunk-11-1.png" width="700"></p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<p><img src="LimROTS_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Histogram of q-values</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="fu">metadata</span><span class="op">(</span><span class="va">UPS1.Case4</span><span class="op">)</span><span class="op">[[</span><span class="st">"q_values"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
-<p><img src="LimROTS_files/figure-html/unnamed-chunk-11-2.png" width="700"></p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<p><img src="LimROTS_files/figure-html/unnamed-chunk-12-2.png" width="700"></p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Summary of q-values</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="fu">metadata</span><span class="op">(</span><span class="va">UPS1.Case4</span><span class="op">)</span><span class="op">[[</span><span class="st">"q_values"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
@@ -332,7 +336,7 @@ Benjamini-Hochberg adjusted p-values.</p>
 <p>Before comparing the LimROTS, limma, and ROTS packages, we will need
 to install the necessary packages: limma, ROTS and caret (for the use in
 the comparison).</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="st"><a href="https://bioconductor.github.io/BiocManager/" class="external-link">"BiocManager"</a></span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"BiocManager"</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
@@ -348,7 +352,7 @@ the comparison).</p>
 <div class="section level3">
 <h3 id="run-rots">Run ROTS<a class="anchor" aria-label="anchor" href="#run-rots"></a>
 </h3>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">ROTS</span><span class="op">)</span></span>
 <span><span class="va">groups</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">UPS1.Case4</span><span class="op">$</span><span class="va">Conc.</span><span class="op">)</span></span>
 <span><span class="va">rots.result</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/ROTS/man/ROTS.html" class="external-link">ROTS</a></span><span class="op">(</span></span>
@@ -369,7 +373,7 @@ the comparison).</p>
 <div class="section level3">
 <h3 id="run-limma">Run limma<a class="anchor" aria-label="anchor" href="#run-limma"></a>
 </h3>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://bioinf.wehi.edu.au/limma/" class="external-link">limma</a></span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Attaching package: 'limma'</span></span>
@@ -387,7 +391,7 @@ the comparison).</p>
 <div class="section level3">
 <h3 id="generating-a-confusion-matrix-for-comparison">Generating a Confusion Matrix for Comparison<a class="anchor" aria-label="anchor" href="#generating-a-confusion-matrix-for-comparison"></a>
 </h3>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/topepo/caret/" class="external-link">caret</a></span>, quietly <span class="op">=</span> <span class="cn">TRUE</span>, warn.conflicts <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Attaching package: 'caret'</span></span>
@@ -427,7 +431,7 @@ the comparison).</p>
 <div class="section level3">
 <h3 id="summarizing-the-comparison-results">Summarizing the Comparison Results<a class="anchor" aria-label="anchor" href="#summarizing-the-comparison-results"></a>
 </h3>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span></span>
 <span></span>
@@ -472,7 +476,7 @@ the comparison).</p>
 <span>        axis.text <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>face <span class="op">=</span> <span class="st">"bold"</span>, color <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span>,</span>
 <span>        axis.ticks <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_line</a></span><span class="op">(</span>color <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span></span>
 <span>    <span class="op">)</span></span></code></pre></div>
-<p><img src="LimROTS_files/figure-html/unnamed-chunk-16-1.png" width="700"></p>
+<p><img src="LimROTS_files/figure-html/unnamed-chunk-17-1.png" width="700"></p>
 <p>Based on the evaluation, limROTS emerges as the most suitable method
 overall when considering the balance across all performance metrics. It
 achieves a strong combination of sensitivity, specificity, predictive
@@ -483,7 +487,7 @@ excel in certain metrics like sensitivity, their lower specificity and
 predictive values indicate limitations in broader applicability.
 Therefore, limROTS appears to provide the most consistent and balanced
 performance for general use cases.</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; R version 4.5.0 (2025-04-11)</span></span>
 <span><span class="co">#&gt; Platform: x86_64-pc-linux-gnu</span></span>
@@ -510,50 +514,49 @@ performance for general use cases.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; other attached packages:</span></span>
 <span><span class="co">#&gt;  [1] caret_7.0-1                 lattice_0.22-7             </span></span>
-<span><span class="co">#&gt;  [3] limma_3.65.0                ROTS_2.1.0                 </span></span>
-<span><span class="co">#&gt;  [5] ggplot2_3.5.2               BiocParallel_1.43.0        </span></span>
-<span><span class="co">#&gt;  [7] LimROTS_1.1.0               SummarizedExperiment_1.39.0</span></span>
+<span><span class="co">#&gt;  [3] limma_3.65.1                ROTS_2.1.0                 </span></span>
+<span><span class="co">#&gt;  [5] ggplot2_3.5.2               BiocParallel_1.43.3        </span></span>
+<span><span class="co">#&gt;  [7] LimROTS_1.0.3               SummarizedExperiment_1.39.0</span></span>
 <span><span class="co">#&gt;  [9] Biobase_2.69.0              GenomicRanges_1.61.0       </span></span>
-<span><span class="co">#&gt; [11] GenomeInfoDb_1.45.3         IRanges_2.43.0             </span></span>
+<span><span class="co">#&gt; [11] GenomeInfoDb_1.45.4         IRanges_2.43.0             </span></span>
 <span><span class="co">#&gt; [13] S4Vectors_0.47.0            BiocGenerics_0.55.0        </span></span>
 <span><span class="co">#&gt; [15] generics_0.1.4              MatrixGenerics_1.21.0      </span></span>
 <span><span class="co">#&gt; [17] matrixStats_1.5.0           BiocStyle_2.37.0           </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
-<span><span class="co">#&gt;   [1] Rdpack_2.6.4          pROC_1.18.5           rlang_1.1.6          </span></span>
-<span><span class="co">#&gt;   [4] magrittr_2.0.3        e1071_1.7-16          compiler_4.5.0       </span></span>
-<span><span class="co">#&gt;   [7] dir.expiry_1.17.0     systemfonts_1.2.3     vctrs_0.6.5          </span></span>
-<span><span class="co">#&gt;  [10] reshape2_1.4.4        stringr_1.5.1         pkgconfig_2.0.3      </span></span>
-<span><span class="co">#&gt;  [13] crayon_1.5.3          fastmap_1.2.0         XVector_0.49.0       </span></span>
-<span><span class="co">#&gt;  [16] labeling_0.4.3        rmarkdown_2.29        prodlim_2025.04.28   </span></span>
-<span><span class="co">#&gt;  [19] UCSC.utils_1.5.0      nloptr_2.2.1          ragg_1.4.0           </span></span>
-<span><span class="co">#&gt;  [22] purrr_1.0.4           xfun_0.52             cachem_1.1.0         </span></span>
-<span><span class="co">#&gt;  [25] jsonlite_2.0.0        recipes_1.3.0         DelayedArray_0.35.1  </span></span>
-<span><span class="co">#&gt;  [28] parallel_4.5.0        R6_2.6.1              bslib_0.9.0          </span></span>
-<span><span class="co">#&gt;  [31] stringi_1.8.7         RColorBrewer_1.1-3    parallelly_1.44.0    </span></span>
-<span><span class="co">#&gt;  [34] boot_1.3-31           rpart_4.1.24          lubridate_1.9.4      </span></span>
-<span><span class="co">#&gt;  [37] jquerylib_0.1.4       Rcpp_1.0.14           bookdown_0.43        </span></span>
-<span><span class="co">#&gt;  [40] iterators_1.0.14      knitr_1.50            future.apply_1.11.3  </span></span>
-<span><span class="co">#&gt;  [43] timechange_0.3.0      Matrix_1.7-3          splines_4.5.0        </span></span>
-<span><span class="co">#&gt;  [46] nnet_7.3-20           tidyselect_1.2.1      qvalue_2.41.0        </span></span>
-<span><span class="co">#&gt;  [49] abind_1.4-8           yaml_2.3.10           timeDate_4041.110    </span></span>
-<span><span class="co">#&gt;  [52] codetools_0.2-20      listenv_0.9.1         tibble_3.2.1         </span></span>
-<span><span class="co">#&gt;  [55] plyr_1.8.9            basilisk.utils_1.21.0 withr_3.0.2          </span></span>
-<span><span class="co">#&gt;  [58] evaluate_1.0.3        future_1.49.0         desc_1.4.3           </span></span>
-<span><span class="co">#&gt;  [61] survival_3.8-3        proxy_0.4-27          pillar_1.10.2        </span></span>
-<span><span class="co">#&gt;  [64] BiocManager_1.30.25   filelock_1.0.3        foreach_1.5.2        </span></span>
-<span><span class="co">#&gt;  [67] reformulas_0.4.1      scales_1.4.0          minqa_1.2.8          </span></span>
-<span><span class="co">#&gt;  [70] globals_0.18.0        class_7.3-23          glue_1.8.0           </span></span>
-<span><span class="co">#&gt;  [73] tools_4.5.0           data.table_1.17.2     lme4_1.1-37          </span></span>
-<span><span class="co">#&gt;  [76] ModelMetrics_1.2.2.2  gower_1.0.2           fs_1.6.6             </span></span>
-<span><span class="co">#&gt;  [79] grid_4.5.0            rbibutils_2.3         ipred_0.9-15         </span></span>
-<span><span class="co">#&gt;  [82] nlme_3.1-168          cli_3.6.5             textshaping_1.0.1    </span></span>
-<span><span class="co">#&gt;  [85] S4Arrays_1.9.0        lava_1.8.1            dplyr_1.1.4          </span></span>
-<span><span class="co">#&gt;  [88] gtable_0.3.6          sass_0.4.10           digest_0.6.37        </span></span>
-<span><span class="co">#&gt;  [91] SparseArray_1.9.0     htmlwidgets_1.6.4     farver_2.1.2         </span></span>
-<span><span class="co">#&gt;  [94] htmltools_0.5.8.1     pkgdown_2.1.2         lifecycle_1.0.4      </span></span>
-<span><span class="co">#&gt;  [97] hardhat_1.4.1         httr_1.4.7            statmod_1.5.0        </span></span>
-<span><span class="co">#&gt; [100] MASS_7.3-65</span></span></code></pre></div>
+<span><span class="co">#&gt;  [1] Rdpack_2.6.4         pROC_1.18.5          rlang_1.1.6         </span></span>
+<span><span class="co">#&gt;  [4] magrittr_2.0.3       e1071_1.7-16         compiler_4.5.0      </span></span>
+<span><span class="co">#&gt;  [7] systemfonts_1.2.3    vctrs_0.6.5          reshape2_1.4.4      </span></span>
+<span><span class="co">#&gt; [10] stringr_1.5.1        pkgconfig_2.0.3      crayon_1.5.3        </span></span>
+<span><span class="co">#&gt; [13] fastmap_1.2.0        XVector_0.49.0       labeling_0.4.3      </span></span>
+<span><span class="co">#&gt; [16] rmarkdown_2.29       prodlim_2025.04.28   UCSC.utils_1.5.0    </span></span>
+<span><span class="co">#&gt; [19] nloptr_2.2.1         ragg_1.4.0           purrr_1.0.4         </span></span>
+<span><span class="co">#&gt; [22] xfun_0.52            cachem_1.1.0         jsonlite_2.0.0      </span></span>
+<span><span class="co">#&gt; [25] recipes_1.3.1        DelayedArray_0.35.1  parallel_4.5.0      </span></span>
+<span><span class="co">#&gt; [28] R6_2.6.1             bslib_0.9.0          stringi_1.8.7       </span></span>
+<span><span class="co">#&gt; [31] RColorBrewer_1.1-3   parallelly_1.45.0    boot_1.3-31         </span></span>
+<span><span class="co">#&gt; [34] rpart_4.1.24         lubridate_1.9.4      jquerylib_0.1.4     </span></span>
+<span><span class="co">#&gt; [37] Rcpp_1.0.14          bookdown_0.43        iterators_1.0.14    </span></span>
+<span><span class="co">#&gt; [40] knitr_1.50           future.apply_1.20.0  timechange_0.3.0    </span></span>
+<span><span class="co">#&gt; [43] Matrix_1.7-3         splines_4.5.0        nnet_7.3-20         </span></span>
+<span><span class="co">#&gt; [46] tidyselect_1.2.1     qvalue_2.41.0        abind_1.4-8         </span></span>
+<span><span class="co">#&gt; [49] yaml_2.3.10          timeDate_4041.110    codetools_0.2-20    </span></span>
+<span><span class="co">#&gt; [52] listenv_0.9.1        tibble_3.3.0         plyr_1.8.9          </span></span>
+<span><span class="co">#&gt; [55] withr_3.0.2          evaluate_1.0.3       future_1.58.0       </span></span>
+<span><span class="co">#&gt; [58] desc_1.4.3           survival_3.8-3       proxy_0.4-27        </span></span>
+<span><span class="co">#&gt; [61] pillar_1.10.2        BiocManager_1.30.26  foreach_1.5.2       </span></span>
+<span><span class="co">#&gt; [64] reformulas_0.4.1     scales_1.4.0         minqa_1.2.8         </span></span>
+<span><span class="co">#&gt; [67] globals_0.18.0       class_7.3-23         glue_1.8.0          </span></span>
+<span><span class="co">#&gt; [70] tools_4.5.0          data.table_1.17.4    lme4_1.1-37         </span></span>
+<span><span class="co">#&gt; [73] ModelMetrics_1.2.2.2 gower_1.0.2          fs_1.6.6            </span></span>
+<span><span class="co">#&gt; [76] grid_4.5.0           rbibutils_2.3        ipred_0.9-15        </span></span>
+<span><span class="co">#&gt; [79] nlme_3.1-168         cli_3.6.5            textshaping_1.0.1   </span></span>
+<span><span class="co">#&gt; [82] S4Arrays_1.9.1       lava_1.8.1           dplyr_1.1.4         </span></span>
+<span><span class="co">#&gt; [85] gtable_0.3.6         sass_0.4.10          digest_0.6.37       </span></span>
+<span><span class="co">#&gt; [88] SparseArray_1.9.0    htmlwidgets_1.6.4    farver_2.1.2        </span></span>
+<span><span class="co">#&gt; [91] htmltools_0.5.8.1    pkgdown_2.1.3        lifecycle_1.0.4     </span></span>
+<span><span class="co">#&gt; [94] hardhat_1.4.1        httr_1.4.7           statmod_1.5.0       </span></span>
+<span><span class="co">#&gt; [97] MASS_7.3-65</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -613,7 +616,7 @@ e1005562. <a href="https://doi.org/10.1371/journal.pcbi.1005562" class="external
 
 <div class="pkgdown">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
       </footer>
