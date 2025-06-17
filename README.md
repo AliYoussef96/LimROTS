@@ -51,7 +51,7 @@ You can install the package directly from GitHub,
 
 ``` r
 if (!requireNamespace("LimROTS", quietly = TRUE)) {
-  remotes::install_github("AliYoussef96/LimROTS")
+  remotes::install_github("AliYoussef96/LimROTS", ref  = "devel")
 }
 ```
 or
