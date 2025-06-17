@@ -34,15 +34,6 @@ if (!require("BiocManager", quietly = TRUE))
 BiocManager::install("LimROTS")
 ```
 
-The package is also available on Bioconductor as a development (devel) version. To install it, follow these steps,
-
-``` r
-if (!require("BiocManager", quietly = TRUE))
-    install.packages("BiocManager")
-
-BiocManager::install("LimROTS")
-```
-
 ### Option 2: Install from GitHub
 
 You can install the package directly from GitHub,
