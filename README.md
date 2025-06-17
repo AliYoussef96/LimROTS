@@ -34,30 +34,19 @@ if (!require("BiocManager", quietly = TRUE))
 BiocManager::install("LimROTS")
 ```
 
-The package is also available on Bioconductor as a development (devel) version. To install it, follow these steps,
-
-``` r
-if (!require("BiocManager", quietly = TRUE))
-    install.packages("BiocManager")
-
-BiocManager::install(version='devel')
-
-BiocManager::install("LimROTS")
-```
-
 ### Option 2: Install from GitHub
 
 You can install the package directly from GitHub,
 
 ``` r
 if (!requireNamespace("LimROTS", quietly = TRUE)) {
-  remotes::install_github("AliYoussef96/LimROTS")
+  remotes::install_github("AliYoussef96/LimROTS", ref  = "RELEASE_3_21")
 }
 ```
 or
 
 ``` r
-remotes::install_github("AliYoussef96/LimROTS" , ref  = "devel")
+remotes::install_github("AliYoussef96/LimROTS" , ref  = "RELEASE_3_21")
 ```
 
 ## Code of Conduct
