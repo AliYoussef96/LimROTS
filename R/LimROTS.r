@@ -108,11 +108,10 @@
 #'          is the the adjusted
 #'          standard error. LimROTS generates p-values from permutation samples
 #'          using the implementation available in
-#'          \link[qvalue]{qvalue} package, along with internal implementation of FDR
-#'          adapted from ROTS package. Additionally, the qvalue package is used
-#'          to calculate q-values, were the proportion of true null p-values is
-#'          set to the bootstrap method \link[qvalue]{pi0est}. We recommend using
-#'          permutation-derived p-values and qvalues.
+#'          \link[qvalue]{qvalue} package, along with internal implementation 
+#'          of FDR adapted from ROTS package. Additionally, the qvalue package 
+#'          is used to calculate q-values, were the proportion of true null 
+#'          p-values is set to the bootstrap method \link[qvalue]{pi0est}. 
 #'
 #' This function processes a dataset using parallel computation. It
 #' leverages the \pkg{BiocParallel} framework to distribute tasks
