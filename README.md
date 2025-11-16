@@ -40,14 +40,9 @@ You can install the package directly from GitHub,
 
 ``` r
 if (!requireNamespace("LimROTS", quietly = TRUE)) {
-  remotes::install_github("AliYoussef96/LimROTS", ref  = "RELEASE_3_21")
+  remotes::install_github("AliYoussef96/LimROTS")
 }
-```
-or
 
-``` r
-remotes::install_github("AliYoussef96/LimROTS" , ref  = "RELEASE_3_21")
-```
 
 ## Code of Conduct
 
