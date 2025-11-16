@@ -90,13 +90,7 @@
 <h3 id="option-2-install-from-github">Option 2: Install from GitHub<a class="anchor" aria-label="anchor" href="#option-2-install-from-github"></a>
 </h3>
 <p>You can install the package directly from GitHub,</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"LimROTS"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"AliYoussef96/LimROTS"</span>, ref  <span class="op">=</span> <span class="st">"RELEASE_3_21"</span><span class="op">)</span></span>
-<span><span class="op">}</span></span></code></pre></div>
-<p>or</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"AliYoussef96/LimROTS"</span> , ref  <span class="op">=</span> <span class="st">"RELEASE_3_21"</span><span class="op">)</span></span></code></pre></div>
+<p>``` r if (!requireNamespace(“LimROTS”, quietly = TRUE)) { remotes::install_github(“AliYoussef96/LimROTS”) }</p>
 </div>
 </div>
 <div class="section level2">
@@ -175,7 +169,7 @@
 
 <div class="pkgdown">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
       </footer>
