@@ -88,3 +88,26 @@ This package was developed using the following resources:
 -   The documentation is formatted thanks to
     [*devtools*](https://cran.r-project.org/web/packages/devtools/) and
     [*roxygen2*](https://cran.r-project.org/web/packages/roxygen2/).
+
+## Disclaimer
+
+LimROTS is an independent implementation inspired by the limma and ROTS method. It is not affiliated with, 
+endorsed by, or maintained by the original ROTS or limma development teams. 
+This implementation was developed based on the methodologies described in:
+
+limma: Ritchie ME, Phipson B, Wu D, Hu Y, Law CW, Shi W, Smyth GK. 
+limma powers differential expression analyses for RNA-sequencing and microarray studies. 
+Nucleic Acids Research. 2015;43(7):e47. https://doi.org/10.1093/nar/gkv007
+
+ROTS: Elo LL, Filén S, Lahesmaa R, Aittokallio T. Reproducibility-optimized test statistic 
+for ranking genes in microarray studies. IEEE/ACM Transactions on Computational Biology and Bioinformatics. 2008;5(3):423–31.
+
+Users are advised to cite the original publications when referencing the ROTS or limma methods.
+
+## Citation
+
+If you use `LimROTS` in your research, please cite our publication:
+
+> Anwar, A. M., Jeba, A., Lahti, L., & Coffey, E. (2025). LimROTS: A Hybrid Method Integrating Empirical Bayes and 
+Reproducibility-Optimized Statistics for Robust Differential Expression Analysis. *Bioinformatics*, btaf570. 
+[https://doi.org/10.1093/bioinformatics/btaf570](https://doi.org/10.1093/bioinformatics/btaf570)
