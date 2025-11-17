@@ -90,7 +90,10 @@
 <h3 id="option-2-install-from-github">Option 2: Install from GitHub<a class="anchor" aria-label="anchor" href="#option-2-install-from-github"></a>
 </h3>
 <p>You can install the package directly from GitHub,</p>
-<p>``` r if (!requireNamespace(“LimROTS”, quietly = TRUE)) { remotes::install_github(“AliYoussef96/LimROTS”) }</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"LimROTS"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"AliYoussef96/LimROTS"</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -111,6 +114,22 @@
 <li>The documentation website is automatically updated thanks to <a href="https://cran.r-project.org/web/packages/pkgdown/" class="external-link"><em>pkgdown</em></a>.</li>
 <li>The documentation is formatted thanks to <a href="https://cran.r-project.org/web/packages/devtools/" class="external-link"><em>devtools</em></a> and <a href="https://cran.r-project.org/web/packages/roxygen2/" class="external-link"><em>roxygen2</em></a>.</li>
 </ul>
+</div>
+<div class="section level2">
+<h2 id="disclaimer">Disclaimer<a class="anchor" aria-label="anchor" href="#disclaimer"></a>
+</h2>
+<p>LimROTS is an independent implementation inspired by the ROTS method. It is not affiliated with, endorsed by, or maintained by the original ROTS or limma development teams. This implementation was developed based on the methodologies described in:</p>
+<p>ROTS: Elo LL, Filén S, Lahesmaa R, Aittokallio T. Reproducibility-optimized test statistic for ranking genes in microarray studies. IEEE/ACM Transactions on Computational Biology and Bioinformatics. 2008;5(3):423–31.</p>
+<p>limma: Ritchie ME, Phipson B, Wu D, Hu Y, Law CW, Shi W, Smyth GK. limma powers differential expression analyses for RNA-sequencing and microarray studies. Nucleic Acids Research. 2015;43(7):e47. <a href="https://doi.org/10.1093/nar/gkv007" class="external-link uri">https://doi.org/10.1093/nar/gkv007</a></p>
+<p>Users are advised to cite the original publications when referencing the ROTS or limma methods.</p>
+</div>
+<div class="section level2">
+<h2 id="citation">Citation<a class="anchor" aria-label="anchor" href="#citation"></a>
+</h2>
+<p>If you use <code>LimROTS</code> in your research, please cite our publication:</p>
+<blockquote>
+<p>Anwar, A. M., Jeba, A., Lahti, L., &amp; Coffey, E. (2025). LimROTS: A Hybrid Method Integrating Empirical Bayes and Reproducibility-Optimized Statistics for Robust Differential Expression Analysis. <em>Bioinformatics</em>, btaf570. <a href="https://doi.org/10.1093/bioinformatics/btaf570" class="external-link">https://doi.org/10.1093/bioinformatics/btaf570</a></p>
+</blockquote>
 </div>
 </div>
   </div>
