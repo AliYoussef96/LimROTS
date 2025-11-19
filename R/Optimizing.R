@@ -1,17 +1,17 @@
 #' Optimize Parameters Based on Overlap Calculations
 #'
 #' This function optimizes parameters by calculating overlaps between observed
-#' and permuted data for multiple values of a smoothing constant (`ssq`) and a
+#' and permuted data for multiple values of a smoothing constant and a
 #' single-label replicate (SLR) comparison.
 #'
 #' @param niter Integer. Number of bootstrap samples or resampling iterations.
-#' @param ssq Numeric vector. Smoothing constants to be evaluated.
-#' @param N Integer vector. Number of top values to consider for overlap
+#' @param smoothing_constants Numeric vector. Smoothing constants to be evaluated.
+#' @param top_n_values Integer vector. Number of top values to consider for overlap
 #' calculation.
-#' @param D Numeric matrix. Observed data values.
-#' @param S Numeric matrix. Standard errors or related values for observed data.
-#' @param pD Numeric matrix. Permuted data values.
-#' @param pS Numeric matrix. Standard errors or related values for
+#' @param observed_data Numeric matrix. Observed data values.
+#' @param observed_std_errors Numeric matrix. Standard errors or related values for observed data.
+#' @param permuted_data Numeric matrix. Permuted data values.
+#' @param permuted_std_errors Numeric matrix. Standard errors or related values for
 #' permuted data.
 #' @param verbose Logical. If `TRUE`, progress messages will be displayed.
 #'
@@ -19,79 +19,159 @@
 #' The function calculates overlaps for a range of smoothing constants and
 #' identifies the optimal set of parameters by maximizing a z-score-based
 #' metric, which compares the overlap of observed data to permuted data.
-#' It computes overlap matrices for both observed (`D` and `S`) and permuted
-#' (`pD` and `pS`) data and returns the optimal parameters based on the
-#' highest z-score.
+#' It computes overlap matrices for both observed and permuted data and 
+#' returns the optimal parameters based on the highest z-score.
 #'
 #' @return A list containing the optimal parameters:
 #' \itemize{
-#'   \item \code{a1}: Optimal smoothing constant or 1 for SLR.
-#'   \item \code{a2}: SLR flag (1 if smoothing constant is optimal,
+#'   \item \code{optimal_smoothing_constant}: Optimal smoothing constant or 1 for SLR.
+#'   \item \code{use_smoothing_flag}: SLR flag (1 if smoothing constant is optimal,
 #'   0 if SLR is optimal).
-#'   \item \code{k}: Optimal number of top values to consider for overlap.
-#'   \item \code{R}: Optimal overlap value.
-#'   \item \code{Z}: Optimal z-score.
-#'   \item \code{ztable}: Matrix of z-scores for all evaluated parameters.
+#'   \item \code{optimal_top_n}: Optimal number of top values to consider for overlap.
+#'   \item \code{optimal_reproducibility}: Optimal overlap value.
+#'   \item \code{optimal_z_score}: Optimal z-score.
+#'   \item \code{z_score_table}: Matrix of z-scores for all evaluated parameters.
 #' }
 #'
 #'
 #'
-Optimizing <- function(niter, ssq, N, D, S, pD, pS, verbose) {
-    if (verbose) {
-        message("Optimizing a1 and a2")
-    }
-    reprotable <- matrix(nrow = length(ssq) + 1, ncol = length(N))
-    colnames(reprotable) <- N
-    row.names(reprotable) <- c(ssq, "slr")
-    reprotable.P <- matrix(nrow = length(ssq) + 1, ncol = length(N))
-    colnames(reprotable.P) <- N
-    row.names(reprotable.P) <- c(ssq, "slr")
-    reprotable.sd <- matrix(nrow = length(ssq) + 1, ncol = length(N))
-    colnames(reprotable.sd) <- N
-    row.names(reprotable.sd) <- c(ssq, "slr")
-    for (i in seq_len(length(ssq))) {
-        overlaps <- matrix(0, nrow = niter, ncol = length(N))
-        overlaps.P <- matrix(0, nrow = niter, ncol = length(N))
-        cResults <- calOverlaps(
-            D, S, pD, pS, nrow(D), as.integer(N), length(N),
-            ssq[i], as.integer(niter), overlaps, overlaps.P
-        )
-        reprotable[i, ] <- colMeans(cResults[["overlaps"]])
-        reprotable.P[i, ] <- colMeans(cResults[["overlaps_P"]])
-        reprotable.sd[i, ] <- sqrt(rowSums((t(cResults[["overlaps"]]) -
-            reprotable[i, ])^2) /
-            (nrow(cResults[["overlaps"]]) - 1))
-    }
-    i <- length(ssq) + 1
-    overlaps <- matrix(0, nrow = niter, ncol = length(N))
-    overlaps.P <- matrix(0, nrow = niter, ncol = length(N))
-    cResults <- calOverlaps_slr(
-        D, pD, nrow(D), as.integer(N), length(N),
-        as.integer(niter), overlaps, overlaps.P
+Optimizing <- function(niter, smoothing_constants, top_n_values, 
+                       observed_data, observed_std_errors, 
+                       permuted_data, permuted_std_errors, verbose) {
+  if (verbose) {
+    message("Optimizing smoothing constant and method selection")
+  }
+  num_smoothing_strategies <- length(smoothing_constants)
+  total_strategies <- num_smoothing_strategies + 1
+  num_top_n_options <- length(top_n_values)
+  num_features <- nrow(observed_data)
+  
+  observed_overlap_means <- matrix(
+    nrow = total_strategies, 
+    ncol = num_top_n_options,
+    dimnames = list(c(smoothing_constants, "slr"), top_n_values)
+  )
+  
+  permuted_overlap_means <- matrix(
+    nrow = total_strategies, 
+    ncol = num_top_n_options,
+    dimnames = list(c(smoothing_constants, "slr"), top_n_values)
+  )
+  
+  overlap_std_devs <- matrix(
+    nrow = total_strategies, 
+    ncol = num_top_n_options,
+    dimnames = list(c(smoothing_constants, "slr"), top_n_values)
+  )
+  
+  for (strategy_idx in seq_len(num_smoothing_strategies)) {
+    current_smoothing <- smoothing_constants[strategy_idx]
+    
+    observed_bootstrap <- matrix(0, nrow = niter, ncol = num_top_n_options)
+    permuted_bootstrap <- matrix(0, nrow = niter, ncol = num_top_n_options)
+    
+    overlap_results <- calOverlaps(
+      observed_data, observed_std_errors, 
+      permuted_data, permuted_std_errors, 
+      num_features, 
+      as.integer(top_n_values), 
+      num_top_n_options,
+      current_smoothing, 
+      as.integer(niter), 
+      observed_bootstrap, 
+      permuted_bootstrap
     )
-    reprotable[i, ] <- colMeans(cResults[["overlaps"]])
-    reprotable.P[i, ] <- colMeans(cResults[["overlaps_P"]])
-    reprotable.sd[i, ] <- sqrt(rowSums((t(cResults[["overlaps"]]) -
-        reprotable[i, ])^2) /
-        (nrow(cResults[["overlaps"]]) - 1))
-    ztable <- (reprotable - reprotable.P) / reprotable.sd
-    sel <- which(ztable == max(ztable[is.finite(ztable)]), arr.ind = TRUE)
-    if (length(sel) > 2) {
-        sel <- sel[1, ]
-    }
-    if (sel[1] < nrow(reprotable)) {
-        a1 <- as.numeric(row.names(reprotable)[sel[1]])
-        a2 <- 1
-    }
-    if (sel[1] == nrow(reprotable)) {
-        a1 <- 1
-        a2 <- 0
-    }
-    k <- as.numeric(colnames(reprotable)[sel[2]])
-    R <- reprotable[sel[1], sel[2]]
-    Z <- ztable[sel[1], sel[2]]
-    rm(reprotable, D, S, overlaps, overlaps.P, cResults, reprotable.P, 
-                                                            reprotable.sd)
-    gc()
-    return(list(a1 = a1, a2 = a2, k = k, R = R, Z = Z, ztable = ztable))
+    
+    observed_overlap_means[strategy_idx, ] <- 
+      colMeans(overlap_results[["overlaps"]])
+    
+    permuted_overlap_means[strategy_idx, ] <- 
+      colMeans(overlap_results[["overlaps_P"]])
+    
+    mean_values <- observed_overlap_means[strategy_idx, ]
+    deviations <- t(overlap_results[["overlaps"]]) - mean_values
+    sum_squared_deviations <- rowSums(deviations^2)
+    overlap_std_devs[strategy_idx, ] <- 
+      sqrt(sum_squared_deviations / (niter - 1))
+  }
+  
+  slr_strategy_idx <- total_strategies
+  
+  observed_bootstrap_slr <- matrix(0, nrow = niter, ncol = num_top_n_options)
+  permuted_bootstrap_slr <- matrix(0, nrow = niter, ncol = num_top_n_options)
+  
+  overlap_results_slr <- calOverlaps_slr(
+    observed_data, permuted_data, 
+    num_features, 
+    as.integer(top_n_values), 
+    num_top_n_options,
+    as.integer(niter), 
+    observed_bootstrap_slr, 
+    permuted_bootstrap_slr
+  )
+  
+  # Compute statistics for SLR strategy
+  observed_overlap_means[slr_strategy_idx, ] <- 
+    colMeans(overlap_results_slr[["overlaps"]])
+  
+  permuted_overlap_means[slr_strategy_idx, ] <- 
+    colMeans(overlap_results_slr[["overlaps_P"]])
+  
+  mean_values_slr <- observed_overlap_means[slr_strategy_idx, ]
+  deviations_slr <- t(overlap_results_slr[["overlaps"]]) - mean_values_slr
+  sum_squared_deviations_slr <- rowSums(deviations_slr^2)
+  overlap_std_devs[slr_strategy_idx, ] <- 
+    sqrt(sum_squared_deviations_slr / (niter - 1))
+  
+  z_score_matrix <- (observed_overlap_means - permuted_overlap_means) / 
+    overlap_std_devs
+  
+  finite_z_scores <- is.finite(z_score_matrix)
+  max_z_value <- max(z_score_matrix[finite_z_scores])
+  optimal_position <- which(
+    z_score_matrix == max_z_value, 
+    arr.ind = TRUE
+  )
+  
+  if (nrow(optimal_position) > 1) {
+    optimal_position <- optimal_position[1, ]
+  }
+  
+  optimal_strategy_row <- optimal_position[1]
+  optimal_top_n_col <- optimal_position[2]
+  
+  if (optimal_strategy_row <= num_smoothing_strategies) {
+    optimal_smoothing_constant <- as.numeric(
+      rownames(observed_overlap_means)[optimal_strategy_row]
+    )
+    use_smoothing_flag <- 1
+  } else {
+    optimal_smoothing_constant <- 1
+    use_smoothing_flag <- 0
+  }
+  
+  optimal_top_n <- as.numeric(
+    colnames(observed_overlap_means)[optimal_top_n_col]
+  )
+  
+  optimal_reproducibility <- observed_overlap_means[
+    optimal_strategy_row, 
+    optimal_top_n_col
+  ]
+  
+  optimal_z_score <- z_score_matrix[
+    optimal_strategy_row, 
+    optimal_top_n_col
+  ]
+  
+  gc()
+  
+  return(list(
+    optimal_smoothing_constant = optimal_smoothing_constant,
+    use_smoothing_flag = use_smoothing_flag,
+    optimal_top_n = optimal_top_n,
+    optimal_reproducibility = optimal_reproducibility,
+    optimal_z_score = optimal_z_score,
+    z_score_table = z_score_matrix
+  ))
 }

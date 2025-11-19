@@ -254,7 +254,14 @@ LimROTS <- function(x,
         K <- min(K, nrow(data))
         N <- N[N < K]
         optimized.parameters <-
-            Optimizing(niter, ssq, N, D, S, pD, pS, verbose)
+            Optimizing(niter = niter, 
+                       smoothing_constants = ssq, 
+                       top_n_values = N, 
+                       observed_data = D, 
+                       observed_std_errors = S, 
+                       permuted_data = pD, 
+                       permuted_std_errors = pS, 
+                       verbose = verbose)
         a1 <- optimized.parameters$a1
         a2 <- optimized.parameters$a2
         k <- optimized.parameters$k
