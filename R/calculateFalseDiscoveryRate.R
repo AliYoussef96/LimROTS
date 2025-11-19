@@ -33,7 +33,7 @@ calculateFalseDiscoveryRate <- function(observedValues, permutedValues) {
   perm_counts <- vapply(
     seq_len(numPermutations),
     function(i) {
-      countLargerThan_new(obs_sorted, perm_sorted[, i])
+      countLargerThan(obs_sorted, perm_sorted[, i])
     },
     numeric(length(obs_sorted))
   )
