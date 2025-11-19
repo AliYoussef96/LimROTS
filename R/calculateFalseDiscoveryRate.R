@@ -1,4 +1,4 @@
-#' Calculate False Discovery Rate (FDR) Using Permuted Values (Adjusted)
+#' Calculate False Discovery Rate (FDR) Using Permuted Values
 #'
 #' This function calculates the false discovery rate (FDR) by comparing
 #' observed values to permuted values.The function sorts observed values,
@@ -20,31 +20,39 @@
 #'
 
 calculateFalseDiscoveryRate <- function(observedValues, permutedValues) {
-    observedAbs <- abs(observedValues)
-    permutedAbs <- abs(permutedValues)
-    ord.obs <- order(observedAbs, decreasing = TRUE, na.last = TRUE)
-    abs.obs <- observedAbs[ord.obs]
-    numPermutations <- ncol(permutedValues)
-    FDRmatrix <- matrix(NA, nrow = length(abs.obs), ncol = numPermutations)
-    for (i in seq_len(numPermutations)) {
-        a.rand <- sort(permutedAbs[, i], decreasing = TRUE, na.last = TRUE)
-        bigger <- countLargerThan(abs.obs, a.rand)
-        FDRmatrix[ord.obs, i] <- bigger / seq_along(abs.obs)
-    }
-    falseDiscoveryRate <- apply(FDRmatrix, 1, median)
-    falseDiscoveryRate[falseDiscoveryRate > 1] <- 1
-    falseDiscoveryRate[ord.obs] <-
-        rev(vapply(
-            length(falseDiscoveryRate):1,
-            function(x) {
-                min(falseDiscoveryRate[ord.obs][x:length(falseDiscoveryRate)])
-            },
-            numeric(1)
-        ))
-    return(falseDiscoveryRate)
+  obs_abs <- abs(observedValues)
+  perm_abs <- abs(permutedValues)
+  ord <- order(obs_abs, decreasing = TRUE, na.last = TRUE)
+  obs_sorted <- obs_abs[ord]
+  numPermutations <- ncol(perm_abs)
+  
+  perm_sorted <- apply(perm_abs, 2, function(col) {
+    sort(col, decreasing = TRUE, na.last = TRUE)
+  })
+  
+  perm_counts <- vapply(
+    seq_len(numPermutations),
+    function(i) {
+      countLargerThan_new(obs_sorted, perm_sorted[, i])
+    },
+    numeric(length(obs_sorted))
+  )
+  
+  ranks <- seq_along(obs_sorted)
+  fdr_mat <- sweep(perm_counts, 1, ranks, FUN = "/")
+  
+  fdr <- apply(fdr_mat, 1, median)
+  fdr[fdr > 1] <- 1
+  
+  fdr_rev <- rev(cummin(rev(fdr)))
+  
+  out <- numeric(length(fdr_rev))
+  out[ord] <- fdr_rev
+  return(out)
 }
 
-#' Count Larger Permuted Values (Modified)
+
+#' Count Larger Permuted Values
 #'
 #' This helper function compares observed values against permuted values and
 #' counts the number of permuted values that are greater than or equal to each
@@ -60,25 +68,11 @@ calculateFalseDiscoveryRate <- function(observedValues, permutedValues) {
 #'
 
 countLargerThan <- function(observedVec, permutedVec) {
-    # Sort observed and permuted vectors in decreasing order
-    observedVec <- sort(observedVec, decreasing = TRUE, na.last = TRUE)
-    permutedVec <- sort(permutedVec, decreasing = TRUE, na.last = TRUE)
-
-    # Get the positions of elements in observed vector
-    observedPos <- match(observedVec, observedVec)
-
-    # Check if each observed element exists in permuted vector
-    observedInPermuted <- observedVec %in% permutedVec
-
-    # Combine observed and permuted into a single sorted vector
-    combinedSorted <- sort(c(observedVec, permutedVec),
-        decreasing = TRUE,
-        na.last = TRUE
-    )
-
-    # Match observed elements to the combined vector positions
-    combinedPos <- match(observedVec, combinedSorted)
-
-    # Return the count of larger values for each observed value
-    return(combinedPos - observedPos + observedInPermuted)
+  obs <- sort(observedVec, decreasing = TRUE, na.last = TRUE)
+  perm <- sort(permutedVec, decreasing = TRUE, na.last = TRUE)
+  combined <- sort(c(obs, perm), decreasing = TRUE, na.last = TRUE)
+  obs_pos_combined <- match(obs, combined)
+  obs_pos_internal <- seq_along(obs)
+  in_perm <- obs %in% perm
+  return(obs_pos_combined - obs_pos_internal + in_perm)
 }
