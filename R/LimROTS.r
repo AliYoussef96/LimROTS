@@ -244,12 +244,14 @@ LimROTS <- function(x,
     rm(samples)
     gc()
     if (is.null(a1) | is.null(a2)) {
-        ssq <- c(seq(0, 20) / 100, seq(11, 50) / 50, seq(6, 25) / 5)
+        ssq <- c(seq(0, 0.20, by = 0.01),
+               seq(0.22, 1.00, by = 0.02),
+               seq(1.2, 5.0,  by = 0.2))
         N <- c(
-            seq(1, 20) * 5,
-            seq(11, 50) * 10,
-            seq(21, 40) * 25,
-            seq(11, 1000) * 100
+          seq(5,    100,   by = 5),
+          seq(110,  500,   by = 10),
+          seq(525,  1000,  by = 25),
+          seq(1100, 100000, by = 100)
         )
         K <- min(K, nrow(data))
         N <- N[N < K]
@@ -262,12 +264,12 @@ LimROTS <- function(x,
                        permuted_data = pD, 
                        permuted_std_errors = pS, 
                        verbose = verbose)
-        a1 <- optimized.parameters$a1
-        a2 <- optimized.parameters$a2
-        k <- optimized.parameters$k
-        R <- optimized.parameters$R
-        Z <- optimized.parameters$Z
-        ztable <- optimized.parameters$ztable
+        a1 <- optimized.parameters$optimal_smoothing_constant
+        a2 <- optimized.parameters$use_smoothing_flag
+        k <- optimized.parameters$optimal_top_n
+        R <- optimized.parameters$optimal_reproducibility
+        Z <- optimized.parameters$optimal_z_score
+        ztable <- optimized.parameters$z_score_table
         fit <- Limma_fit(
             x = lapply(split(seq_len(length(
                 groups
@@ -292,7 +294,8 @@ LimROTS <- function(x,
             stat0 = pD,
             pool = TRUE
         )
-        FDR <- calculateFalseDiscoveryRate(d, pD)
+        FDR <- calculateFalseDiscoveryRate(observedValues = d, 
+                                           permutedValues = as.matrix(pD))
         corrected.logfc <- fit$corrected.logfc
         q_values <- tryCatch(
             {

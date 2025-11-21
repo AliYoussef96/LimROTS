@@ -2,43 +2,33 @@
 % Please edit documentation in R/calOverlaps_slr.R
 \name{calOverlaps_slr}
 \alias{calOverlaps_slr}
-\title{Calculate Overlaps for Single-Label Replicates (SLR)}
+\title{Compute overlaps for single-label replicate statistics (SLR).}
 \usage{
-calOverlaps_slr(D, pD, nrow, N, N_len, niter, overlaps, overlaps_P)
+calOverlaps_slr(D, pD, nrow, N, N_len, niter, mat_obs, mat_perm)
 }
 \arguments{
-\item{D}{Numeric vector. Observed data values (e.g., differences).}
+\item{D}{Numeric matrix of observed statistics/features.}
 
-\item{pD}{Numeric vector. Permuted data values.}
+\item{pD}{Numeric matrix of permuted statistics/features.}
 
-\item{nrow}{Integer. Number of rows in each block of data.}
+\item{nrow}{Integer, number of features per resample block.}
 
-\item{N}{Integer vector. Number of top values to consider for overlap
-calculation.}
+\item{N}{Integer vector of "top list sizes" for overlap.}
 
-\item{N_len}{Integer. Length of the \code{N} vector.}
+\item{N_len}{Integer, length of N.}
 
-\item{niter}{Integer. Number of bootstrap samples or resampling iterations.}
+\item{niter}{Numeric, total number of bootstrap/permutation rounds.}
 
-\item{overlaps}{Numeric matrix. Matrix to store overlap results for
-observed data.}
+\item{mat_obs}{Matrix (niter x length(N)) to be filled with
+overlaps (observed).}
 
-\item{overlaps_P}{Numeric matrix. Matrix to store overlap results for
-permuted data.}
+\item{mat_perm}{Matrix (niter x length(N)) to be filled with
+overlaps (permuted).}
 }
 \value{
-A list containing two matrices: \code{overlaps} for observed data and
-\code{overlaps_P} for permuted data.
+List with mat_obs=overlaps (observed) and
+mat_perm=overlaps (permuted).
 }
 \description{
-This function computes the overlap between two sets of observed and permuted
-'values for single-label replicates (SLR).
-It calculates the proportion of overlap between pairs of vectors (res1/res2
-and pres1/pres2) after sorting them.
-}
-\details{
-The function calculates the overlap for two sets of comparisons: one for
-observed data (\code{res1}/\code{res2}) and one for permuted data (\code{pres1}/\code{pres2}).
-For each bootstrap sample, the function orders the two vectors being
-compared, then computes the proportion of overlap for the top \code{N} values.
+Compute overlaps for single-label replicate statistics (SLR).
 }

@@ -24,13 +24,16 @@
 #'
 #' @return A list containing the optimal parameters:
 #' \itemize{
-#'   \item \code{optimal_smoothing_constant}: Optimal smoothing constant or 1 for SLR.
-#'   \item \code{use_smoothing_flag}: SLR flag (1 if smoothing constant is optimal,
-#'   0 if SLR is optimal).
-#'   \item \code{optimal_top_n}: Optimal number of top values to consider for overlap.
-#'   \item \code{optimal_reproducibility}: Optimal overlap value.
-#'   \item \code{optimal_z_score}: Optimal z-score.
-#'   \item \code{z_score_table}: Matrix of z-scores for all evaluated parameters.
+#'   \item \code{optimal_smoothing_constant}: Optimal smoothing constant or 1 
+#'   for SLR (a1).
+#'   \item \code{use_smoothing_flag}: SLR flag (1 if smoothing constant is 
+#'   optimal, 0 if SLR is optimal) (a2).
+#'   \item \code{optimal_top_n}: Optimal number of top values to consider 
+#'   for overlap (k).
+#'   \item \code{optimal_reproducibility}: Optimal overlap value (R).
+#'   \item \code{optimal_z_score}: Optimal z-score (Z).
+#'   \item \code{z_score_table}: Matrix of z-scores for all 
+#'   evaluated parameters (ztable).
 #' }
 #'
 #'

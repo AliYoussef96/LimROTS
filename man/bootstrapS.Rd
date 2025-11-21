@@ -22,8 +22,7 @@ entry is a resampled row name from the metadata.
 }
 \description{
 This function generates bootstrap samples from the input metadata. It samples
-with replacement within each group defined in the metadata, and optionally
-adjusts for paired groups.
+with replacement within each group defined in the metadata.
 }
 \details{
 The function works by resampling the row names of the metadata for each group

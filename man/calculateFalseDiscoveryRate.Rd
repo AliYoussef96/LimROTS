@@ -2,7 +2,7 @@
 % Please edit documentation in R/calculateFalseDiscoveryRate.R
 \name{calculateFalseDiscoveryRate}
 \alias{calculateFalseDiscoveryRate}
-\title{Calculate False Discovery Rate (FDR) Using Permuted Values (Adjusted)}
+\title{Calculate False Discovery Rate (FDR) Using Permuted Values}
 \usage{
 calculateFalseDiscoveryRate(observedValues, permutedValues)
 }
