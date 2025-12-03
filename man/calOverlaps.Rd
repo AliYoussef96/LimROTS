@@ -2,39 +2,50 @@
 % Please edit documentation in R/calOverlaps.R
 \name{calOverlaps}
 \alias{calOverlaps}
-\title{Compute overlaps between bootstrap and permuted features.}
+\title{Calculate Overlaps Between Observed and Permuted Data}
 \usage{
-calOverlaps(D, S, pD, pS, nrow, N, N_len, ssq, niter, mat_obs, mat_perm)
+calOverlaps(D, S, pD, pS, nrow, N, N_len, ssq, niter, overlaps, overlaps_P)
 }
 \arguments{
-\item{D}{Numeric matrix of observed statistics/features.}
+\item{D}{Numeric vector. Observed data values (e.g., differences).}
 
-\item{S}{Numeric matrix of observed standard errors or relevant values.}
+\item{S}{Numeric vector. Standard errors or related values associated with
+the observed data.}
 
-\item{pD}{Numeric matrix of permuted statistics/features.}
+\item{pD}{Numeric vector. Permuted data values (e.g., differences).}
 
-\item{pS}{Numeric matrix of permuted standard errors or relevant values.}
+\item{pS}{Numeric vector. Standard errors or related values associated with
+the permuted data.}
 
-\item{nrow}{Integer, number of features per resample block.}
+\item{nrow}{Integer. Number of rows in each block of data.}
 
-\item{N}{Integer vector of "top list sizes" for overlap.}
+\item{N}{Integer vector. Number of top values to consider for overlap
+calculation.}
 
-\item{N_len}{Integer, length of N.}
+\item{N_len}{Integer. Length of the \code{N} vector.}
 
-\item{ssq}{Numeric, regularization constant.}
+\item{ssq}{Numeric. A small constant added to standard errors for stability.}
 
-\item{niter}{Numeric, total number of bootstrap/permutation rounds.}
+\item{niter}{Integer. Number of bootstrap samples or resampling iterations.}
 
-\item{mat_obs}{Matrix (niter x length(N)) to be filled
-with overlaps(observed).}
+\item{overlaps}{Numeric matrix. Matrix to store overlap results for observed
+data.}
 
-\item{mat_perm}{Matrix (niter x length(N)) to be filled with
-overlaps (permuted).}
+\item{overlaps_P}{Numeric matrix. Matrix to store overlap results for
+permuted data.}
 }
 \value{
-List with mat_obs=overlaps (observed) and
-mat_perm=overlaps (permuted).
+A list containing two matrices: \code{overlaps} for observed data and
+\code{overlaps_P} for permuted data.
 }
 \description{
-Compute overlaps between bootstrap and permuted features.
+This function calculates the overlap between observed and permuted data for
+two sets of comparisons. It computes the ratio of overlap between pairs of
+vectors (res1/res2 and pres1/pres2) after sorting the values.
+}
+\details{
+The function calculates overlaps for two sets of comparisons: one for
+observed data (res1/res2) and one for permuted data (pres1/pres2).For each
+bootstrap sample, the function orders the two vectors being compared, then
+calculates the proportion of overlap for the top \code{N} values.
 }

@@ -108,11 +108,10 @@
 #'          is the the adjusted
 #'          standard error. LimROTS generates p-values from permutation samples
 #'          using the implementation available in
-#'          \link[qvalue]{qvalue} package, along with internal implementation of FDR
-#'          adapted from ROTS package. Additionally, the qvalue package is used
-#'          to calculate q-values, were the proportion of true null p-values is
-#'          set to the bootstrap method \link[qvalue]{pi0est}. We recommend using
-#'          permutation-derived p-values and qvalues.
+#'          \link[qvalue]{qvalue} package, along with internal implementation 
+#'          of FDR adapted from ROTS package. Additionally, the qvalue package 
+#'          is used to calculate q-values, were the proportion of true null 
+#'          p-values is set to the bootstrap method \link[qvalue]{pi0est}. 
 #'
 #' This function processes a dataset using parallel computation. It
 #' leverages the \pkg{BiocParallel} framework to distribute tasks
@@ -244,32 +243,23 @@ LimROTS <- function(x,
     rm(samples)
     gc()
     if (is.null(a1) | is.null(a2)) {
-        ssq <- c(seq(0, 0.20, by = 0.01),
-               seq(0.22, 1.00, by = 0.02),
-               seq(1.2, 5.0,  by = 0.2))
+        ssq <- c(seq(0, 20) / 100, seq(11, 50) / 50, seq(6, 25) / 5)
         N <- c(
-          seq(5,    100,   by = 5),
-          seq(110,  500,   by = 10),
-          seq(525,  1000,  by = 25),
-          seq(1100, 100000, by = 100)
+            seq(1, 20) * 5,
+            seq(11, 50) * 10,
+            seq(21, 40) * 25,
+            seq(11, 1000) * 100
         )
         K <- min(K, nrow(data))
         N <- N[N < K]
         optimized.parameters <-
-            Optimizing(niter = niter, 
-                       smoothing_constants = ssq, 
-                       top_n_values = N, 
-                       observed_data = D, 
-                       observed_std_errors = S, 
-                       permuted_data = pD, 
-                       permuted_std_errors = pS, 
-                       verbose = verbose)
-        a1 <- optimized.parameters$optimal_smoothing_constant
-        a2 <- optimized.parameters$use_smoothing_flag
-        k <- optimized.parameters$optimal_top_n
-        R <- optimized.parameters$optimal_reproducibility
-        Z <- optimized.parameters$optimal_z_score
-        ztable <- optimized.parameters$z_score_table
+            Optimizing(niter, ssq, N, D, S, pD, pS, verbose)
+        a1 <- optimized.parameters$a1
+        a2 <- optimized.parameters$a2
+        k <- optimized.parameters$k
+        R <- optimized.parameters$R
+        Z <- optimized.parameters$Z
+        ztable <- optimized.parameters$ztable
         fit <- Limma_fit(
             x = lapply(split(seq_len(length(
                 groups
@@ -294,8 +284,7 @@ LimROTS <- function(x,
             stat0 = pD,
             pool = TRUE
         )
-        FDR <- calculateFalseDiscoveryRate(observedValues = d, 
-                                           permutedValues = as.matrix(pD))
+        FDR <- calculateFalseDiscoveryRate(d, pD)
         corrected.logfc <- fit$corrected.logfc
         q_values <- tryCatch(
             {

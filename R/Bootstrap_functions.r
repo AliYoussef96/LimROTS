@@ -1,7 +1,8 @@
 #' Generate Bootstrap Samples
 #'
 #' This function generates bootstrap samples from the input metadata. It samples
-#'  with replacement within each group defined in the metadata.
+#'  with replacement within each group defined in the metadata, and optionally
+#'  adjusts for paired groups.
 #'
 #' @param niter Integer. The number of bootstrap samples to generate.
 #' @param meta.info Data frame. Metadata containing sample information, where
@@ -20,23 +21,16 @@
 #'
 #'
 bootstrapS <- function(niter, meta.info, group.name) {
-  group_labels <- meta.info[[group.name]]
-  ids <- rownames(meta.info)
-  index_map <- split(seq_along(ids), group_labels)
-  out <- matrix(NA_character_, nrow = niter, ncol = length(ids))
-  for (i in seq_len(niter)) {
-    sampled_list <- mapply(
-      FUN = function(pos) sample(ids[pos], length(pos), replace = TRUE),
-      pos = index_map,
-      SIMPLIFY = FALSE
-    )
-    vec <- character(length(ids))
-    vec[unlist(index_map, use.names = FALSE)] <-
-      unlist(sampled_list, use.names = FALSE)
-    out[i, ] <- vec
-  }
-  
-  return(out)
+    groups <- meta.info[, group.name]
+    bootsamples <- matrix(nrow = niter, ncol = length(groups))
+    for (i in seq_len(niter)) {
+        for (g in unique(groups)) {
+            g.names <- row.names(meta.info)[which(groups == g)]
+            bootsamples[i, which(groups == g)] <-
+                sample(g.names, length(g.names), replace = TRUE)
+        }
+    }
+    return(bootsamples)
 }
 
 

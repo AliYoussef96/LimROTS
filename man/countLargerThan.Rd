@@ -2,7 +2,7 @@
 % Please edit documentation in R/calculateFalseDiscoveryRate.R
 \name{countLargerThan}
 \alias{countLargerThan}
-\title{Count Larger Permuted Values}
+\title{Count Larger Permuted Values (Modified)}
 \usage{
 countLargerThan(observedVec, permutedVec)
 }

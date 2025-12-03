@@ -71,6 +71,7 @@ limma: Ritchie ME, Phipson B, Wu D, Hu Y, Law CW, Shi W, Smyth GK.
 limma powers differential expression analyses for RNA-sequencing and microarray studies. 
 Nucleic Acids Research. 2015;43(7):e47. https://doi.org/10.1093/nar/gkv007 
 
+
 # Algorithm overview
 
 The **LimROTS** approach initially uses the limma package @limma to
