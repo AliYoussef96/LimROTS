@@ -3,10 +3,10 @@
 #  * Copyright on original version by: F. Seyednasrollah, T. Suomi,
 #  * L.L. Elo (2024)
 #  * Copyright on modifications (C) 2024-2025 A. Youssef
-#  * Modifications: Code for the optimization step was extracted to form a
-#  * separate optimization function from ROTS.R (lines 143–260, ~35 lines
-#  * without comments)
+#  * Modifications: ROTS.R lines 143–260, ~35 lines were separated
+#  * into its own optimization step function.
 #  */
+#
 #' Optimize Parameters Based on Overlap Calculations
 #'
 #' This function optimizes parameters by calculating overlaps between observed
