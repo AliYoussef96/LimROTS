@@ -1,3 +1,14 @@
+# /*
+#  * Adapted from ROTS Bioconductor (3.19, 2024) files ROTS.R
+#  * Original authors: Suomi T, Seyednasrollah F, Jaakkola MK, Faux T, Elo LL
+#  * (2017) "ROTS: An R package for reproducibility-optimized statistical
+#  * testing." PLOS Computational Biology 13(5): e1005562.
+#  * DOI: https://doi.org/10.1371/journal.pcbi.1005562
+#  * Copyright (C) 2025 Ali Youssef et al.
+#  * Modifications: Code for the optimization step was extracted to form a
+#  * separate optimization function from ROTS.R (lines 143–260, ~35 lines
+#  * without comments)
+#  */
 #' Optimize Parameters Based on Overlap Calculations
 #'
 #' This function optimizes parameters by calculating overlaps between observed
