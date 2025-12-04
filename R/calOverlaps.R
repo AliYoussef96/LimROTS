@@ -4,11 +4,9 @@
 #  * Copyright on original version by: F. Seyednasrollah, T. Suomi,
 #  * L.L. Elo (2024)
 #  * Copyright on modifications (C) 2024-2025 A. Youssef
-#  * Modifications: Both `NeedForSpeed1` and `NeedForSpeed2` functions
-#  * for calculating the overlap between bootstrap samples were
-#  * re-implemented in R (calOverlaps and calOverlaps_slr). In the
-#  * original ROTS package, these functions were implemented entirely
-#  * in C++.
+#  * Modifications: ROTS::NeedForSpeed1 and ROTS::NeedForSpeed2 were
+#  * translated from C++ to R (LimROTS::calOverlaps and 
+#  * LimROTS::calOverlaps_slr).
 #  */
 #
 #' Calculate Overlaps Between Observed and Permuted Data
