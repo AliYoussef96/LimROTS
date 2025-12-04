@@ -1,14 +1,10 @@
 # /*
-#  * Adapted from ROTS Bioconductor (3.19, 2024) files calculateFDR.R
-#  * and biggerN.R
-#  * Original authors: Suomi T, Seyednasrollah F, Jaakkola MK, Faux T, Elo LL
-#  * (2017) "ROTS: An R package for reproducibility-optimized statistical
-#  * testing." PLOS Computational Biology 13(5): e1005562.
-#  * DOI: https://doi.org/10.1371/journal.pcbi.1005562
-#  * Copyright (C) 2025 Ali Youssef et al.
-#  * Modifications: The method for calculating the FDR was adapted and the
-#  * function was refactored, while the `countLargerThan` function remains
-#  * unchanged compared to `ROTS::biggerN`.
+#  * Adapted from ROTS Bioconductor package (3.19, 2024) files
+#  * calculateFDR.R and biggerN.R
+#  * Copyright on original version by: F. Seyednasrollah, T. Suomi, L.L. Elo (2024)
+#  * Copyright on modifications (C) 2024-2025 A. Youssef
+#  * Modifications: method for calculating FDR was adapted and function refactored,
+#  * while `countLargerThan` remains unchanged compared to `ROTS::biggerN`.
 #  */
 #
 #' Calculate False Discovery Rate (FDR) Using Permuted Values (Adjusted)
