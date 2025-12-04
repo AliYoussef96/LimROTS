@@ -1,5 +1,5 @@
 # /*
-#  * Adapted from ROTS Bioconductor (3.19, 2024) files ROTS.R
+#  * Adapted from ROTS Bioconductor (3.19, 2024) file ROTS.R
 #  * Copyright on original version by: F. Seyednasrollah, T. Suomi,
 #  * L.L. Elo (2024)
 #  * Copyright on modifications (C) 2024-2025 A. Youssef
