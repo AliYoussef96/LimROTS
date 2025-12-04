@@ -1,3 +1,16 @@
+# /*
+#  * Adapted from ROTS Bioconductor (3.19, 2024) files bootstrapSamples.R
+#  * Original authors: Suomi T, Seyednasrollah F, Jaakkola MK, Faux T, Elo LL
+#  * (2017) "ROTS: An R package for reproducibility-optimized statistical
+#  * testing." PLOS Computational Biology 13(5): e1005562.
+#  * DOI: https://doi.org/10.1371/journal.pcbi.1005562
+#  * Copyright (C) 2025 Ali Youssef et al.
+#  * Modifications: The `bootstrapS` implementation was not changed
+#  * functionally but was refactored, and `bootstrapSamples_limRots`
+#  * is a new implementation supporting the LimROTS approach for
+#  * covariate handling.
+#  */
+#
 #' Generate Bootstrap Samples
 #'
 #' This function generates bootstrap samples from the input metadata. It samples
