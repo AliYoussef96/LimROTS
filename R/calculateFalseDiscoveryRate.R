@@ -1,11 +1,14 @@
 # /*
 #  * Adapted from ROTS Bioconductor package (3.19, 2024) files
 #  * calculateFDR.R and biggerN.R
-#  * Copyright on original version by: F. Seyednasrollah, T. Suomi, L.L. Elo (2024)
+#  * Copyright on original version by: F. Seyednasrollah, T. Suomi,
+#  * L.L. Elo (2024)
 #  * Copyright on modifications (C) 2024-2025 A. Youssef
-#  * Modifications: method for calculating FDR was adapted and function refactored,
-#  * while `countLargerThan` remains unchanged compared to `ROTS::biggerN`.
-#  */
+#  * Modifications: LimROTS::calculateFalseDiscoveryRate 
+#  * Removed the progress bar, clarifies variable names, 
+#  * and replaced sapply with vapply from ROTS::calculateFDR
+#  * LimROTS::countLargerThan is a rename of ROTS::biggerN, 
+#  * retaining the implementation but updating variable names.
 #
 #' Calculate False Discovery Rate (FDR) Using Permuted Values (Adjusted)
 #'
@@ -52,6 +55,7 @@ calculateFalseDiscoveryRate <- function(observedValues, permutedValues) {
         ))
     return(falseDiscoveryRate)
 }
+
 
 #' Count Larger Permuted Values (Modified)
 #'
