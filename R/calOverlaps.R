@@ -1,3 +1,18 @@
+# /*
+#  * Adapted from ROTS Bioconductor (3.19, 2024) files NeedForSpeed1.cpp 
+#  * and NeedForSpeed2.cpp
+#  * Original authors: Suomi T, Seyednasrollah F, Jaakkola MK, Faux T, Elo LL
+#  * (2017) "ROTS: An R package for reproducibility-optimized statistical
+#  * testing." PLOS Computational Biology 13(5): e1005562.
+#  * DOI: https://doi.org/10.1371/journal.pcbi.1005562
+#  * Copyright (C) 2025 Ali Youssef et al.
+#  * Modifications: Both `NeedForSpeed1` and `NeedForSpeed2` functions
+#  * for calculating the overlap between bootstrap samples were
+#  * re-implemented in R (calOverlaps and calOverlaps_slr). In the
+#  * original ROTS package, these functions were implemented entirely
+#  * in C++.
+#  */
+#
 #' Calculate Overlaps Between Observed and Permuted Data
 #'
 #' This function calculates the overlap between observed and permuted data for
