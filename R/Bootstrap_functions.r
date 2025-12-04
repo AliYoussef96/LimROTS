@@ -1,12 +1,11 @@
 # /*
-#  * Adapted from ROTS Bioconductor (3.19, 2024) files bootstrapSamples.R
+#  * Adapted from ROTS Bioconductor (3.19, 2024) file bootstrapSamples.R
 #  * Copyright on original version by: F. Seyednasrollah, T. Suomi,
 #  * L.L. Elo (2024)
 #  * Copyright on modifications (C) 2024-2025 A. Youssef
-#  * Modifications: The `bootstrapS` implementation was not changed
-#  * functionally but was refactored, and `bootstrapSamples_limRots`
-#  * is a new implementation supporting the LimROTS approach for
-#  * covariate handling.
+#  * Modifications: LimROTS::bootstrapS simplifies ROTS::bootstrapS 
+#  * to unpaired group-wise resampling and returning 
+#  * row names instead of indices.
 #  */
 #
 #' Generate Bootstrap Samples
