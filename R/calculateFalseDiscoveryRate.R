@@ -6,7 +6,7 @@
 #  * Copyright on modifications (C) 2024-2025 A. Youssef
 #  * Modifications: LimROTS::calculateFalseDiscoveryRate 
 #  * Removed the progress bar, clarifies variable names, 
-#  * and replaced sapply with vapply from ROTS::calculateFDR
+#  * and replaced sapply with vapply from ROTS::calculateFDR. 
 #  * LimROTS::countLargerThan is a rename of ROTS::biggerN, 
 #  * retaining the implementation but updating variable names.
 #
