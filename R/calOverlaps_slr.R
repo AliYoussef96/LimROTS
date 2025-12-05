@@ -1,3 +1,14 @@
+# /*
+#  * Adapted from ROTS Bioconductor (3.19, 2024) files NeedForSpeed1.cpp 
+#  * and NeedForSpeed2.cpp
+#  * Copyright on original version by: F. Seyednasrollah, T. Suomi,
+#  * L.L. Elo (2024)
+#  * Copyright on modifications (C) 2024-2025 A. Youssef
+#  * Modifications: ROTS::NeedForSpeed1 and ROTS::NeedForSpeed2 were
+#  * translated from C++ to R (LimROTS::calOverlaps and 
+#  * LimROTS::calOverlaps_slr).
+#  */
+#
 #' Calculate Overlaps for Single-Label Replicates (SLR)
 #'
 #' This function computes the overlap between two sets of observed and permuted

@@ -1,3 +1,13 @@
+# /*
+#  * Adapted from ROTS Bioconductor (3.19, 2024) file bootstrapSamples.R
+#  * Copyright on original version by: F. Seyednasrollah, T. Suomi,
+#  * L.L. Elo (2024)
+#  * Copyright on modifications (C) 2024-2025 A. Youssef
+#  * Modifications: LimROTS::bootstrapS simplifies ROTS::bootstrapS 
+#  * to unpaired group-wise resampling and returning 
+#  * row names instead of indices.
+#  */
+#
 #' Generate Bootstrap Samples
 #'
 #' This function generates bootstrap samples from the input metadata. It samples
