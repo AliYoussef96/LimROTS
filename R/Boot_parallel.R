@@ -1,3 +1,6 @@
+# Copyright (C) 2025 Ali Youssef.
+# This program is licensed under GPL (>= 2).
+#
 #' Parallel processing handling function
 #'
 #' @param data A \code{SummarizedExperiment} object or a matrix where rows

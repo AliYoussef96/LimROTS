@@ -1,3 +1,6 @@
+# Copyright (C) 2025 Ali Youssef.
+# This program is licensed under GPL (>= 2).
+#
 #' `LimROTS`: A Hybrid Method Integrating Empirical Bayes and 
 #' Reproducibility-Optimized Statistics for Robust 
 #' Differential Expression Analysis
