@@ -1,3 +1,6 @@
+# Copyright (C) 2025 Ali Youssef.
+# This program is licensed under GPL (>= 2).
+#
 #' Sanity Check for Input Data and Parameters
 #'
 #' This function performs a series of checks and initial setups for input data,

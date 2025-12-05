@@ -1,3 +1,6 @@
+# Copyright (C) 2025 Ali Youssef.
+# This program is licensed under GPL (>= 2).
+#
 #' Perform Permutation-Based Linear Modeling with Covariates using Limma
 #'
 #' This function performs linear modeling using the Limma package with

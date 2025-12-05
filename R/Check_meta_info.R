@@ -1,3 +1,6 @@
+# Copyright (C) 2025 Ali Youssef.
+# This program is licensed under GPL (>= 2).
+#
 #' Check if meta info is correct
 #'
 #' @param meta.info Data frame. Metadata associated with the samples
