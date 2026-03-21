@@ -9,6 +9,8 @@
 #' the data to be analyzed.
 #' @param group.name Character. Column name in `meta.info` that defines the
 #' groups or conditions for comparison.
+#' @param assay.name A character string or numeric index specifying the assay 
+#' to use if `data.exp` is a `SummarizedExperiment`. Default is `NULL`.
 #'
 #' @import SummarizedExperiment
 #'
@@ -17,7 +19,7 @@
 #'
 #'
 
-Check_SummarizedExperiment <- function(data.exp, meta.info, group.name) {
+Check_SummarizedExperiment <- function(data.exp, meta.info, group.name, assay.name = NULL) {
     if (inherits(data.exp, "SummarizedExperiment")) {
         message("Data is SummarizedExperiment object")
 
@@ -43,8 +45,11 @@ Check_SummarizedExperiment <- function(data.exp, meta.info, group.name) {
                 for comparison."
             )
         }
-        message(sprintf("Assay: %s will be used", assayNames(data.exp)[1]))
-        data <- assay(data.exp, assayNames(data.exp)[1])
+        if (is.null(assay.name)) {
+            assay.name <- assayNames(data.exp)[1]
+        }
+        message(sprintf("Assay: %s will be used", assay.name))
+        data <- assay(data.exp, assay.name)
         groups <- NULL
     } else {
         data <- data.exp

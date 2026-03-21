@@ -9,6 +9,8 @@
 #' represent features (e.g., proteins, metabolites) and columns
 #' represent samples.
 #' The values should be log-transformed.
+#' @param assay.name A character string or numeric index specifying the assay 
+#' to use if \code{x} is a \code{SummarizedExperiment}. Default is \code{NULL}.
 #' @param niter An integer representing the amount of bootstrap iterations.
 #' Default is 1000.
 #' @param K An optional integer representing the top list size for ranking.
@@ -144,6 +146,7 @@
 
 
 LimROTS <- function(x,
+    assay.name = NULL,
     niter = 1000,
     K = NULL,
     a1 = NULL,
@@ -159,6 +162,7 @@ LimROTS <- function(x,
     permutating.group = FALSE) {
     SanityChecK.list <- SanityChecK(
         x,
+        assay.name = assay.name,
         niter = niter,
         K = K,
         meta.info = meta.info,

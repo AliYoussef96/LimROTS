@@ -24,6 +24,8 @@
 #' function's execution. Default is TRUE.
 #' @param log Logical, indicating whether the data is already log-transformed.
 #' Default is TRUE.
+#' @param assay.name A character string or numeric index specifying the assay 
+#' to use if `x` is a `SummarizedExperiment`. Default is `NULL`.
 #'
 #' @details
 #' This function checks whether the input data and metadata are in the correct
@@ -42,13 +44,15 @@
 #'
 #'
 SanityChecK <- function(x, niter = 1000, K = NULL,
+    assay.name = NULL,
     meta.info, group.name,
     formula.str, verbose = TRUE, log = TRUE) {
     data.exp <- x
     Check_SExp <- Check_SummarizedExperiment(
         data.exp = x,
         meta.info = meta.info,
-        group.name = group.name
+        group.name = group.name,
+        assay.name = assay.name
     )
     data <- Check_SExp$data
     groups <- Check_SExp$groups
