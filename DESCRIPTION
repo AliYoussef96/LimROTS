@@ -15,8 +15,8 @@ Authors@R:
     comment = c(ORCID = "0009-0007-1347-7552")),
     person(given = "Eleanor", family = "Coffey", role = c("aut", "ths"),
     email = "elecof@utu.fi",
-    comment = c(ORCID = "0000-0002-9717-5610"))),
-    person(given = "Rasmus", family = "Hindström", role = "ctb"),
+    comment = c(ORCID = "0000-0002-9717-5610")),
+    person(given = "Rasmus", family = "Hindström", role = "ctb",
     email = "rasmus.hindstrom@utu.fi",
     comment = c(ORCID = "0009-0004-5731-178X")))
 Description: Differential expression analysis is a prevalent method utilised in 
@@ -37,7 +37,7 @@ Description: Differential expression analysis is a prevalent method utilised in
 License: GPL (>= 2)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 Depends: 
     R (>= 4.5.0),
     SummarizedExperiment
