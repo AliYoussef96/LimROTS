@@ -4,11 +4,14 @@
 \alias{Check_SummarizedExperiment}
 \title{Check if SummarizedExperiment or data is correct}
 \usage{
-Check_SummarizedExperiment(data.exp, meta.info, group.name)
+Check_SummarizedExperiment(data.exp, assay.type = NULL, meta.info, group.name)
 }
 \arguments{
 \item{data.exp}{A matrix-like object or a \code{SummarizedExperiment} containing
 the data to be analyzed.}
+
+\item{assay.type}{A character string or numeric index specifying the assay
+to use if \code{data.exp} is a \code{SummarizedExperiment}. Default is \code{NULL}}
 
 \item{meta.info}{Data frame. Metadata associated with the samples
 (columns of \code{data.exp}). If \code{data.exp} is a \code{SummarizedExperiment},}

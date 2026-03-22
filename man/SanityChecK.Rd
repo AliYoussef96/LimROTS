@@ -6,6 +6,7 @@
 \usage{
 SanityChecK(
   x,
+  assay.type = NULL,
   niter = 1000,
   K = NULL,
   meta.info,
@@ -18,6 +19,9 @@ SanityChecK(
 \arguments{
 \item{x}{A matrix-like object or a \code{SummarizedExperiment} containing the
 data to be analyzed.}
+
+\item{assay.type}{A character string or numeric index specifying the assay
+to use if \code{x} is a \code{SummarizedExperiment}. Default is \code{NULL}.}
 
 \item{niter}{Integer. Number of bootstrap samples or resampling iterations.
 Default is 1000.}
