@@ -8,6 +8,7 @@ Differential Expression Analysis}
 \usage{
 LimROTS(
   x,
+  assay.type = NULL,
   niter = 1000,
   K = NULL,
   a1 = NULL,
@@ -28,6 +29,9 @@ LimROTS(
 represent features (e.g., proteins, metabolites) and columns
 represent samples.
 The values should be log-transformed.}
+
+\item{assay.type}{A character string or numeric index specifying the assay
+to use if \code{x} is a \code{SummarizedExperiment}. Default is \code{NULL}}
 
 \item{niter}{An integer representing the amount of bootstrap iterations.
 Default is 1000.}
@@ -124,11 +128,10 @@ bootstrap datasets, Finally based on the optimized parameters
 is the the adjusted
 standard error. LimROTS generates p-values from permutation samples
 using the implementation available in
-\link[qvalue]{qvalue} package, along with internal implementation of FDR
-adapted from ROTS package. Additionally, the qvalue package is used
-to calculate q-values, were the proportion of true null p-values is
-set to the bootstrap method \link[qvalue]{pi0est}. We recommend using
-permutation-derived p-values and qvalues.
+\link[qvalue]{qvalue} package, along with internal implementation
+of FDR adapted from ROTS package. Additionally, the qvalue package
+is used to calculate q-values, were the proportion of true null
+p-values is set to the bootstrap method \link[qvalue]{pi0est}.
 
 This function processes a dataset using parallel computation. It
 leverages the \pkg{BiocParallel} framework to distribute tasks

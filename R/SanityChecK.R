@@ -9,6 +9,8 @@
 #'
 #' @param x A matrix-like object or a `SummarizedExperiment` containing the
 #' data to be analyzed.
+#' @param assay.type A character string or numeric index specifying the assay
+#' to use if `x` is a `SummarizedExperiment`. Default is `NULL`.
 #' @param niter Integer. Number of bootstrap samples or resampling iterations.
 #' Default is 1000.
 #' @param K Integer. Top list size. If NULL, it will be set to a quarter of
@@ -41,12 +43,15 @@
 #' }
 #'
 #'
-SanityChecK <- function(x, niter = 1000, K = NULL,
+SanityChecK <- function(x,
+    assay.type = NULL,
+    niter = 1000, K = NULL,
     meta.info, group.name,
     formula.str, verbose = TRUE, log = TRUE) {
     data.exp <- x
     Check_SExp <- Check_SummarizedExperiment(
         data.exp = x,
+        assay.type = assay.type,
         meta.info = meta.info,
         group.name = group.name
     )

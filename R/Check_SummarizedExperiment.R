@@ -3,10 +3,12 @@
 #
 #' Check if SummarizedExperiment or data is correct
 #'
-#' @param meta.info Data frame. Metadata associated with the samples
-#' (columns of `data.exp`). If `data.exp` is a `SummarizedExperiment`,
 #' @param data.exp A matrix-like object or a `SummarizedExperiment` containing
 #' the data to be analyzed.
+#' @param assay.type A character string or numeric index specifying the assay
+#' to use if `data.exp` is a `SummarizedExperiment`. Default is `NULL`
+#' @param meta.info Data frame. Metadata associated with the samples
+#' (columns of `data.exp`). If `data.exp` is a `SummarizedExperiment`,
 #' @param group.name Character. Column name in `meta.info` that defines the
 #' groups or conditions for comparison.
 #'
@@ -17,7 +19,8 @@
 #'
 #'
 
-Check_SummarizedExperiment <- function(data.exp, meta.info, group.name) {
+Check_SummarizedExperiment <- function(data.exp,
+    assay.type = NULL, meta.info, group.name) {
     if (inherits(data.exp, "SummarizedExperiment")) {
         message("Data is SummarizedExperiment object")
 
@@ -43,8 +46,11 @@ Check_SummarizedExperiment <- function(data.exp, meta.info, group.name) {
                 for comparison."
             )
         }
-        message(sprintf("Assay: %s will be used", assayNames(data.exp)[1]))
-        data <- assay(data.exp, assayNames(data.exp)[1])
+        if (is.null(assay.type)) {
+            assay.type <- assayNames(data.exp)[1]
+        }
+        message(sprintf("Assay: %s will be used", assay.type))
+        data <- assay(data.exp, assay.type)
         groups <- NULL
     } else {
         data <- data.exp
