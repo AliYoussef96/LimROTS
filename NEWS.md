@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.3.17
+Add survival analysis functionality with support for Cox proportional hazards models and competing risks regression.
+
 ## 1.3.13
 Add copyright statements to R project files
 
