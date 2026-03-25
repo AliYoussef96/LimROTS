@@ -6,20 +6,9 @@
 <!--[![codecov](https://codecov.io/gh/AliYoussef96/LimROTS/branch/devel/graph/badge.svg)](https://app.codecov.io/gh/AliYoussef96/LimROTS?branch=devel)-->
 <!--[![codefactor](https://www.codefactor.io/repository/github/AliYoussef96/LimROTS/badge)](https://www.codefactor.io/repository/github/AliYoussef96/LimROTS)-->
 
-Differential expression analysis is a prevalent method utilised in the
-examination of diverse biological data. The reproducibility-optimized test
-statistic (ROTS) ([Tomi Suomi et
-al.,](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1005562))
-has been developed with a modified t-statistic based on the data's intrinsic
-characteristics and ranks features according to their statistical significance
-for differential expression between two or more groups, as shown by the
-f-statistic. Focusing on proteomics and metabolomics, the current ROTS
-implementation cannot account for technical or biological covariates such as MS
-batches or gender differences among the samples. Consequently, we developed
-LimROTS, which employs a reproducibility-optimized test statistic utilizing the
-limma empirical bayes ([Ritchie ME et
-al.,](https://academic.oup.com/nar/article/43/7/e47/2414268)) methodology to
-simulate more complex experimental designs.
+
+Differential expression analysis is commonly used to study diverse biological datasets. The reproducibility-optimized test statistic (ROTS) ([Elo et al., 2008](https://ieeexplore.ieee.org/document/4359873/)) uses a modified t-statistic adapted to the intrinsic characteristics of the data and ranks features by their statistical significance between two or more groups, as measured by the F-statistic. However, The ROTS publication ([Suomi et al., 2017](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1005562)) does not accommodate technical or biological covariates. LimROTS ([Anwar et al., 2025](https://doi.org/10.1093/bioinformatics/btaf570)) addresses this limitation by combining a reproducibility-optimized test statistic with the limma empirical Bayes approach ([Ritchie et al., 2015](https://academic.oup.com/nar/article/43/7/e47/2414268)), enabling the analysis of more complex experimental designs. These validated solutions have been available since December 16, 2024, in the Bioconductor development version, and since April 16, 2025, in Bioconductor release 3.21. Although similar linear modeling features were later incorporated into ROTS in Bioconductor 3.21, the implementation differs, and, to our knowledge, no formal publication describing it is available. Survival analysis with covariates represents a natural extension of the linear framework in LimROTS, with a development version available in Bioconductor devel 2.3.8 for ROTS and version 1.3.17 for LimROTS.
+
 
 ## Installation instructions
 
