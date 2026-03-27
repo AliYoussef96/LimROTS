@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.4.0
+Incorporating repeated measurement analysis
+
 ## 1.3.17
 Add survival analysis functionality with support for Cox proportional hazards models and competing risks regression.
 
