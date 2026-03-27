@@ -23,7 +23,7 @@
 #' @details
 #' For each feature (row), the function appends the feature expression values
 #' as \code{y} to the sample metadata and fits either a Cox proportional
-#' hazards model (\code{competing_risks = FALSE}) or a Fine\u2013Gray
+#' hazards model (\code{competing_risks = FALSE}) or a
 #' subdistribution hazard model (\code{competing_risks = TRUE}). The
 #' coefficient, its standard error, and the exponentiated coefficient
 #' (hazard ratio) for the feature term \code{y} are extracted.
@@ -33,7 +33,7 @@
 #' produce the final statistics used for feature ranking.
 #'
 #' @return A list containing the following elements:
-#' \item{d}{A numeric vector of absolute Cox/Fine\u2013Gray coefficients
+#' \item{d}{A numeric vector of absolute coefficients
 #' (\eqn{|\beta|}) for each feature.}
 #' \item{s}{A numeric vector of standard errors of the coefficients for
 #' each feature.}

@@ -26,7 +26,7 @@ feature using \code{crr} from the \code{cmprsk} package.}
 }
 \value{
 A list containing the following elements:
-\item{d}{A numeric vector of absolute Cox/Fine\u2013Gray coefficients
+\item{d}{A numeric vector of absolute coefficients
 (\eqn{|\beta|}) for each feature.}
 \item{s}{A numeric vector of standard errors of the coefficients for
 each feature.}
@@ -38,7 +38,7 @@ Perform Per-Feature Survival Modeling on Bootstrap Resamples
 For each feature (row), the function constructs a temporary data frame
 combining the bootstrap-resampled expression values (\code{y}) with the
 sample metadata. It then fits either a Cox proportional hazards model
-(\code{competing_risks = FALSE}) or a Fine\u2013Gray subdistribution
+(\code{competing_risks = FALSE}) or a Fine subdistribution
 hazard model (\code{competing_risks = TRUE}) per feature, extracting
 the coefficient and its standard error for the feature term \code{y}.
 }

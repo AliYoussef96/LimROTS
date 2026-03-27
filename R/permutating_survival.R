@@ -23,7 +23,7 @@
 #' @details
 #' For each feature (row), the function appends the feature expression values
 #' as \code{y} to the permuted metadata and fits either a Cox proportional
-#' hazards model (\code{competing_risks = FALSE}) or a Fine\u2013Gray
+#' hazards model (\code{competing_risks = FALSE}) or a
 #' subdistribution hazard model (\code{competing_risks = TRUE}). Because
 #' the metadata is permuted, the resulting statistics form the null distribution
 #' used to compute empirical p-values and FDR.
@@ -32,7 +32,7 @@
 #' full data matrix without group splitting or resampling.
 #'
 #' @return A list containing the following elements:
-#' \item{d}{A numeric vector of absolute Cox/Fine\u2013Gray coefficients
+#' \item{d}{A numeric vector of absolute Cox coefficients
 #' (\eqn{|\beta|}) for each feature.}
 #' \item{s}{A numeric vector of standard errors of the coefficients for
 #' each feature.}

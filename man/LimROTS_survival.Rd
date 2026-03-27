@@ -93,7 +93,7 @@ survival analysis in Omics Data
 \details{
 \strong{LimROTS_survival} applies the reproducibility-optimized
 statistic framework to survival analysis. For each bootstrap resample,
-a Cox proportional hazards model (or a Fine\u2013Gray competing risks model
+a Cox proportional hazards model (or a competing risks model
 via \code{crr} from \pkg{cmprsk} when \code{competing_risks = TRUE})
 is fitted per feature using the supplied \code{formula.str}. The
 coefficient \eqn{\beta_{(p)}} and its standard error \eqn{SE_{(p)}} are
