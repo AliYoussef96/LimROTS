@@ -22,7 +22,7 @@
 #' @param samples bootstrapped samples matrix
 #' @param groups groups information from `meta.info`
 #' @param pSamples a permutated list of samples
-#' @param competing_risks Logical. If \code{TRUE}, the Fine\u2013Gray competing
+#' @param competing_risks Logical. If \code{TRUE}, the competing
 #' risks model via \code{crr} from \code{cmprsk} is used instead of the
 #' standard Cox proportional hazards model.
 #'
@@ -36,14 +36,14 @@
 
 
 Boot_parallel_survival <- function(BPPARAM = NULL,
-                          samples,
-                          data,
-                          formula.str,
-                          meta.info,
-                          a1,
-                          a2,
-                          pSamples,
-                          competing_risks) {
+        samples,
+        data,
+        formula.str,
+        meta.info,
+        a1,
+        a2,
+        pSamples,
+        competing_risks) {
     if (is.null(BPPARAM)) {
         if (.Platform$OS.type == "windows") {
             BPPARAM <- SnowParam(workers = 2)
@@ -68,8 +68,10 @@ Boot_parallel_survival <- function(BPPARAM = NULL,
         pSamples = pSamples,
         competing_risks = competing_risks
     )
-    export_funcs <- list(bootstrap_survival = bootstrap_survival,
-                         permutating_survival = permutating_survival)
+    export_funcs <- list(
+        bootstrap_survival = bootstrap_survival,
+        permutating_survival = permutating_survival
+    )
     for (name in names(export_vars)) {
         assign(name, export_vars[[name]])
     }
@@ -104,7 +106,9 @@ Boot_parallel_survival <- function(BPPARAM = NULL,
         ps_result <- pFit$s
         df2 <- data.frame(pd_result = pd_result, ps_result = ps_result)
         list(ds = df1, pdps = df2)
-    }, BPPARAM = BPPARAM, 
-    BPOPTIONS = bpoptions(packages = c("utils", "stringr", "stats", "survival")))
+    }, BPPARAM = BPPARAM,
+    BPOPTIONS = bpoptions(packages = c(
+        "utils", "stringr",
+        "stats", "survival")))
     return(results_list)
 }

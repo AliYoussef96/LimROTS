@@ -20,42 +20,47 @@
 #'
 
 Check_SummarizedExperiment <- function(data.exp,
-                                       assay.type = NULL, meta.info, group.name) {
-  if (inherits(data.exp, "SummarizedExperiment")) {
-    message("Data is SummarizedExperiment object")
-    
-    if (is.null(meta.info)) {
-      stop("meta.info should be a vector of colData names to be used")
+        assay.type = NULL, meta.info,
+        group.name) {
+    if (inherits(data.exp, "SummarizedExperiment")) {
+        message("Data is SummarizedExperiment object")
+
+        if (is.null(meta.info)) {
+            stop("meta.info should be a vector of colData names to be used")
+        } else {
+            meta.info.colnames <- meta.info
+            meta.info <- data.frame(
+                colData(data.exp)[, meta.info],
+                check.names = FALSE,
+                row.names = row.names(colData(data.exp))
+            )
+            if (length(meta.info) != length(meta.info.colnames)) {
+                stop("meta.info should be a vector of colData names to be used")
+            } else {
+                colnames(meta.info) <- meta.info.colnames
+            }
+        }
+        if (!group.name %in% colnames(meta.info)) {
+            stop(
+                "group.name should be a string specifying",
+                " the column in `meta.info` that",
+                " represents the groups or conditions",
+                " for comparison."
+            )
+        }
+        if (is.null(assay.type)) {
+            assay.type <- assayNames(data.exp)[1]
+        }
+        message(sprintf("Assay: %s will be used", assay.type))
+        data <- assay(data.exp, assay.type)
+        groups <- NULL
     } else {
-      meta.info.colnames <- meta.info
-      meta.info <- data.frame(
-        colData(data.exp)[, meta.info],
-        check.names = FALSE,
-        row.names = row.names(colData(data.exp))
-      )
-      if (length(meta.info) != length(meta.info.colnames)) {
-        stop("meta.info should be a vector of colData names to be used")
-      } else {
-        colnames(meta.info) <- meta.info.colnames
-      }
+        data <- data.exp
+        groups <- meta.info[, group.name]
+        meta.info <- meta.info
     }
-    if (!group.name %in% colnames(meta.info)) {
-      stop(
-        "group.name should be a string specifying the column in
-                `meta.info` that represents the groups or conditions
-                for comparison."
-      )
-    }
-    if (is.null(assay.type)) {
-      assay.type <- assayNames(data.exp)[1]
-    }
-    message(sprintf("Assay: %s will be used", assay.type))
-    data <- assay(data.exp, assay.type)
-    groups <- NULL
-  } else {
-    data <- data.exp
-    groups <- meta.info[, group.name]
-    meta.info <- meta.info
-  }
-  return(list(data = data, groups = groups, meta.info = meta.info))
+    return(list(
+        data = data, groups = groups,
+        meta.info = meta.info
+    ))
 }

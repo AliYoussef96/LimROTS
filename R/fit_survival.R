@@ -17,7 +17,7 @@
 #' coefficient term (\code{y}) is prepended automatically.
 #' @param competing_risks Logical. If \code{FALSE} (default), a Cox
 #' proportional hazards model is fitted per feature using \code{coxph}.
-#' If \code{TRUE}, a Fine\u2013Gray competing risks model is fitted per
+#' If \code{TRUE}, a competing risks model is fitted per
 #' feature using \code{crr} from the \code{cmprsk} package.
 #'
 #' @details
@@ -53,7 +53,7 @@
 fit_survival <- function(x, meta.info, formula.str,
 competing_risks
 ) {
-    combined_data <- data.frame(x, check.rows = F, check.names = F)
+    combined_data <- data.frame(x, check.rows = FALSE, check.names = FALSE)
     covariates.p <- meta.info
     covariates.p$sample.id <- NULL
     row.names(covariates.p) <- NULL

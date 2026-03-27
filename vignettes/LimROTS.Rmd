@@ -20,7 +20,7 @@ editor_options:
     wrap: 72
 ---
 
-```{r, include = FALSE}
+```{r setup, include = FALSE}
 knitr::opts_chunk$set(
     collapse = TRUE,
     comment = "#>"
@@ -48,28 +48,47 @@ If you use `LimROTS` in your research, please cite our publication:
 
 > Anwar, A. M., Jeba, A., Lahti, L., & Coffey, E. (2025). LimROTS: A Hybrid 
 Method Integrating Empirical Bayes and Reproducibility-Optimized Statistics 
-for Robust Differential Expression Analysis. *Bioinformatics*, btaf570. 
-[https://doi.org/10.1093/bioinformatics/btaf570](https://doi.org/10.1093/bioinformatics/btaf570)
+for Robust Differential Expression Analysis.
+*Bioinformatics*, btaf570.
+<https://doi.org/10.1093/bioinformatics/btaf570>
 
 # Disclaimer
 
-LimROTS is a standalone package that extends ROTS ([Elo et al., 2008](https://ieeexplore.ieee.org/document/4359873); [Tomi Suomi et
-al., 2017](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1005562)) and the limma ([Ritchie ME et
-al., 2015](https://academic.oup.com/nar/article/43/7/e47/2414268)) framework. 
-It is a newly developed, independently implemented method that incorporates covariates in reproducibility-optimized testing. 
-LimROTS is not affiliated with, endorsed by, or maintained by the original ROTS or limma developers. Users are advised to cite the original publications when referencing these methods.
+LimROTS is a standalone package that extends
+ROTS ([Elo et al., 2008][elo2008];
+[Tomi Suomi et al., 2017][suomi2017]) and the
+limma ([Ritchie ME et al., 2015][ritchie2015])
+framework.
+It is a newly developed, independently
+implemented method that incorporates covariates
+in reproducibility-optimized testing.
+LimROTS is not affiliated with, endorsed by, or
+maintained by the original ROTS or limma
+developers. Users are advised to cite the original
+publications when referencing these methods.
 
-ROTS: Elo LL, Filén S, Lahesmaa R, Aittokallio T. 
-Reproducibility-optimized test statistic for ranking genes in microarray studies. 
-IEEE/ACM Transactions on Computational Biology and Bioinformatics. 2008;5(3):423–31.
+[elo2008]: https://ieeexplore.ieee.org/document/4359873
+[suomi2017]: https://doi.org/10.1371/journal.pcbi.1005562
+[ritchie2015]: https://doi.org/10.1093/nar/gkv007
 
-Suomi T, Seyednasrollah F, Jaakkola MK, Faux T, Elo LL (2017) ROTS: 
-An R package for reproducibility-optimized statistical testing. 
-PLOS Computational Biology 13(5): e1005562. https://doi.org/10.1371/journal.pcbi.1005562
+ROTS: Elo LL, Filén S, Lahesmaa R, Aittokallio T.
+Reproducibility-optimized test statistic for
+ranking genes in microarray studies.
+IEEE/ACM Transactions on Computational Biology
+and Bioinformatics. 2008;5(3):423–31.
 
-limma: Ritchie ME, Phipson B, Wu D, Hu Y, Law CW, Shi W, Smyth GK. 
-limma powers differential expression analyses for RNA-sequencing and microarray studies. 
-Nucleic Acids Research. 2015;43(7):e47. https://doi.org/10.1093/nar/gkv007 
+Suomi T, Seyednasrollah F, Jaakkola MK, Faux T,
+Elo LL (2017) ROTS: An R package for
+reproducibility-optimized statistical testing.
+PLOS Computational Biology 13(5): e1005562.
+<https://doi.org/10.1371/journal.pcbi.1005562>
+
+limma: Ritchie ME, Phipson B, Wu D, Hu Y,
+Law CW, Shi W, Smyth GK.
+limma powers differential expression analyses
+for RNA-sequencing and microarray studies.
+Nucleic Acids Research. 2015;43(7):e47.
+<https://doi.org/10.1093/nar/gkv007>
 
 
 # Algorithm overview
@@ -139,12 +158,12 @@ each software) and high concentrations (5–50 fmol, labeled as
 A synthetic, unbalanced fake batches assigned to the samples. The
 assignment follows the ratio of:
 
-```{r echo=FALSE, message=FALSE, results='hide'}
+```{r load-data-hidden, echo=FALSE, message=FALSE, results='hide'}
 library(LimROTS, quietly = TRUE)
 data("UPS1.Case4")
 ```
 
-```{r echo=FALSE}
+```{r batch-table, echo=FALSE}
 table(UPS1.Case4$fake.batch, UPS1.Case4$Conc.)
 ```
 
@@ -164,7 +183,7 @@ available in LimROTS.
 
 The original source of the dataset can be found here @GOTTI2022107829
 
-```{r, message=FALSE}
+```{r load-packages, message=FALSE}
 # Load necessary packages
 library(LimROTS, quietly = TRUE)
 library(BiocParallel, quietly = TRUE)
@@ -172,7 +191,7 @@ library(ggplot2, quietly = TRUE)
 library(SummarizedExperiment, quietly = TRUE)
 ```
 
-```{r}
+```{r load-dataset}
 # Load the dataset
 data("UPS1.Case4")
 print(UPS1.Case4)
@@ -182,7 +201,7 @@ print(UPS1.Case4)
 
 **Before running LimROTS, the seed should be set for reproducibility.**
 
-```{r}
+```{r set-seed}
 set.seed(1234, kind = "default" , sample.kind = "default")
 ```
 
@@ -192,12 +211,12 @@ change calculations. For example, the "Conc." variable should have
 factor levels defined as "low" = 2 and "high" = 1. This can be defined
 as
 
-```{r}
+```{r factor-example}
 # colData(se)$Conc. <- factor(c("low" , "low", "high", "high" ,  
 # levels = c("high" , "low")))
 ```
 
-```{r}
+```{r run-limrots}
 # Set metadata and formula for LimROTS analysis
 meta.info <- c("Conc.", "tool", "fake.batch")
 niter <- 100 # Number of bootstrap samples
@@ -226,7 +245,7 @@ to use we recommend to use at least 4 workers
 On Windows OS, the user can define a `BPPARAM` to work with more than 2
 workers as follows:
 
-```{r}
+```{r bpparam-windows}
 # BPPARAM  <- SnowParam(workers = 4)
 # Commented out in the vignette to ensure the limit set by the
 # R_CHECK_LIMIT_CORES environment variable is not exceeded.
@@ -234,7 +253,7 @@ workers as follows:
 
 On Linux and Mac OS
 
-```{r}
+```{r bpparam-unix}
 # BPPARAM  <- MulticoreParam(workers = 4)
 # Commented out in the vignette to ensure the limit set by the
 # R_CHECK_LIMIT_CORES environment variable is not exceeded.
@@ -252,7 +271,7 @@ Utilising a Volcano plot and mapping the human UPS1 proteins at q-values
 actual positive proteins while detecting a limited number of simulated
 E.coli proteins.
 
-```{r}
+```{r volcano-plot}
 # Create a data frame from the LimROTS results
 
 limrots.result.df <- data.frame(rowData(UPS1.Case4), 
@@ -288,7 +307,7 @@ We recommend using permutation-derived p-values and qvalues, though they
 should generally be very similar to the FDR and Benjamini-Hochberg
 adjusted p-values.
 
-```{r results="hide" , message=FALSE, warning=FALSE}
+```{r quality-control, results="hide", message=FALSE, warning=FALSE}
 ## Quality Control Plots
 
 # Plot of q-values
@@ -307,7 +326,7 @@ Before comparing the LimROTS, limma, and ROTS packages, we will need to
 install the necessary packages: limma, ROTS and caret (for the use in
 the comparison).
 
-```{r, eval=FALSE}
+```{r install-packages, eval=FALSE}
 if (!require("BiocManager", quietly = TRUE)) {
     install.packages("BiocManager")
 }
@@ -324,7 +343,7 @@ if (!require(caret)) {
 
 ## Run ROTS
 
-```{r}
+```{r run-rots}
 library(ROTS)
 groups <- as.numeric(UPS1.Case4$Conc.)
 rots.result <- ROTS(
@@ -339,7 +358,7 @@ rots.result <- data.frame(
 
 ## Run limma
 
-```{r}
+```{r run-limma}
 library(limma)
 
 design.matrix <- model.matrix(formula(formula.str), data = colData(UPS1.Case4))
@@ -352,7 +371,7 @@ limma.result <- topTable(fit.ebayes, coef = "Conc.1-Conc.2", number = "Inf")
 
 ## Generating a Confusion Matrix for Comparison
 
-```{r}
+```{r confusion-matrix}
 library(caret, quietly = TRUE, warn.conflicts = TRUE)
 
 
@@ -387,7 +406,7 @@ conf_matrix_limma <- confusionMatrix(predictions_limma, true_labels_limma)
 
 ## Summarizing the Comparison Results
 
-```{r}
+```{r comparison-plot}
 library(ggplot2)
 
 
@@ -445,7 +464,7 @@ predictive values indicate limitations in broader applicability.
 Therefore, limROTS appears to provide the most consistent and balanced
 performance for general use cases.
 
-```{r}
+```{r session-info}
 sessionInfo()
 ```
 

@@ -30,7 +30,7 @@
 #' It should include "~ 0 + ..." to exclude the intercept from the model.
 #' All the model parameters must be present in \code{meta.info}.
 #' @param competing_risks Logical. If \code{TRUE}, the function will fit a
-#' Fine\u2013Gray competing risks model using the \code{crr} function from the
+#' competing risks model using the \code{crr} function from the
 #' \code{cmprsk} package instead of the standard Cox proportional hazards
 #' model. Default is \code{FALSE}.
 #' @param correlation_block Character or NULL. The name of a column in
