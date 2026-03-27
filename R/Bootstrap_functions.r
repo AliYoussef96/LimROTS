@@ -115,3 +115,94 @@ bootstrapSamples_limRots <- function(niter, meta.info, group.name) {
     }
     return(samples)
 }
+
+#' Generate Stratified Bootstrap Samples for Cox limRots with Correlation Blocks
+#'
+#' This function generates stratified bootstrap samples similar to
+#' \code{bootstrapSamples_limRots}, but additionally supports correlation
+#' blocks. When \code{correlation_block} is specified, all samples sharing
+#' the same block ID are always selected together during resampling.
+#'
+#' @param niter Integer. The number of bootstrap samples to generate.
+#' @param meta.info Data frame. Metadata containing sample information,
+#' where each row corresponds to a sample. Factor columns in `meta.info`
+#' are used to define strata for sampling.
+#' @param correlation_block Character or NULL. The name of a column in
+#' `meta.info` that defines correlation blocks. Samples sharing the same
+#' value in this column are always resampled together as a unit. If NULL,
+#' the function behaves identically to \code{bootstrapSamples_limRots}.
+#'
+#' @details
+#' When \code{correlation_block} is not NULL, the function groups samples by
+#' their block ID within each group/stratum and resamples entire blocks with
+#' replacement, so that correlated samples (e.g., repeated measures from the
+#' same subject) are always kept together.
+#'
+#' @return A matrix of dimension \code{niter} x \code{n}, where \code{n} is the
+#' number of samples. Each row corresponds to a bootstrap sample, and each
+#' entry is a resampled row name from the metadata.
+#'
+#'
+#'
+bootstrapSamples_limRots_cox <- function(niter, meta.info,
+                                         correlation_block = NULL) {
+  samples <- matrix(nrow = niter, ncol = nrow(meta.info))
+  
+  meta.info.factors <- c()
+  for (j in seq_len(ncol(meta.info))) {
+    if (is.factor(meta.info[, j])) {
+      meta.info.factors <-
+        c(meta.info.factors, colnames(meta.info)[j])
+    }
+  }
+  
+  # Always add "event" to stratification factors
+  meta.info.factors <- c(meta.info.factors, "event")
+  meta.info[,"event"] <- as.factor(meta.info[,"event"])
+  
+  # Stratified bootstrap
+  meta.info$stratum <-
+    interaction(meta.info[, meta.info.factors])
+  stratum_sizes <- table(meta.info$stratum)
+  stratum_samples <-
+    round(nrow(meta.info) * prop.table(stratum_sizes))
+  
+  for (i in seq_len(niter)) {
+    
+    
+    if (is.null(correlation_block)) {
+      # Sample individuals directly
+      sampled_indices <-
+        unlist(lapply(names(stratum_samples), function(stratum) {
+          stratum_indices <-
+            row.names(meta.info)[which(meta.info$stratum == stratum)]
+          sample(stratum_indices, stratum_samples[stratum],
+                 replace = TRUE
+          )
+        }))
+    } else {
+      # Sample correlation blocks
+      sampled_indices <-
+        unlist(lapply(names(stratum_samples), function(stratum) {
+          stratum_mask <-
+            which(meta.info$stratum == stratum)
+          stratum_meta <- meta.info[stratum_mask, ]
+          block_ids <- stratum_meta[, correlation_block]
+          unique_blocks <- unique(block_ids)
+          # Resample blocks until we reach the target count
+          collected <- c()
+          while (length(collected) <
+                 stratum_samples[stratum]) {
+            b <- sample(unique_blocks, 1)
+            members <-
+              row.names(stratum_meta)[which(block_ids == b)]
+            collected <- c(collected, members)
+          }
+          # Trim to exact target size
+          collected[seq_len(stratum_samples[stratum])]
+        }))
+    }
+    samples[i, ] <- sampled_indices
+  }
+  return(samples)
+}
