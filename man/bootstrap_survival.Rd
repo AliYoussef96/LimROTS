@@ -21,7 +21,7 @@ coefficient term (\code{y}) is prepended automatically.}
 
 \item{competing_risks}{Logical. If \code{FALSE} (default), a Cox
 proportional hazards model is fitted per feature using \code{coxph}.
-If \code{TRUE}, a Fine\u2013Gray competing risks model is fitted per
+If \code{TRUE}, a competing risks model is fitted per
 feature using \code{crr} from the \code{cmprsk} package.}
 }
 \value{

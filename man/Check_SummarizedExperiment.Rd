@@ -4,7 +4,13 @@
 \alias{Check_SummarizedExperiment}
 \title{Check if SummarizedExperiment or data is correct}
 \usage{
-Check_SummarizedExperiment(data.exp, assay.type = NULL, meta.info, group.name)
+Check_SummarizedExperiment(
+  data.exp,
+  assay.type = NULL,
+  meta.info,
+  group.name,
+  survival
+)
 }
 \arguments{
 \item{data.exp}{A matrix-like object or a \code{SummarizedExperiment} containing
@@ -17,7 +23,9 @@ to use if \code{data.exp} is a \code{SummarizedExperiment}. Default is \code{NUL
 (columns of \code{data.exp}). If \code{data.exp} is a \code{SummarizedExperiment},}
 
 \item{group.name}{Character. Column name in \code{meta.info} that defines the
-groups or conditions for comparison.}
+groups or conditions for comparison.
+survival Logical, indicating whether the analysis is survival
+analysis.}
 }
 \value{
 a list of \code{data} , \code{groups} and \code{meta.info}

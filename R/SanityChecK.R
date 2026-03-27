@@ -27,7 +27,8 @@
 #' @param log Logical, indicating whether the data is already log-transformed.
 #' Default is TRUE.
 #' survival Logical, indicating whether the analysis is survival analysis.
-#' Default is FALSE. if TRUE, 'meta.info' must contain 'time' and 'event' columns.
+#' Default is FALSE. if TRUE, 'meta.info' must contain 'time' and 'event' 
+#' columns.
 #'
 #' @details
 #' This function checks whether the input data and metadata are in the correct
@@ -71,11 +72,13 @@ SanityChecK <- function(x,
     if(survival){
       
       if(!all(c("time", "event") %in% colnames(meta.info))){
-        stop("For survival analysis, 'meta.info' must contain 'time' and 'event' columns.")
+        stop("For survival analysis, 'meta.info' must contain 'time' and 
+             'event' columns.")
       }
       
       if(!grepl("Surv\\(time, event\\)", formula.str)){
-        stop("For survival analysis, 'formula.str' must include a 'Surv(time, event)' term.")
+        stop("For survival analysis, 'formula.str' must include a 
+             'Surv(time, event)' term.")
       }
       
       if (is.null(K)) {
@@ -109,7 +112,8 @@ SanityChecK <- function(x,
       meta.info$temp <- NULL
       
       if(!identical(colnames(data), row.names(meta.info))){
-        stop("After sorting, column names of data do not match row names of meta.info.")
+        stop("After sorting, column names of data do not match row names of
+             meta.info.")
       }
       message("Sanity check completed successfully!")
       

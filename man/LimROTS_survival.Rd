@@ -55,7 +55,7 @@ It should include "~ 0 + ..." to exclude the intercept from the model.
 All the model parameters must be present in \code{meta.info}.}
 
 \item{competing_risks}{Logical. If \code{TRUE}, the function will fit a
-Fine\u2013Gray competing risks model using the \code{crr} function from the
+competing risks model using the \code{crr} function from the
 \code{cmprsk} package instead of the standard Cox proportional hazards
 model. Default is \code{FALSE}.}
 

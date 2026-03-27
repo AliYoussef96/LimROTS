@@ -43,7 +43,7 @@ If defined by the user, no optimization occurs.}
 
 \item{pSamples}{a permutated list of samples}
 
-\item{competing_risks}{Logical. If \code{TRUE}, the Fine\u2013Gray competing
+\item{competing_risks}{Logical. If \code{TRUE}, the competing
 risks model via \code{crr} from \code{cmprsk} is used instead of the
 standard Cox proportional hazards model.}
 
