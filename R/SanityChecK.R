@@ -56,7 +56,8 @@ SanityChecK <- function(x,
         data.exp = x,
         assay.type = assay.type,
         meta.info = meta.info,
-        group.name = group.name
+        group.name = group.name,
+        survival = survival
     )
     data <- Check_SExp$data
     groups <- Check_SExp$groups

@@ -11,6 +11,8 @@
 #' (columns of `data.exp`). If `data.exp` is a `SummarizedExperiment`,
 #' @param group.name Character. Column name in `meta.info` that defines the
 #' groups or conditions for comparison.
+#' survival Logical, indicating whether the analysis is survival 
+#' analysis.
 #'
 #' @import SummarizedExperiment
 #'
@@ -21,7 +23,7 @@
 
 Check_SummarizedExperiment <- function(data.exp,
         assay.type = NULL, meta.info,
-        group.name) {
+        group.name, survival) {
     if (inherits(data.exp, "SummarizedExperiment")) {
         message("Data is SummarizedExperiment object")
 
@@ -40,27 +42,29 @@ Check_SummarizedExperiment <- function(data.exp,
                 colnames(meta.info) <- meta.info.colnames
             }
         }
-        if (!group.name %in% colnames(meta.info)) {
-            stop(
-                "group.name should be a string specifying",
-                " the column in `meta.info` that",
-                " represents the groups or conditions",
-                " for comparison."
-            )
+        if(!survival){
+          if (!group.name %in% colnames(meta.info)) {
+              stop(
+                  "group.name should be a string specifying",
+                  " the column in `meta.info` that",
+                  " represents the groups or conditions",
+                  " for comparison."
+              )
+          }
+          if (is.null(assay.type)) {
+              assay.type <- assayNames(data.exp)[1]
+          }
         }
-        if (is.null(assay.type)) {
-            assay.type <- assayNames(data.exp)[1]
-        }
-        message(sprintf("Assay: %s will be used", assay.type))
-        data <- assay(data.exp, assay.type)
-        groups <- NULL
-    } else {
-        data <- data.exp
-        groups <- meta.info[, group.name]
-        meta.info <- meta.info
-    }
-    return(list(
-        data = data, groups = groups,
-        meta.info = meta.info
-    ))
-}
+          message(sprintf("Assay: %s will be used", assay.type))
+          data <- assay(data.exp, assay.type)
+          groups <- NULL
+      } else {
+          data <- data.exp
+          groups <- meta.info[, group.name]
+          meta.info <- meta.info
+      }
+      return(list(
+          data = data, groups = groups,
+          meta.info = meta.info
+      ))
+  }
