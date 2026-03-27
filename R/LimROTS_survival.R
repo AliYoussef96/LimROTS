@@ -113,6 +113,37 @@
 #'   IEEE/ACM Trans Comput Biol Bioinform. 2008;5(3):423-431.
 #'   \url{doi:10.1109/tcbb.2007.1078}
 #'
+#' @examples
+#' # Simulate a small SummarizedExperiment with survival metadata
+#' library(SummarizedExperiment)
+#' set.seed(123)
+#' nsamples <- 20
+#' nfeatures <- 50
+#' sim_data <- matrix(rnorm(nfeatures * nsamples), nrow = nfeatures)
+#' colnames(sim_data) <- paste0("sample", seq_len(nsamples))
+#' rownames(sim_data) <- paste0("gene", seq_len(nfeatures))
+#'
+#' col_data <- DataFrame(
+#'     time = abs(rnorm(nsamples, mean = 5, sd = 2)),
+#'     event = sample(0:1, nsamples, replace = TRUE),
+#'     group = factor(rep(seq_len(2), each = nsamples / 2))
+#' )
+#' rownames(col_data) <- colnames(sim_data)
+#'
+#' se <- SummarizedExperiment(
+#'     assays = list(counts = sim_data),
+#'     colData = col_data
+#' )
+#'
+#' formula.str <- "~ Surv(time, event) + group"
+#' result <- LimROTS_survival(
+#'     x = se,
+#'     meta.info = c("time", "event", "group"),
+#'     formula.str = formula.str,
+#'     niter = 10,
+#'     verbose = FALSE,
+#'     competing_risks = FALSE
+#' )
 #'
 #'
 #' @export

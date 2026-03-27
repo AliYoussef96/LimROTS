@@ -121,6 +121,40 @@ leverages the \pkg{BiocParallel} framework to distribute tasks
 across multiple workers, which can significantly reduce runtime for
 large datasets.
 }
+\examples{
+# Simulate a small SummarizedExperiment with survival metadata
+library(SummarizedExperiment)
+set.seed(123)
+nsamples <- 20
+nfeatures <- 50
+sim_data <- matrix(rnorm(nfeatures * nsamples), nrow = nfeatures)
+colnames(sim_data) <- paste0("sample", seq_len(nsamples))
+rownames(sim_data) <- paste0("gene", seq_len(nfeatures))
+
+col_data <- DataFrame(
+    time = abs(rnorm(nsamples, mean = 5, sd = 2)),
+    event = sample(0:1, nsamples, replace = TRUE),
+    group = factor(rep(seq_len(2), each = nsamples / 2))
+)
+rownames(col_data) <- colnames(sim_data)
+
+se <- SummarizedExperiment(
+    assays = list(counts = sim_data),
+    colData = col_data
+)
+
+formula.str <- "~ Surv(time, event) + group"
+result <- LimROTS_survival(
+    x = se,
+    meta.info = c("time", "event", "group"),
+    formula.str = formula.str,
+    niter = 10,
+    verbose = FALSE,
+    competing_risks = FALSE
+)
+
+
+}
 \references{
 Ritchie, M.E., Phipson, B., Wu, D., Hu, Y., Law, C.W., Shi, W., and Smyth,
 G.K. (2015). limma powers differential expression analyses for

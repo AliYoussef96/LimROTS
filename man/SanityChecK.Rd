@@ -46,7 +46,8 @@ function's execution. Default is TRUE.}
 \item{log}{Logical, indicating whether the data is already log-transformed.
 Default is TRUE.
 survival Logical, indicating whether the analysis is survival analysis.
-Default is FALSE. if TRUE, 'meta.info' must contain 'time' and 'event' columns.}
+Default is FALSE. if TRUE, 'meta.info' must contain 'time' and 'event'
+columns.}
 }
 \value{
 A list containing:
