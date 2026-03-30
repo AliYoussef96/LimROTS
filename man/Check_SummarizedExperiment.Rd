@@ -9,7 +9,7 @@ Check_SummarizedExperiment(
   assay.type = NULL,
   meta.info,
   group.name,
-  survival
+  survival = FALSE
 )
 }
 \arguments{
@@ -23,9 +23,10 @@ to use if \code{data.exp} is a \code{SummarizedExperiment}. Default is \code{NUL
 (columns of \code{data.exp}). If \code{data.exp} is a \code{SummarizedExperiment},}
 
 \item{group.name}{Character. Column name in \code{meta.info} that defines the
-groups or conditions for comparison.
-survival Logical, indicating whether the analysis is survival
-analysis.}
+groups or conditions for comparison.}
+
+\item{survival}{Logical, indicating whether the analysis is survival
+analysis. Default is \code{FALSE}.}
 }
 \value{
 a list of \code{data} , \code{groups} and \code{meta.info}

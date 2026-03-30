@@ -20,7 +20,6 @@
 #' info for modeling. It should include "~ 0 + ..." to exclude the
 #' intercept from the model.
 #' @param samples bootstrapped samples matrix
-#' @param groups groups information from `meta.info`
 #' @param pSamples a permutated list of samples
 #' @param competing_risks Logical. If \code{TRUE}, the competing
 #' risks model via \code{crr} from \code{cmprsk} is used instead of the

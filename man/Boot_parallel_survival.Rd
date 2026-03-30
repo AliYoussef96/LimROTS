@@ -46,8 +46,6 @@ If defined by the user, no optimization occurs.}
 \item{competing_risks}{Logical. If \code{TRUE}, the competing
 risks model via \code{crr} from \code{cmprsk} is used instead of the
 standard Cox proportional hazards model.}
-
-\item{groups}{groups information from \code{meta.info}}
 }
 \value{
 A list containing: \code{D, S, pD, pS} for bootstrapped data and

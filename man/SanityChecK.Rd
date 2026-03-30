@@ -44,10 +44,11 @@ the model.}
 function's execution. Default is TRUE.}
 
 \item{log}{Logical, indicating whether the data is already log-transformed.
-Default is TRUE.
-survival Logical, indicating whether the analysis is survival analysis.
-Default is FALSE. if TRUE, 'meta.info' must contain 'time' and 'event'
-columns.}
+Default is TRUE.}
+
+\item{survival}{Logical, indicating whether the analysis is survival analysis.
+Default is \code{FALSE}. If \code{TRUE}, \code{meta.info} must contain
+\code{time} and \code{event} columns.}
 }
 \value{
 A list containing:

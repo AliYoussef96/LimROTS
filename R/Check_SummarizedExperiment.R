@@ -11,8 +11,8 @@
 #' (columns of `data.exp`). If `data.exp` is a `SummarizedExperiment`,
 #' @param group.name Character. Column name in `meta.info` that defines the
 #' groups or conditions for comparison.
-#' survival Logical, indicating whether the analysis is survival 
-#' analysis.
+#' @param survival Logical, indicating whether the analysis is survival
+#' analysis. Default is \code{FALSE}.
 #'
 #' @import SummarizedExperiment
 #'
@@ -23,7 +23,7 @@
 
 Check_SummarizedExperiment <- function(data.exp,
         assay.type = NULL, meta.info,
-        group.name, survival) {
+        group.name, survival = FALSE) {
     if (inherits(data.exp, "SummarizedExperiment")) {
         message("Data is SummarizedExperiment object")
 
@@ -51,9 +51,9 @@ Check_SummarizedExperiment <- function(data.exp,
                   " for comparison."
               )
           }
-          if (is.null(assay.type)) {
-              assay.type <- assayNames(data.exp)[1]
-          }
+        }
+        if (is.null(assay.type)) {
+            assay.type <- assayNames(data.exp)[1]
         }
           message(sprintf("Assay: %s will be used", assay.type))
           data <- assay(data.exp, assay.type)
