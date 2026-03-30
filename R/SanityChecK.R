@@ -90,11 +90,16 @@ SanityChecK <- function(x,
       
       formula.str <- gsub("\\s+", "", formula.str)
       
-      terms <- str_split_fixed(formula.str , fixed("~") , 2)
-      if(terms[,2] == ""){
-        formula.str <- paste0(terms[,1] , "~y" )
-      }else{
-        formula.str <- paste0(terms[,1] , "~y+" , terms[,2] )
+      terms <- str_split_fixed(formula.str, fixed("~"), 2)
+      rhs <- terms[, 2]
+      surv_part <- regmatches(rhs, regexpr("Surv\\([^)]+\\)", rhs))
+      rhs_covariates <- gsub("Surv\\([^)]+\\)\\+?|\\+?Surv\\([^)]+\\)",
+                             "", rhs)
+      rhs_covariates <- gsub("^\\+|\\+$", "", rhs_covariates)
+      if (rhs_covariates == "") {
+        formula.str <- paste0(surv_part, "~y")
+      } else {
+        formula.str <- paste0(surv_part, "~y+", rhs_covariates)
       }
       
       

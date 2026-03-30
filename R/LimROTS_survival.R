@@ -114,8 +114,6 @@
 #'   \url{doi:10.1109/tcbb.2007.1078}
 #'
 #' @examples
-#' # Simulate a small SummarizedExperiment with survival metadata
-#' library(SummarizedExperiment)
 #' set.seed(123)
 #' nsamples <- 20
 #' nfeatures <- 50
@@ -123,22 +121,17 @@
 #' colnames(sim_data) <- paste0("sample", seq_len(nsamples))
 #' rownames(sim_data) <- paste0("gene", seq_len(nfeatures))
 #'
-#' col_data <- DataFrame(
+#' meta_data <- data.frame(
 #'     time = abs(rnorm(nsamples, mean = 5, sd = 2)),
 #'     event = sample(0:1, nsamples, replace = TRUE),
-#'     group = factor(rep(seq_len(2), each = nsamples / 2))
-#' )
-#' rownames(col_data) <- colnames(sim_data)
-#'
-#' se <- SummarizedExperiment(
-#'     assays = list(counts = sim_data),
-#'     colData = col_data
+#'     group = factor(rep(seq_len(2), each = nsamples / 2)),
+#'     row.names = colnames(sim_data)
 #' )
 #'
 #' formula.str <- "~ Surv(time, event) + group"
 #' result <- LimROTS_survival(
-#'     x = se,
-#'     meta.info = c("time", "event", "group"),
+#'     x = sim_data,
+#'     meta.info = meta_data,
 #'     formula.str = formula.str,
 #'     niter = 10,
 #'     verbose = FALSE,
@@ -324,14 +317,11 @@ LimROTS_survival <- function(x,
             )
         }
     } else {
-        fit <- Limma_fit(
-            x = lapply(split(seq_len(length(
-                groups
-            )), groups), function(x) {
-                data[, x]
-            }),
+        fit <- fit_survival(
+            x = data,
             meta.info = meta.info,
-            formula.str = formula.str
+            formula.str = formula.str,
+            competing_risks = competing_risks
         )
         d <- fit$d / (a1 + a2 * fit$s)
         pD <- pD / (a1 + a2 * pS)
@@ -390,7 +380,7 @@ LimROTS_survival <- function(x,
                 k = NULL,
                 Z = NULL,
                 R = NULL,
-                ztable = ztable,
+                ztable = NULL,
                 q_values = q_values,
                 null.statistics = pD
             ))

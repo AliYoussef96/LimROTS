@@ -60,7 +60,11 @@ Check_SummarizedExperiment <- function(data.exp,
           groups <- NULL
       } else {
           data <- data.exp
-          groups <- meta.info[, group.name]
+          if (!survival) {
+              groups <- meta.info[, group.name]
+          } else {
+              groups <- NULL
+          }
           meta.info <- meta.info
       }
       return(list(
