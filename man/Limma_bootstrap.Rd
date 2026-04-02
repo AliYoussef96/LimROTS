@@ -26,6 +26,11 @@ This includes sample grouping and any covariates to be included in the model.}
 \item{formula.str}{A string specifying the formula to be used in model
 fitting. It should follow the standard R formula syntax
 (e.g., \code{~ covariate1 + covariate2}).}
+
+\item{correlation_block}{Character or NULL. The name of a column in
+\code{meta.info} that defines correlation blocks. When not NULL,
+within-block correlation is estimated via \code{duplicateCorrelation} and
+accounted for in \code{lmFit}. If NULL, standard independent fitting is used.}
 }
 \value{
 A list containing the following elements:

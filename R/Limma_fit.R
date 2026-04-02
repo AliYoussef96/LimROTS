@@ -21,6 +21,10 @@
 #' intensity-dependent trend in the prior variance.
 #' @param robust A logical value indicating whether to use a robust fitting
 #' procedure to protect against outliers.
+#' @param correlation_block Character or NULL. The name of a column in
+#' \code{meta.info} that defines correlation blocks. When not NULL,
+#' within-block correlation is estimated via \code{duplicateCorrelation} and
+#' accounted for in \code{lmFit}. If NULL, standard independent fitting is used.
 #'
 #' @details
 #' This function combines the data matrices from different groups and fits a

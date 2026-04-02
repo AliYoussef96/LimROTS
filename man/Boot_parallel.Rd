@@ -49,6 +49,12 @@ If defined by the user, no optimization occurs.}
 If defined by the user, no optimization occurs.}
 
 \item{pSamples}{a permutated list of samples}
+
+\item{correlation_block}{Character or NULL. The name of a column in
+\code{meta.info} that defines correlation blocks. Passed to
+\code{Limma_bootstrap} and \code{Limma_permutating} to account for
+within-block correlation during model fitting via
+\code{duplicateCorrelation}. If NULL, standard independent fitting is used.}
 }
 \value{
 A list containing: \code{D, S, pD, pS} for bootstrapped data and

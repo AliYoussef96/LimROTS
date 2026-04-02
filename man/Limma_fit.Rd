@@ -34,6 +34,11 @@ intensity-dependent trend in the prior variance.}
 
 \item{robust}{A logical value indicating whether to use a robust fitting
 procedure to protect against outliers.}
+
+\item{correlation_block}{Character or NULL. The name of a column in
+\code{meta.info} that defines correlation blocks. When not NULL,
+within-block correlation is estimated via \code{duplicateCorrelation} and
+accounted for in \code{lmFit}. If NULL, standard independent fitting is used.}
 }
 \value{
 A list containing the following elements:
