@@ -4,7 +4,15 @@
 \alias{Limma_fit}
 \title{Perform Linear Modeling with Covariates using Limma}
 \usage{
-Limma_fit(x, group.name, meta.info, formula.str, trend, robust)
+Limma_fit(
+  x,
+  group.name,
+  meta.info,
+  formula.str,
+  trend,
+  robust,
+  correlation_block = NULL
+)
 }
 \arguments{
 \item{x}{A list containing two or more data matrices where rows represent

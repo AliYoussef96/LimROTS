@@ -4,7 +4,13 @@
 \alias{Limma_bootstrap}
 \title{Perform Linear Modeling with Covariates using Limma}
 \usage{
-Limma_bootstrap(x, group.name, meta.info, formula.str)
+Limma_bootstrap(
+  x,
+  group.name,
+  meta.info,
+  formula.str,
+  correlation_block = NULL
+)
 }
 \arguments{
 \item{x}{A list containing two or more data matrices where rows represent

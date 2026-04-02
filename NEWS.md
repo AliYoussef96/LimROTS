@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.3.19
+## 1.3.22
 Incorporating repeated measurement analysis
 
 ## 1.3.17

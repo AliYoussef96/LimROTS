@@ -14,7 +14,8 @@ Boot_parallel(
   meta.info,
   a1,
   a2,
-  pSamples
+  pSamples,
+  correlation_block = NULL
 )
 }
 \arguments{

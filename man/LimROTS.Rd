@@ -21,7 +21,8 @@ LimROTS(
   formula.str,
   robust = TRUE,
   trend = TRUE,
-  permutating.group = FALSE
+  permutating.group = FALSE,
+  correlation_block = NULL
 )
 }
 \arguments{
@@ -79,6 +80,12 @@ calculating the null distribution is performed by permuting the target group
 only specified in \code{group.name} Preserving all the other sample
 information. If \code{FALSE}, the entire sample information retrieved from
 \code{meta.info} will be permuted (recommended to be set to FALSE).}
+
+\item{correlation_block}{Character or NULL. The name of a column in
+\code{meta.info} that defines correlation blocks. Samples sharing the same
+value in this column are always resampled together as a unit, and
+within-block correlation is accounted for during model fitting via
+\code{duplicateCorrelation}. If NULL, standard independent resampling is used.}
 }
 \value{
 An object of class \code{"SummarizedExperiment"} with the
