@@ -40,14 +40,14 @@
 #'
 #' @importFrom stats model.matrix formula
 #' @importFrom dplyr bind_cols
-#' @importFrom limma makeContrasts lmFit contrasts.fit eBayes topTable
+#' @importFrom limma makeContrasts lmFit contrasts.fit eBayes topTable duplicateCorrelation
 #' @importFrom stringr str_split_fixed fixed
 #' @importFrom utils combn
 #'
 #'
 #'
-Limma_permutating <- function(x, group.name, meta.info, formula.str
-                                        ) {
+Limma_permutating <- function(x, group.name, meta.info, formula.str,
+                             correlation_block = NULL) {
     combined_data <- x
     covariates.p <- meta.info
     covariates.p$sample.id <- NULL
@@ -56,7 +56,15 @@ Limma_permutating <- function(x, group.name, meta.info, formula.str
         model.matrix(formula(formula.str), data = covariates.p)
     colnames(design.matrix) <-
         make.names(colnames(design.matrix))
-    fit <- lmFit(combined_data, design.matrix)
+    if (!is.null(correlation_block)) {
+        corfit <- duplicateCorrelation(combined_data, design.matrix,
+                                       block = covariates.p[, correlation_block])
+        fit <- lmFit(combined_data, design.matrix,
+                     block = covariates.p[, correlation_block],
+                     correlation = corfit$consensus.correlation)
+    } else {
+        fit <- lmFit(combined_data, design.matrix)
+    }
     if (length( unique( covariates.p[,group.name] ) ) == 2) {
         pairwise_contrasts <-
             paste0(group.name, unique(covariates.p[, group.name]))

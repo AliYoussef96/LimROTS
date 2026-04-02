@@ -43,7 +43,8 @@ Boot_parallel <- function(BPPARAM = NULL,
     meta.info,
     a1,
     a2,
-    pSamples) {
+    pSamples,
+    correlation_block = NULL) {
     if (is.null(BPPARAM)) {
         if (.Platform$OS.type == "windows") {
             BPPARAM <- SnowParam(workers = 2)
@@ -67,7 +68,8 @@ Boot_parallel <- function(BPPARAM = NULL,
         meta.info = meta.info,
         a1 = a1,
         a2 = a2,
-        pSamples = pSamples
+        pSamples = pSamples,
+        correlation_block = correlation_block
     )
     export_funcs <- list(Limma_bootstrap = Limma_bootstrap,
                                     Limma_permutating = Limma_permutating)
@@ -89,7 +91,8 @@ Boot_parallel <- function(BPPARAM = NULL,
                 ),
                 group.name = group.name,
                 meta.info = meta.info,
-                formula.str = formula.str
+                formula.str = formula.str,
+                correlation_block = correlation_block
             )
         }
         d_result <- fit$d
@@ -99,7 +102,8 @@ Boot_parallel <- function(BPPARAM = NULL,
             x = data,
             group.name = group.name,
             meta.info = pSamples_i,
-            formula.str = formula.str
+            formula.str = formula.str,
+            correlation_block = correlation_block
             )
         pd_result <- pFit$d
         ps_result <- pFit$s

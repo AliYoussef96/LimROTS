@@ -45,6 +45,11 @@
 #' only specified in \code{group.name} Preserving all the other sample
 #' information. If `FALSE`, the entire sample information retrieved from
 #' \code{meta.info} will be permuted (recommended to be set to FALSE).
+#' @param correlation_block Character or NULL. The name of a column in
+#' \code{meta.info} that defines correlation blocks. Samples sharing the same
+#' value in this column are always resampled together as a unit, and
+#' within-block correlation is accounted for during model fitting via
+#' \code{duplicateCorrelation}. If NULL, standard independent resampling is used.
 #'
 #'
 #' @return An object of class `"SummarizedExperiment"` with the 
@@ -159,7 +164,8 @@ LimROTS <- function(x,
     formula.str,
     robust = TRUE,
     trend = TRUE,
-    permutating.group = FALSE) {
+    permutating.group = FALSE,
+    correlation_block = NULL) {
     SanityChecK.list <- SanityChecK(
         x,
         assay.type = assay.type,
@@ -193,10 +199,11 @@ LimROTS <- function(x,
     }
 
     if (ncol(meta.info) > 1) {
-        samples <- bootstrapSamples_limRots(
+        samples <- bootstrapSamples_limRots_block(
             niter = 2 * niter,
             meta.info = meta.info,
-            group.name = group.name
+            group.name = group.name,
+            correlation_block = correlation_block
             )
         if(permutating.group == TRUE){
             pSamples <- list()
@@ -238,7 +245,8 @@ LimROTS <- function(x,
         groups = groups,
         meta.info = meta.info,
         a1 = a1, a2 = a2,
-        pSamples = pSamples
+        pSamples = pSamples,
+        correlation_block = correlation_block
     )
 
     for (i in seq_along(results_list)) {
@@ -277,7 +285,8 @@ LimROTS <- function(x,
             meta.info = meta.info,
             formula.str = formula.str,
             trend = trend,
-            robust = robust
+            robust = robust,
+            correlation_block = correlation_block
         )
         d <- fit$d / (a1 + a2 * fit$s)
         pD <- pD / (a1 + a2 * pS)
@@ -377,7 +386,8 @@ LimROTS <- function(x,
             meta.info = meta.info,
             formula.str = formula.str,
             trend = trend,
-            robust = robust
+            robust = robust,
+            correlation_block = correlation_block
         )
         d <- fit$d / (a1 + a2 * fit$s)
         pD <- pD / (a1 + a2 * pS)

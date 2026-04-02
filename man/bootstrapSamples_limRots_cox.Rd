@@ -15,8 +15,7 @@ are used to define strata for sampling.}
 
 \item{correlation_block}{Character or NULL. The name of a column in
 \code{meta.info} that defines correlation blocks. Samples sharing the same
-value in this column are always resampled together as a unit. If NULL,
-the function behaves identically to \code{bootstrapSamples_limRots}.}
+value in this column are always resampled together as a unit.}
 }
 \value{
 A matrix of dimension \code{niter} x \code{n}, where \code{n} is the

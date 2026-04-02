@@ -42,12 +42,13 @@
 #' @importFrom stats model.matrix formula
 #' @importFrom dplyr bind_cols
 #' @importFrom stringr str_split_fixed fixed
-#' @importFrom limma makeContrasts lmFit contrasts.fit eBayes topTable
+#' @importFrom limma makeContrasts lmFit contrasts.fit eBayes topTable duplicateCorrelation
 #' @importFrom utils combn
 #'
 
 Limma_bootstrap <-
-    function(x, group.name, meta.info, formula.str) {
+    function(x, group.name, meta.info, formula.str,
+             correlation_block = NULL) {
         data <- x
         combined_data <- data.frame(
             check.rows = FALSE,
@@ -79,7 +80,15 @@ Limma_bootstrap <-
         row.names(covariates.p) <- NULL
         design.matrix <- model.matrix(formula(formula.str), data = covariates.p)
         colnames(design.matrix) <- make.names(colnames(design.matrix))
-        fit <- lmFit(combined_data, design.matrix)
+        if (!is.null(correlation_block)) {
+            corfit <- duplicateCorrelation(combined_data, design.matrix,
+                                           block = covariates.p[, correlation_block])
+            fit <- lmFit(combined_data, design.matrix,
+                         block = covariates.p[, correlation_block],
+                         correlation = corfit$consensus.correlation)
+        } else {
+            fit <- lmFit(combined_data, design.matrix)
+        }
         if (length(data) == 2) {
             pairwise_contrasts <-
                 paste0(group.name, unique(covariates.p[, group.name]))
