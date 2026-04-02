@@ -116,6 +116,107 @@ bootstrapSamples_limRots <- function(niter, meta.info, group.name) {
     return(samples)
 }
 
+#' Generate Stratified Bootstrap Samples with Correlation Blocks
+#'
+#' This function generates stratified bootstrap samples identical to
+#' \code{bootstrapSamples_limRots}, but additionally supports correlation
+#' blocks. When \code{correlation_block} is specified, all samples sharing
+#' the same block ID are always selected together during resampling.
+#' When \code{correlation_block} is NULL, the function delegates entirely
+#' to \code{bootstrapSamples_limRots}.
+#'
+#' @param niter Integer. The number of bootstrap samples to generate.
+#' @param meta.info Data frame. Metadata containing sample information,
+#' where each row corresponds to a sample. Factor columns in `meta.info`
+#' are used to define strata for sampling.
+#' @param group.name Character. The name of the column in `meta.info` that
+#' defines the grouping variable for the samples.
+#' @param correlation_block Character or NULL. The name of a column in
+#' `meta.info` that defines correlation blocks. Samples sharing the same
+#' value in this column are always resampled together as a unit. If NULL,
+#' the function behaves identically to \code{bootstrapSamples_limRots}.
+#'
+#' @details
+#' The function follows the same logic as \code{bootstrapSamples_limRots}:
+#' within each group defined by \code{group.name}, it identifies factor
+#' columns to create strata, then samples proportionally within each stratum.
+#' When \code{correlation_block} is not NULL, entire blocks (e.g., repeated
+#' measures from the same subject) are resampled together as a unit instead
+#' of individual samples.
+#'
+#' @return A matrix of dimension \code{niter} x \code{n}, where \code{n} is the
+#' number of samples. Each row corresponds to a bootstrap sample, and each
+#' entry is a resampled row name from the metadata, stratified by group and
+#' additional factors.
+#'
+#'
+#'
+bootstrapSamples_limRots_block <- function(niter, meta.info, group.name,
+                                           correlation_block = NULL) {
+    if (is.null(correlation_block)) {
+        return(bootstrapSamples_limRots(
+            niter = niter,
+            meta.info = meta.info,
+            group.name = group.name
+        ))
+    }
+    labels <- as.numeric(meta.info[, group.name])
+    samples <- matrix(nrow = niter, ncol = length(labels))
+    for (i in seq_len(niter)) {
+        for (label in unique(labels)) {
+            pos <- which(labels == label)
+            meta.info.pos <- meta.info[meta.info[, group.name] == label, ]
+            meta.info.factors <- c()
+            for (j in seq_len(ncol(meta.info))) {
+                if (is.factor(meta.info.pos[, j])) {
+                    meta.info.factors <-
+                        c(meta.info.factors, colnames(meta.info.pos)[j])
+                }
+            }
+            meta.info.factors <-
+                    meta.info.factors[meta.info.factors != group.name]
+            if (is.null(meta.info.factors) |
+                length(meta.info.factors) == 0) {
+                block_ids <- meta.info.pos[, correlation_block]
+                unique_blocks <- unique(block_ids)
+                collected <- c()
+                while (length(collected) < length(pos)) {
+                    b <- sample(unique_blocks, 1)
+                    members <-
+                        row.names(meta.info.pos)[which(block_ids == b)]
+                    collected <- c(collected, members)
+                }
+                samples[i, pos] <- collected[seq_len(length(pos))]
+            } else {
+                meta.info.pos$stratum <-
+                    interaction(meta.info.pos[, meta.info.factors])
+                stratum_sizes <- table(meta.info.pos$stratum)
+                stratum_samples <-
+                    round(length(pos) * prop.table(stratum_sizes))
+                sampled_indices <-
+                    unlist(lapply(names(stratum_samples), function(stratum) {
+                        stratum_indices_mask <-
+                            which(meta.info.pos$stratum == stratum)
+                        stratum_meta <- meta.info.pos[stratum_indices_mask, ]
+                        block_ids <- stratum_meta[, correlation_block]
+                        unique_blocks <- unique(block_ids)
+                        collected <- c()
+                        while (length(collected) <
+                               stratum_samples[stratum]) {
+                            b <- sample(unique_blocks, 1)
+                            members <-
+                                row.names(stratum_meta)[which(block_ids == b)]
+                            collected <- c(collected, members)
+                        }
+                        collected[seq_len(stratum_samples[stratum])]
+                    }))
+                samples[i, pos] <- sampled_indices
+            }
+        }
+    }
+    return(samples)
+}
+
 #' Generate Stratified Bootstrap Samples for Cox limRots with Correlation Blocks
 #'
 #' This function generates stratified bootstrap samples similar to
@@ -129,8 +230,7 @@ bootstrapSamples_limRots <- function(niter, meta.info, group.name) {
 #' are used to define strata for sampling.
 #' @param correlation_block Character or NULL. The name of a column in
 #' `meta.info` that defines correlation blocks. Samples sharing the same
-#' value in this column are always resampled together as a unit. If NULL,
-#' the function behaves identically to \code{bootstrapSamples_limRots}.
+#' value in this column are always resampled together as a unit.
 #'
 #' @details
 #' When \code{correlation_block} is not NULL, the function groups samples by
