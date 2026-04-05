@@ -49,7 +49,8 @@
 #' \code{meta.info} that defines correlation blocks. Samples sharing the same
 #' value in this column are always resampled together as a unit, and
 #' within-block correlation is accounted for during model fitting via
-#' \code{duplicateCorrelation}. If NULL, standard independent resampling is used.
+#' \code{duplicateCorrelation}. If NULL, standard independent resampling is 
+#' used.
 #'
 #'
 #' @return An object of class `"SummarizedExperiment"` with the 

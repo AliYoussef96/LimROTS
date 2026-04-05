@@ -52,7 +52,8 @@
 #' @importFrom stats model.matrix formula
 #' @importFrom dplyr bind_cols
 #' @importFrom utils combn
-#' @importFrom limma makeContrasts lmFit contrasts.fit eBayes topTable duplicateCorrelation
+#' @importFrom limma makeContrasts lmFit contrasts.fit eBayes topTable
+#'@importFrom limma duplicateCorrelation
 #'
 #'
 

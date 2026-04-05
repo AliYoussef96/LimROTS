@@ -44,7 +44,8 @@
 #'
 #' @importFrom stats model.matrix formula
 #' @importFrom dplyr bind_cols
-#' @importFrom limma makeContrasts lmFit contrasts.fit eBayes topTable duplicateCorrelation
+#' @importFrom limma makeContrasts lmFit contrasts.fit eBayes topTable 
+#' @importFrom limma duplicateCorrelation
 #' @importFrom stringr str_split_fixed fixed
 #' @importFrom utils combn
 #'
@@ -62,7 +63,8 @@ Limma_permutating <- function(x, group, meta.info, formula.str,
         make.names(colnames(design.matrix))
     if (!is.null(correlation_block)) {
         corfit <- duplicateCorrelation(combined_data, design.matrix,
-                                       block = covariates.p[, correlation_block])
+                                       block = 
+                                         covariates.p[, correlation_block])
         fit <- lmFit(combined_data, design.matrix,
                      block = covariates.p[, correlation_block],
                      correlation = corfit$consensus.correlation)

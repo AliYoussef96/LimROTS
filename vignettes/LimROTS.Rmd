@@ -31,16 +31,16 @@ knitr::opts_chunk$set(
 
 Differential expression analysis is commonly used to study diverse
 biological datasets. The reproducibility-optimized test statistic (ROTS)
-([Elo et al., 2008](https://ieeexplore.ieee.org/document/4359873/)) uses
+([Elo et al., 2008](https://doi.org/10.1109/tcbb.2007.1078)) uses
 a modified t-statistic to prioritise features that differ between two or
 more groups. However, the ROTS Bioconductor implementation ([Suomi et
 al.,
-2017](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1005562))
+2017](https://doi.org/10.1371/journal.pcbi.1005562))
 did not accommodate technical or biological covariates. LimROTS ([Anwar
 et al., 2025](https://doi.org/10.1093/bioinformatics/btaf570)) addressed
 this limitation by combining a reproducibility-optimized test statistic
 with the limma empirical Bayes approach ([Ritchie et al.,
-2015](https://academic.oup.com/nar/article/43/7/e47/2414268)). This
+2015](https://doi.org/10.1093/nar/gkv007)). This
 enables the analysis of more complex experimental designs and the
 incorporation of covariates. These validated solutions were made in
 Bioconductor development version 3.20 and the subsequent release 3.21.
@@ -150,7 +150,7 @@ UPS1 concentrations (0.1–50 fmol) are grouped into two conditions:
 A synthetic unbalanced batch variable (`fake.batch`) was assigned across
 samples with the following distribution:
 
-```{r, echo="FALSE," message="FALSE," results="hide"}
+```{r, echo=FALSE, message=FALSE, results="hide"}
 library(LimROTS, quietly = TRUE)
 data("UPS1.Case4")
 ```

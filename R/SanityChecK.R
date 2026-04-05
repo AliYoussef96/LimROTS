@@ -26,7 +26,8 @@
 #' function's execution. Default is TRUE.
 #' @param log Logical, indicating whether the data is already log-transformed.
 #' Default is TRUE.
-#' @param survival Logical, indicating whether the analysis is survival analysis.
+#' @param survival Logical, indicating whether the analysis is survival 
+#' analysis.
 #' Default is \code{FALSE}. If \code{TRUE}, \code{meta.info} must contain
 #' \code{time} and \code{event} columns.
 #'
