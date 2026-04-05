@@ -93,7 +93,6 @@ following elements:
 \item{data}{The original data matrix.}
 \item{niter}{The number of bootstrap samples used.}
 \item{statistics}{The optimized statistics for each feature.}
-\item{logfc}{Log-fold change values between groups.}
 \item{pvalue}{P-values computed based on the permutation samples.}
 \item{FDR}{False discovery rate estimates.}
 \item{a1}{Optimized parameter used in differential expression ranking.}

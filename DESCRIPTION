@@ -21,18 +21,15 @@ Authors@R:
     comment = c(ORCID = "0009-0004-5731-178X")))
 Description: Differential expression analysis is commonly used to study
     diverse biological datasets. The reproducibility-optimized test
-    statistic (ROTS) (Elo et al. (2008)
-    <https://doi.org/10.1109/tcbb.2007.1078>)
+    statistic (ROTS) (Elo et al., 2008, <doi:10.1109/tcbb.2007.1078>)
     uses a modified t-statistic to prioritise features that differ
     between two or more groups. However, the ROTS Bioconductor
-    implementation (Suomi et al. (2017)
-    <https://doi.org/10.1371/journal.pcbi.1005562>)
+    implementation (Suomi et al., 2017, <doi:10.1371/journal.pcbi.1005562>)
     did not accommodate technical or biological covariates. LimROTS
-    (Anwar et al. (2025) <https://doi.org/10.1093/bioinformatics/btaf570>)
+    (Anwar et al., 2025, <doi:10.1093/bioinformatics/btaf570>)
     addressed this limitation by combining a reproducibility-optimized
     test statistic with the limma empirical Bayes approach
-    (Ritchie et al. (2015)
-    <https://doi.org/10.1093/nar/gkv007>).
+    (Ritchie et al., 2015, <doi:10.1093/nar/gkv007>).
     This enables the analysis of more complex experimental designs
     and the incorporation of covariates.
 License: GPL (>= 2)
