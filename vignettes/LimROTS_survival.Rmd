@@ -77,6 +77,7 @@ time to Crohn's disease diagnosis.
 
 ```{r load-packages, message=FALSE}
 library(LimROTS, quietly = TRUE)
+library(mia, quietly = TRUE)
 library(miaTime, quietly = TRUE)
 library(TreeSummarizedExperiment, quietly = TRUE)
 library(BiocParallel, quietly = TRUE)
@@ -89,12 +90,39 @@ data("crohn_survival")
 print(crohn_survival)
 ```
 
-`crohn_survival` is a `TreeSummarizedExperiment`; coerce it to a plain
-`SummarizedExperiment` as required by `LimROTS_survival()`:
+`crohn_survival` is a `TreeSummarizedExperiment`. We first apply the
+centered log-ratio (CLR) transformation using `mia::transformAssay()`,
+which stores the result as a named assay (`"clr"`) alongside the
+original counts. We then coerce to a plain `SummarizedExperiment` as
+required by `LimROTS_survival()`:
+
+```{r clr-transform}
+crohn_survival <- transformAssay(
+    crohn_survival,
+    assay.type = "counts",
+    method     = "clr",
+    pseudocount = TRUE,
+    name       = "clr"
+)
+assayNames(crohn_survival)
+```
 
 ```{r convert-to-se}
 crohn_survival <- as(crohn_survival, "SummarizedExperiment")
 print(crohn_survival)
+```
+
+Sample names in `crohn_survival` contain `.` characters, which can cause
+issues in formula parsing. We replace them with `_` in both the assay
+column names and the `colData` row names:
+
+```{r fix-sample-names}
+clean_names <- gsub("\\.", "_", colnames(crohn_survival))
+colnames(crohn_survival) <- clean_names
+rownames(colData(crohn_survival)) <- clean_names
+# Rename event_time -> time as required by LimROTS_survival()
+colnames(colData(crohn_survival))[
+    colnames(colData(crohn_survival)) == "event_time"] <- "time"
 ```
 
 Inspect the survival outcome distribution:
@@ -102,22 +130,6 @@ Inspect the survival outcome distribution:
 ```{r inspect-coldata}
 table(colData(crohn_survival)$diagnosis,
       colData(crohn_survival)$event)
-```
-
-`LimROTS_survival()` expects log-transformed assay values. The
-`crohn_survival` assay contains relative abundance data; we apply a
-centered log-ratio (CLR) transformation after adding a small pseudocount
-to handle zeros:
-
-```{r clr-transform}
-counts <- assay(crohn_survival)
-# Add pseudocount, compute CLR per sample
-pseudocount <- 0.5
-ra <- sweep(counts + pseudocount, 2, colSums(counts + pseudocount), "/")
-clr <- t(apply(log(ra), 1, function(x) x - mean(x)))
-# Replace the default assay so LimROTS_survival() uses CLR values
-assay(crohn_survival) <- clr
-hist(clr)
 ```
 
 # Cox Proportional Hazards Analysis
@@ -134,16 +146,17 @@ set.seed(1234, kind = "default", sample.kind = "default")
 ```{r run-cox}
 crohn_cox <- LimROTS_survival(
     x           = crohn_survival,
-    niter       = 100,    # use >= 1000 for real analyses
+    assay.type  = "clr",
+    niter       = 30,    # use >= 1000 for real analyses
     K           = 10,     # number of top taxa
-    meta.info   = c("event_time", "event"),
-    formula.str = "~ Surv(event_time, event)",
+    meta.info   = c("time", "event"),
+    formula.str = "~ Surv(time, event)",
     competing_risks   = FALSE,
     verbose           = FALSE
 )
 ```
 
-> **Note:** `niter = 100` is used here to reduce build time. For
+> **Note:** `niter = 30`is used here to reduce build time. For
 > production analyses, use `niter = 1000` or higher and increase the
 > number of parallel workers via the `BPPARAM` argument:
 >
@@ -246,10 +259,11 @@ set.seed(1234, kind = "default", sample.kind = "default")
 ```{r run-competing}
 crohn_cr <- LimROTS_survival(
     x           = crohn_cr,
+    assay.type  = "clr",
     niter       = 100,
     K           = 48,
-    meta.info   = c("event_time", "event_cr"),
-    formula.str = "~ Surv(event_time, event_cr)",
+    meta.info   = c("time", "event_cr"),
+    formula.str = "~ Surv(time, event_cr)",
     competing_risks   = TRUE,
     verbose           = FALSE
 )
