@@ -82,16 +82,14 @@ Boot_parallel_survival <- function(BPPARAM = NULL,
         samples.R <- split(samples[i, ], rep(1, length(samples[i, ])))
         pSamples_i <- pSamples[[i]]
         d_result <- s_result <- pd_result <- ps_result <- NULL
-        if (is.null(a1) | is.null(a2)) {
-            fit <- bootstrap_survival(
-                x = lapply(samples.R, function(x)
-                    data[, x]
-                ),
-                meta.info = meta.info,
-                formula.str = formula.str,
-                competing_risks = competing_risks
-            )
-        }
+        fit <- bootstrap_survival(
+            x = lapply(samples.R, function(x)
+                data[, x]
+            ),
+            meta.info = meta.info,
+            formula.str = formula.str,
+            competing_risks = competing_risks
+        )
         d_result <- fit$d
         s_result <- fit$s
         df1 <- data.frame(d_result = d_result, s_result = s_result)

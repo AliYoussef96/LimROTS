@@ -89,17 +89,15 @@ Boot_parallel <- function(BPPARAM = NULL,
         samples.R <- split(samples[i, ], groups)
         pSamples_i <- pSamples[[i]]
         d_result <- s_result <- pd_result <- ps_result <- NULL
-        if (is.null(a1) | is.null(a2)) {
-            fit <- Limma_bootstrap(
-                x = lapply(samples.R, function(x)
-                    data[, x]
-                ),
-                group = group,
-                meta.info = meta.info,
-                formula.str = formula.str,
-                correlation_block = correlation_block
-            )
-        }
+        fit <- Limma_bootstrap(
+            x = lapply(samples.R, function(x)
+                data[, x]
+            ),
+            group = group,
+            meta.info = meta.info,
+            formula.str = formula.str,
+            correlation_block = correlation_block
+        )
         d_result <- fit$d
         s_result <- fit$s
         df1 <- data.frame(d_result = d_result, s_result = s_result)

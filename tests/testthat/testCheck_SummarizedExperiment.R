@@ -18,28 +18,28 @@ test_that("Check_SummarizedExperiment correctly selects assay", {
 
   # Test default behavior (assay.type = NULL) -> should return the first assay
   res_default <- suppressMessages(Check_SummarizedExperiment(
-    data.exp = se,
+    x = se,
     assay.type = NULL,
     meta.info = "Group",
-    group.name = "Group"
+    group = "Group"
   ))
   expect_equal(res_default$data, mat1)
 
   # Test selection by character string -> should return the second assay
   res_named <- suppressMessages(Check_SummarizedExperiment(
-    data.exp = se,
+    x = se,
     assay.type = "second_assay",
     meta.info = "Group",
-    group.name = "Group"
+    group = "Group"
   ))
   expect_equal(res_named$data, mat2)
 
   # Test selection by numeric index -> should return the second assay
   res_index <- suppressMessages(Check_SummarizedExperiment(
-    data.exp = se,
+    x = se,
     assay.type = 2,
     meta.info = "Group",
-    group.name = "Group"
+    group = "Group"
   ))
   expect_equal(res_index$data, mat2)
 })
