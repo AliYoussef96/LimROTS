@@ -12,7 +12,7 @@
 #' If defined by the user, no optimization occurs.
 #' @param meta.info A data frame containing sample-level metadata, where each
 #' row corresponds to a sample. It should include the grouping variable
-#' specified in \code{group.name}. If \code{x} is a \code{SummarizedExperiment}
+#' specified in \code{group}. If \code{x} is a \code{SummarizedExperiment}
 #' object, \code{meta.info} must be a vector of the metadata needed for the
 #' model to run and can be retrieved using \code{colData()}.
 #' @param BPPARAM A parallel BPPARAM object for distributed computation.

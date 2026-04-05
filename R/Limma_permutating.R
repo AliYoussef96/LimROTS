@@ -10,7 +10,7 @@
 #' @param x A data matrices where rows represent
 #' features (e.g., genes, proteins) and columns represent samples. The list
 #' should contain at least two matrices for pairwise group comparison.
-#' @param group.name A character string indicating the name of the group
+#' @param group A character string indicating the name of the group
 #' variable in `meta.info` to be used in the analysis.
 #' @param meta.info A data frame containing the metadata for the samples.
 #' This includes sample grouping and any covariates to be included in the model.
@@ -50,7 +50,7 @@
 #'
 #'
 #'
-Limma_permutating <- function(x, group.name, meta.info, formula.str,
+Limma_permutating <- function(x, group, meta.info, formula.str,
                              correlation_block = NULL) {
     combined_data <- x
     covariates.p <- meta.info
@@ -69,9 +69,9 @@ Limma_permutating <- function(x, group.name, meta.info, formula.str,
     } else {
         fit <- lmFit(combined_data, design.matrix)
     }
-    if (length( unique( covariates.p[,group.name] ) ) == 2) {
+    if (length( unique( covariates.p[,group] ) ) == 2) {
         pairwise_contrasts <-
-            paste0(group.name, unique(covariates.p[, group.name]))
+            paste0(group, unique(covariates.p[, group]))
         pairwise_contrasts <- combn(pairwise_contrasts, 2, function(x) {
             paste(x[1], "-", x[2])
         })
@@ -89,10 +89,10 @@ Limma_permutating <- function(x, group.name, meta.info, formula.str,
         s_values <- as.numeric(sqrt(fit.ebayes$s2.post) *
             fit.ebayes$stdev.unscaled[, 1])
         return(list(d = d_values, s = s_values))
-    } else if (length( unique( covariates.p[,group.name] ) ) > 2 & 
+    } else if (length( unique( covariates.p[,group] ) ) > 2 & 
                                                     ncol(covariates.p) == 1) {
         pairwise_contrasts <-
-            paste0(group.name, unique(covariates.p[, group.name]))
+            paste0(group, unique(covariates.p[, group]))
         pairwise_contrasts <- combn(pairwise_contrasts, 2, function(x) {
             paste(x[1], "-", x[2])
         })

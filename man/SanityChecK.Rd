@@ -10,7 +10,7 @@ SanityChecK(
   niter = 1000,
   K = NULL,
   meta.info,
-  group.name,
+  group,
   formula.str,
   verbose = TRUE,
   log = TRUE,
@@ -34,7 +34,7 @@ the number of rows in the data matrix. Default is NULL.}
 (columns of \code{x}). If \code{x} is a \code{SummarizedExperiment},
 \code{meta.info} can be a vector of \code{colData} column names to use.}
 
-\item{group.name}{Character. Column name in \code{meta.info} that defines the
+\item{group}{Character. Column name in \code{meta.info} that defines the
 groups or conditions for comparison.}
 
 \item{formula.str}{Optional character string representing the formula for

@@ -8,7 +8,7 @@ Check_SummarizedExperiment(
   x,
   assay.type = NULL,
   meta.info,
-  group.name,
+  group,
   survival = FALSE
 )
 }
@@ -22,7 +22,7 @@ to use if \code{x} is a \code{SummarizedExperiment}. Default is \code{NULL}}
 \item{meta.info}{Data frame. Metadata associated with the samples
 (columns of \code{x}). If \code{x} is a \code{SummarizedExperiment},}
 
-\item{group.name}{Character. Column name in \code{meta.info} that defines the
+\item{group}{Character. Column name in \code{meta.info} that defines the
 groups or conditions for comparison.}
 
 \item{survival}{Logical, indicating whether the analysis is survival

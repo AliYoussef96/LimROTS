@@ -18,7 +18,7 @@
 #' @param meta.info Data frame. Metadata associated with the samples
 #' (columns of `x`). If `x` is a `SummarizedExperiment`,
 #' `meta.info` can be a vector of `colData` column names to use.
-#' @param group.name Character. Column name in `meta.info` that defines the
+#' @param group Character. Column name in `meta.info` that defines the
 #' groups or conditions for comparison.
 #' @param formula.str Optional character string representing the formula for
 #' the model.
@@ -49,14 +49,14 @@
 SanityChecK <- function(x,
         assay.type = NULL,
         niter = 1000, K = NULL,
-        meta.info, group.name,
+        meta.info, group,
         formula.str, verbose = TRUE,
         log = TRUE, survival = FALSE) {
     Check_SExp <- Check_SummarizedExperiment(
         x = x,
         assay.type = assay.type,
         meta.info = meta.info,
-        group.name = group.name,
+        group = group,
         survival = survival
     )
     data <- Check_SExp$data
@@ -131,7 +131,7 @@ SanityChecK <- function(x,
 
     sort.df <- data.frame(
         sample.id = colnames(data),
-        groups = meta.info[, group.name]
+        groups = meta.info[, group]
     )
     sort.df <- sort.df[order(sort.df$groups), ]
     data <- data[, sort.df$sample.id]
@@ -142,52 +142,52 @@ SanityChecK <- function(x,
         check.names = FALSE
     )
     meta.info$temp <- NULL
-    if (inherits(meta.info[, group.name], "character")) {
-        meta.info[, group.name] <- as.factor(
-            meta.info[, group.name]
+    if (inherits(meta.info[, group], "character")) {
+        meta.info[, group] <- as.factor(
+            meta.info[, group]
         )
         message(paste(
             "Group Level: ",
-            levels(meta.info[, group.name]),
+            levels(meta.info[, group]),
             collapse = " & "
         ))
-        meta.info[, group.name] <- as.numeric(
-            meta.info[, group.name]
+        meta.info[, group] <- as.numeric(
+            meta.info[, group]
         )
-        groups <- as.numeric(meta.info[, group.name])
-        meta.info[, group.name] <- as.factor(
-            meta.info[, group.name]
+        groups <- as.numeric(meta.info[, group])
+        meta.info[, group] <- as.factor(
+            meta.info[, group]
         )
     } else if (inherits(
-        meta.info[, group.name], "factor"
+        meta.info[, group], "factor"
     )) {
-        groups <- as.numeric(meta.info[, group.name])
+        groups <- as.numeric(meta.info[, group])
         message(paste(
             "Group Level: ",
-            levels(meta.info[, group.name]),
+            levels(meta.info[, group]),
             collapse = " & "
         ))
-        meta.info[, group.name] <- as.numeric(
-            meta.info[, group.name]
+        meta.info[, group] <- as.numeric(
+            meta.info[, group]
         )
-        meta.info[, group.name] <- as.factor(
-            meta.info[, group.name]
+        meta.info[, group] <- as.factor(
+            meta.info[, group]
         )
     } else {
-        meta.info[, group.name] <- as.factor(
-            meta.info[, group.name]
+        meta.info[, group] <- as.factor(
+            meta.info[, group]
         )
         message(paste(
             "Group Level: ",
-            levels(meta.info[, group.name]),
+            levels(meta.info[, group]),
             collapse = " & "
         ))
-        meta.info[, group.name] <- as.numeric(
-            meta.info[, group.name]
+        meta.info[, group] <- as.numeric(
+            meta.info[, group]
         )
-        groups <- as.numeric(meta.info[, group.name])
-        meta.info[, group.name] <- as.factor(
-            meta.info[, group.name]
+        groups <- as.numeric(meta.info[, group])
+        meta.info[, group] <- as.factor(
+            meta.info[, group]
         )
     }
     groups <- groups + (1 - min(groups))

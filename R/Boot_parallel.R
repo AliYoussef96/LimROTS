@@ -12,10 +12,10 @@
 #' If defined by the user, no optimization occurs.
 #' @param meta.info A data frame containing sample-level metadata, where each
 #' row corresponds to a sample. It should include the grouping variable
-#' specified in \code{group.name}. If \code{x} is a \code{SummarizedExperiment}
+#' specified in \code{group}. If \code{x} is a \code{SummarizedExperiment}
 #' object, \code{meta.info} must be a vector of the metadata needed for the
 #' model to run and can be retrieved using \code{colData()}.
-#' @param group.name A string specifying the column in \code{meta.info} that
+#' @param group A string specifying the column in \code{meta.info} that
 #' represents the groups or conditions for comparison.
 #' @param BPPARAM A parallel BPPARAM object for distributed computation.
 #' @param formula.str A formula string used when covariates are present in meta.
@@ -43,7 +43,7 @@ Boot_parallel <- function(BPPARAM = NULL,
     samples,
     data,
     formula.str,
-    group.name,
+    group,
     groups,
     meta.info,
     a1,
@@ -68,7 +68,7 @@ Boot_parallel <- function(BPPARAM = NULL,
         samples = samples,
         data = data,
         formula.str = formula.str,
-        group.name = group.name,
+        group = group,
         groups = groups,
         meta.info = meta.info,
         a1 = a1,
@@ -94,7 +94,7 @@ Boot_parallel <- function(BPPARAM = NULL,
                 x = lapply(samples.R, function(x)
                     data[, x]
                 ),
-                group.name = group.name,
+                group = group,
                 meta.info = meta.info,
                 formula.str = formula.str,
                 correlation_block = correlation_block
@@ -105,7 +105,7 @@ Boot_parallel <- function(BPPARAM = NULL,
         df1 <- data.frame(d_result = d_result, s_result = s_result)
         pFit <- Limma_permutating(
             x = data,
-            group.name = group.name,
+            group = group,
             meta.info = pSamples_i,
             formula.str = formula.str,
             correlation_block = correlation_block

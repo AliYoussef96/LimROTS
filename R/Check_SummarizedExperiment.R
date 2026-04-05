@@ -9,7 +9,7 @@
 #' to use if `x` is a `SummarizedExperiment`. Default is `NULL`
 #' @param meta.info Data frame. Metadata associated with the samples
 #' (columns of `x`). If `x` is a `SummarizedExperiment`,
-#' @param group.name Character. Column name in `meta.info` that defines the
+#' @param group Character. Column name in `meta.info` that defines the
 #' groups or conditions for comparison.
 #' @param survival Logical, indicating whether the analysis is survival
 #' analysis. Default is \code{FALSE}.
@@ -23,7 +23,7 @@
 
 Check_SummarizedExperiment <- function(x,
         assay.type = NULL, meta.info,
-        group.name, survival = FALSE) {
+        group, survival = FALSE) {
     if (inherits(x, "SummarizedExperiment")) {
         message("Data is SummarizedExperiment object")
 
@@ -43,9 +43,9 @@ Check_SummarizedExperiment <- function(x,
             }
         }
         if(!survival){
-          if (!group.name %in% colnames(meta.info)) {
+          if (!group %in% colnames(meta.info)) {
               stop(
-                  "group.name should be a string specifying",
+                  "group should be a string specifying",
                   " the column in `meta.info` that",
                   " represents the groups or conditions",
                   " for comparison."
@@ -61,7 +61,7 @@ Check_SummarizedExperiment <- function(x,
       } else {
           data <- x
           if (!survival) {
-              groups <- meta.info[, group.name]
+              groups <- meta.info[, group]
           } else {
               groups <- NULL
           }

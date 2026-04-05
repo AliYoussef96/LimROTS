@@ -4,7 +4,7 @@
 \alias{bootstrapS}
 \title{Generate Bootstrap Samples}
 \usage{
-bootstrapS(niter, meta.info, group.name)
+bootstrapS(niter, meta.info, group)
 }
 \arguments{
 \item{niter}{Integer. The number of bootstrap samples to generate.}
@@ -12,7 +12,7 @@ bootstrapS(niter, meta.info, group.name)
 \item{meta.info}{Data frame. Metadata containing sample information, where
 each row corresponds to a sample.}
 
-\item{group.name}{Character. The name of the column in \code{meta.info} that
+\item{group}{Character. The name of the column in \code{meta.info} that
 defines the grouping variable for the samples.}
 }
 \value{

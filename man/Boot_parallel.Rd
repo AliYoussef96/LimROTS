@@ -9,7 +9,7 @@ Boot_parallel(
   samples,
   data,
   formula.str,
-  group.name,
+  group,
   groups,
   meta.info,
   a1,
@@ -31,14 +31,14 @@ The values should be log-transformed.}
 info for modeling. It should include "~ 0 + ..." to exclude the
 intercept from the model.}
 
-\item{group.name}{A string specifying the column in \code{meta.info} that
+\item{group}{A string specifying the column in \code{meta.info} that
 represents the groups or conditions for comparison.}
 
 \item{groups}{groups information from \code{meta.info}}
 
 \item{meta.info}{A data frame containing sample-level metadata, where each
 row corresponds to a sample. It should include the grouping variable
-specified in \code{group.name}. If \code{x} is a \code{SummarizedExperiment}
+specified in \code{group}. If \code{x} is a \code{SummarizedExperiment}
 object, \code{meta.info} must be a vector of the metadata needed for the
 model to run and can be retrieved using \code{colData()}.}
 

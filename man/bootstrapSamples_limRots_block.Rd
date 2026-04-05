@@ -7,7 +7,7 @@
 bootstrapSamples_limRots_block(
   niter,
   meta.info,
-  group.name,
+  group,
   correlation_block = NULL
 )
 }
@@ -18,7 +18,7 @@ bootstrapSamples_limRots_block(
 where each row corresponds to a sample. Factor columns in \code{meta.info}
 are used to define strata for sampling.}
 
-\item{group.name}{Character. The name of the column in \code{meta.info} that
+\item{group}{Character. The name of the column in \code{meta.info} that
 defines the grouping variable for the samples.}
 
 \item{correlation_block}{Character or NULL. The name of a column in
@@ -42,7 +42,7 @@ to \code{bootstrapSamples_limRots}.
 }
 \details{
 The function follows the same logic as \code{bootstrapSamples_limRots}:
-within each group defined by \code{group.name}, it identifies factor
+within each group defined by \code{group}, it identifies factor
 columns to create strata, then samples proportionally within each stratum.
 When \code{correlation_block} is not NULL, entire blocks (e.g., repeated
 measures from the same subject) are resampled together as a unit instead

@@ -25,8 +25,8 @@
 #' function's execution. Default is \code{TRUE}.
 #' @param meta.info a character vector of the metadata needed for the
 #' model to run and can be retrieved using \code{colData()}.
-#' @param group.name A string specifying the column in \code{meta.info} that
-#' represents the groups or conditions for comparison. group.name should be 
+#' @param group A string specifying the column in \code{meta.info} that
+#' represents the groups or conditions for comparison. group should be 
 #' retrieved using \code{colData()} as factor.
 #' @param BPPARAM   A \code{BiocParallelParam} object specifying the
 #' parallelization backend (e.g., \code{MulticoreParam}, \code{SnowParam}).
@@ -42,7 +42,7 @@
 #' differential expression analysis. Default is TRUE. see \link[limma]{eBayes}.
 #' @param permutating.group Logical, If \code{TRUE}, the permutation for
 #' calculating the null distribution is performed by permuting the target group
-#' only specified in \code{group.name} Preserving all the other sample
+#' only specified in \code{group} Preserving all the other sample
 #' information. If `FALSE`, the entire sample information retrieved from
 #' \code{meta.info} will be permuted (recommended to be set to FALSE).
 #' @param correlation_block Character or NULL. The name of a column in
@@ -82,7 +82,7 @@
 #' )
 #' formula.str <- "~ 0 + group"
 #' result <- LimROTS(data,
-#'     meta.info = meta.info, group.name = "group",
+#'     meta.info = meta.info, group = "group",
 #'     formula.str = formula.str, niter = 10
 #' )
 #'
@@ -159,7 +159,7 @@ LimROTS <- function(x,
     verbose = TRUE,
     meta.info,
     BPPARAM  = NULL,
-    group.name,
+    group,
     formula.str,
     robust = TRUE,
     trend = TRUE,
@@ -171,7 +171,7 @@ LimROTS <- function(x,
         niter = niter,
         K = K,
         meta.info = meta.info,
-        group.name = group.name,
+        group = group,
         verbose = verbose,
         log = log
     )
@@ -189,14 +189,14 @@ LimROTS <- function(x,
         samples <- bootstrapSamples_limRots_block(
             niter = 2 * niter,
             meta.info = meta.info,
-            group.name = group.name,
+            group = group,
             correlation_block = correlation_block
             )
         if(permutating.group == TRUE){
             pSamples <- list()
             for (i in seq_len(nrow(samples)) ) {
                 shuffle_df <- meta.info
-                shuffle_df[, group.name] <- sample(shuffle_df[, group.name])
+                shuffle_df[, group] <- sample(shuffle_df[, group])
                 colnames(shuffle_df) <- colnames(meta.info)
                 pSamples[[i]] <-  shuffle_df
             }
@@ -210,7 +210,7 @@ LimROTS <- function(x,
             }   
         }
     } else {
-        samples <- bootstrapS(2 * niter, meta.info, group.name)
+        samples <- bootstrapS(2 * niter, meta.info, group)
         pSamples <- list()
         for (i in seq_len(nrow(samples)) ) {
             shuffle_df <- meta.info
@@ -228,7 +228,7 @@ LimROTS <- function(x,
         BPPARAM  = BPPARAM ,
         samples = samples, data = data,
         formula.str = formula.str,
-        group.name = group.name,
+        group = group,
         groups = groups,
         meta.info = meta.info,
         a1 = a1, a2 = a2,
@@ -268,7 +268,7 @@ LimROTS <- function(x,
             )), groups), function(x) {
                 data[, x]
             }),
-            group.name = group.name,
+            group = group,
             meta.info = meta.info,
             formula.str = formula.str,
             trend = trend,
@@ -367,7 +367,7 @@ LimROTS <- function(x,
             )), groups), function(x) {
                 data[, x]
             }),
-            group.name = group.name,
+            group = group,
             meta.info = meta.info,
             formula.str = formula.str,
             trend = trend,

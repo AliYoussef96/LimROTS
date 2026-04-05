@@ -10,7 +10,7 @@
 #' @param x A list containing two or more data matrices where rows represent
 #' features (e.g., genes, proteins) and columns represent samples. The list
 #' should contain at least two matrices for pairwise group comparison.
-#' @param group.name A character string indicating the name of the group
+#' @param group A character string indicating the name of the group
 #' variable in`meta.info` to be used in the analysis.
 #' @param meta.info A data frame containing the metadata for the samples.
 #' This includes sample grouping and any covariates to be included in the model.
@@ -57,7 +57,7 @@
 #'
 
 Limma_fit <-
-    function(x, group.name, meta.info, formula.str, trend, robust,
+    function(x, group, meta.info, formula.str, trend, robust,
     correlation_block = NULL) {
         data <- x
         combined_data <- data.frame(
@@ -85,9 +85,9 @@ Limma_fit <-
             fit <- lmFit(combined_data, design.matrix)
         }
         if (length(data) == 2) {
-            pairwise_contrasts <- paste0(group.name, unique(meta.info[
+            pairwise_contrasts <- paste0(group, unique(meta.info[
                 ,
-                group.name
+                group
             ]))
             pairwise_contrasts <- combn(pairwise_contrasts, 2, function(x) {
                 paste(x[1], "-", x[2])
@@ -116,7 +116,7 @@ Limma_fit <-
             ))
         } else if (length(data) > 2 & ncol(meta.info) == 1) {
             pairwise_contrasts <-
-                paste0(group.name, unique(meta.info[, group.name]))
+                paste0(group, unique(meta.info[, group]))
             pairwise_contrasts <- combn(pairwise_contrasts, 2, function(x) {
                 paste(x[1], "-", x[2])
             })

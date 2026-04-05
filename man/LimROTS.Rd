@@ -17,7 +17,7 @@ LimROTS(
   verbose = TRUE,
   meta.info,
   BPPARAM = NULL,
-  group.name,
+  group,
   formula.str,
   robust = TRUE,
   trend = TRUE,
@@ -61,8 +61,8 @@ The default depends on the operating system: if the user is on Windows,
 \code{SnowParam(workers = 2)} is used; otherwise,
 \code{MulticoreParam(workers = 2)}.}
 
-\item{group.name}{A string specifying the column in \code{meta.info} that
-represents the groups or conditions for comparison. group.name should be
+\item{group}{A string specifying the column in \code{meta.info} that
+represents the groups or conditions for comparison. group should be
 retrieved using \code{colData()} as factor.}
 
 \item{formula.str}{A formula string for modeling.
@@ -77,7 +77,7 @@ differential expression analysis. Default is TRUE. see \link[limma]{eBayes}.}
 
 \item{permutating.group}{Logical, If \code{TRUE}, the permutation for
 calculating the null distribution is performed by permuting the target group
-only specified in \code{group.name} Preserving all the other sample
+only specified in \code{group} Preserving all the other sample
 information. If \code{FALSE}, the entire sample information retrieved from
 \code{meta.info} will be permuted (recommended to be set to FALSE).}
 
@@ -155,7 +155,7 @@ meta.info <- data.frame(
 )
 formula.str <- "~ 0 + group"
 result <- LimROTS(data,
-    meta.info = meta.info, group.name = "group",
+    meta.info = meta.info, group = "group",
     formula.str = formula.str, niter = 10
 )
 

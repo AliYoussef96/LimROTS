@@ -4,7 +4,7 @@
 \alias{bootstrapSamples_limRots}
 \title{Generate Stratified Bootstrap Samples for limRots}
 \usage{
-bootstrapSamples_limRots(niter, meta.info, group.name)
+bootstrapSamples_limRots(niter, meta.info, group)
 }
 \arguments{
 \item{niter}{Integer. The number of bootstrap samples to generate.}
@@ -13,7 +13,7 @@ bootstrapSamples_limRots(niter, meta.info, group.name)
 where each row corresponds to a sample. Factor columns in \code{meta.info}
 are used to define strata for sampling.}
 
-\item{group.name}{Character. The name of the column in \code{meta.info} that
+\item{group}{Character. The name of the column in \code{meta.info} that
 defines the grouping variable for the samples.}
 }
 \value{
@@ -31,7 +31,7 @@ factor columns in the metadata.
 \details{
 The function works by first identifying the factors in the \code{meta.info} data
 frame that are used to create strata for sampling. Within each group defined
-by \code{group.name}, the function samples according to the strata proportions,
+by \code{group}, the function samples according to the strata proportions,
 ensuring that samples are drawn from the correct groups and strata in a
 proportional manner.
 }

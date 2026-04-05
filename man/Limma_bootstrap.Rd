@@ -4,20 +4,14 @@
 \alias{Limma_bootstrap}
 \title{Perform Linear Modeling with Covariates using Limma}
 \usage{
-Limma_bootstrap(
-  x,
-  group.name,
-  meta.info,
-  formula.str,
-  correlation_block = NULL
-)
+Limma_bootstrap(x, group, meta.info, formula.str, correlation_block = NULL)
 }
 \arguments{
 \item{x}{A list containing two or more data matrices where rows represent
 features (e.g., genes, proteins) and columns represent samples. The list
 should contain at least two matrices for pairwise group comparison.}
 
-\item{group.name}{A character string indicating the name of the group
+\item{group}{A character string indicating the name of the group
 variable in \code{meta.info} to be used in the analysis.}
 
 \item{meta.info}{A data frame containing the metadata for the samples.

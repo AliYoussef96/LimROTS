@@ -6,7 +6,7 @@
 \usage{
 Limma_fit(
   x,
-  group.name,
+  group,
   meta.info,
   formula.str,
   trend,
@@ -19,7 +19,7 @@ Limma_fit(
 features (e.g., genes, proteins) and columns represent samples. The list
 should contain at least two matrices for pairwise group comparison.}
 
-\item{group.name}{A character string indicating the name of the group
+\item{group}{A character string indicating the name of the group
 variable in\code{meta.info} to be used in the analysis.}
 
 \item{meta.info}{A data frame containing the metadata for the samples.
