@@ -57,7 +57,6 @@
 #' \item{data}{The original data matrix.}
 #' \item{niter}{The number of bootstrap samples used.}
 #' \item{statistics}{The optimized statistics for each feature.}
-#' \item{logfc}{Log-fold change values between groups.}
 #' \item{pvalue}{P-values computed based on the permutation samples.}
 #' \item{FDR}{False discovery rate estimates.}
 #' \item{a1}{Optimized parameter used in differential expression ranking.}
@@ -182,18 +181,6 @@ LimROTS <- function(x,
     event <- SanityChecK.list$event
     K <- SanityChecK.list$K
     
-    
-    if (length(unique(groups)) == 2) {
-        group1_data <- data[, groups == 1]
-        group2_data <- data[, groups == 2]
-        if (log) {
-            logfc <-
-                rowMeans(group1_data, na.rm = TRUE) -
-                rowMeans(group2_data, na.rm = TRUE)
-        }
-    } else {
-        logfc <- rep(NA, nrow(data))
-    }
     if (verbose) {
         message("Initiating limma on bootstrapped samples")
     }
@@ -319,7 +306,6 @@ LimROTS <- function(x,
         if (inherits(x, "SummarizedExperiment")) {
             new_rowData <- DataFrame(
                 statistics = d,
-                logfc = logfc,
                 pvalue = p,
                 qvalue = q_values$qvalues,
                 FDR = FDR,
@@ -359,7 +345,6 @@ LimROTS <- function(x,
                 data = data,
                 niter = niter,
                 statistics = d,
-                logfc = logfc,
                 pvalue = p,
                 FDR = FDR,
                 a1 = a1,
@@ -419,7 +404,6 @@ LimROTS <- function(x,
         if (inherits(x, "SummarizedExperiment")) {
             new_rowData <- DataFrame(
                 statistics = d,
-                logfc = logfc,
                 pvalue = p,
                 qvalue = q_values$qvalues,
                 FDR = FDR,
@@ -459,7 +443,6 @@ LimROTS <- function(x,
                 data = data,
                 niter = niter,
                 statistics = d,
-                logfc = logfc,
                 pvalue = p,
                 FDR = FDR,
                 a1 = a1,
