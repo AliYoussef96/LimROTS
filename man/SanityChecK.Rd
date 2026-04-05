@@ -46,7 +46,8 @@ function's execution. Default is TRUE.}
 \item{log}{Logical, indicating whether the data is already log-transformed.
 Default is TRUE.}
 
-\item{survival}{Logical, indicating whether the analysis is survival analysis.
+\item{survival}{Logical, indicating whether the analysis is survival
+analysis.
 Default is \code{FALSE}. If \code{TRUE}, \code{meta.info} must contain
 \code{time} and \code{event} columns.}
 }

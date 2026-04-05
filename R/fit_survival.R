@@ -42,7 +42,7 @@
 #'
 #' @seealso \code{\link[survival]{coxph}}, \code{\link[cmprsk]{crr}}
 #'
-#' @importFrom stats model.matrix formula
+#' @importFrom stats model.matrix formula setNames
 #' @importFrom dplyr bind_cols
 #' @import survival
 #' @importFrom utils combn
