@@ -1,7 +1,7 @@
 ---
 title: "LimROTS: A Hybrid Method Integrating Empirical Bayes and 
-        Reproducibility-Optimized Statistics for Robust Differential 
-        Expression Analysis"
+        Reproducibility-Optimized Statistics for Robust 
+        Differential Expression Analysis"
 bibliography: references.bib
 output:
     BiocStyle::html_document:
@@ -12,11 +12,11 @@ output:
         toc_depth: 3
         number_sections: true
 vignette: >
-    %\VignetteIndexEntry{LimROTS}
+    %\VignetteIndexEntry{LimROTS: Overview and Differential Expression Analysis}
     %\VignetteEncoding{UTF-8}
     %\VignetteEngine{knitr::rmarkdown}
-editor_options: 
-  markdown: 
+editor_options:
+  markdown:
     wrap: 72
 ---
 
@@ -29,162 +29,148 @@ knitr::opts_chunk$set(
 
 # Introduction
 
-Differential expression analysis is a prevalent method utilised in the
-examination of diverse biological data. The reproducibility-optimized
-test statistic (ROTS) @rots has been developed with a modified
-t-statistic based on the data's intrinsic characteristics and ranks
-features according to their statistical significance for differential
-expression between two or more groups, as shown by the f-statistic.
-Focusing on proteomics and metabolomics, the current ROTS implementation
-cannot account for technical or biological covariates such as MS batches
-or gender differences among the samples. Consequently, we developed
-LimROTS, which employs a reproducibility-optimized test statistic
-utilizing the limma empirical bayes @limma methodology to simulate more
-complex experimental designs.
+Differential expression analysis is commonly used to study diverse
+biological datasets. The reproducibility-optimized test statistic (ROTS)
+([Elo et al., 2008](https://ieeexplore.ieee.org/document/4359873/)) uses
+a modified t-statistic to prioritise features that differ between two or
+more groups. However, the ROTS Bioconductor implementation ([Suomi et
+al.,
+2017](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1005562))
+did not accommodate technical or biological covariates. LimROTS ([Anwar
+et al., 2025](https://doi.org/10.1093/bioinformatics/btaf570)) addressed
+this limitation by combining a reproducibility-optimized test statistic
+with the limma empirical Bayes approach ([Ritchie et al.,
+2015](https://academic.oup.com/nar/article/43/7/e47/2414268)). This
+enables the analysis of more complex experimental designs and the
+incorporation of covariates. These validated solutions were made in
+Bioconductor development version 3.20 and the subsequent release 3.21.
+Related but different linear modeling features were subsequently
+incorporated also into ROTS Bioconductor package, but have not been
+formally published to our knowledge. Both ROTS and LimROTS added linear
+model extensions for survival analysis in the Bioconductor devel version
+3.23.
 
 # Citation
 
-If you use `LimROTS` in your research, please cite our publication:
+If you use `LimROTS` in your research, please cite:
 
-> Anwar, A. M., Jeba, A., Lahti, L., & Coffey, E. (2025). LimROTS: A Hybrid 
-Method Integrating Empirical Bayes and Reproducibility-Optimized Statistics 
-for Robust Differential Expression Analysis.
-*Bioinformatics*, btaf570.
-<https://doi.org/10.1093/bioinformatics/btaf570>
+> Anwar, A. M., Jeba, A., Lahti, L., & Coffey, E. (2025). LimROTS: A
+> Hybrid Method Integrating Empirical Bayes and
+> Reproducibility-Optimized Statistics for Robust Differential
+> Expression Analysis. *Bioinformatics*, btaf570.
+> <https://doi.org/10.1093/bioinformatics/btaf570>
 
 # Disclaimer
 
-LimROTS is a standalone package that extends
-ROTS ([Elo et al., 2008][elo2008];
-[Tomi Suomi et al., 2017][suomi2017]) and the
-limma ([Ritchie ME et al., 2015][ritchie2015])
-framework.
-It is a newly developed, independently
-implemented method that incorporates covariates
-in reproducibility-optimized testing.
-LimROTS is not affiliated with, endorsed by, or
-maintained by the original ROTS or limma
-developers. Users are advised to cite the original
-publications when referencing these methods.
-
-[elo2008]: https://ieeexplore.ieee.org/document/4359873
-[suomi2017]: https://doi.org/10.1371/journal.pcbi.1005562
-[ritchie2015]: https://doi.org/10.1093/nar/gkv007
+LimROTS is a standalone package that extends ROTS ([Elo et al.,
+2008](https://ieeexplore.ieee.org/document/4359873); [Tomi Suomi et al.,
+2017](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1005562))
+and the limma ([Ritchie ME et al.,
+2015](https://academic.oup.com/nar/article/43/7/e47/2414268)) framework.
+It is a newly developed, independently implemented method that
+incorporates covariates in reproducibility-optimized testing. LimROTS is
+not affiliated with, endorsed by, or maintained by the original ROTS or
+limma developers. Users are advised to cite the original publications
+when referencing these methods.
 
 ROTS: Elo LL, Filén S, Lahesmaa R, Aittokallio T.
-Reproducibility-optimized test statistic for
-ranking genes in microarray studies.
-IEEE/ACM Transactions on Computational Biology
-and Bioinformatics. 2008;5(3):423–31.
+Reproducibility-optimized test statistic for ranking genes in microarray
+studies. IEEE/ACM Transactions on Computational Biology and
+Bioinformatics. 2008;5(3):423–31.
 
-Suomi T, Seyednasrollah F, Jaakkola MK, Faux T,
-Elo LL (2017) ROTS: An R package for
-reproducibility-optimized statistical testing.
-PLOS Computational Biology 13(5): e1005562.
+Suomi T, Seyednasrollah F, Jaakkola MK, Faux T, Elo LL (2017) ROTS: An R
+package for reproducibility-optimized statistical testing. PLOS
+Computational Biology 13(5): e1005562.
 <https://doi.org/10.1371/journal.pcbi.1005562>
 
-limma: Ritchie ME, Phipson B, Wu D, Hu Y,
-Law CW, Shi W, Smyth GK.
-limma powers differential expression analyses
-for RNA-sequencing and microarray studies.
-Nucleic Acids Research. 2015;43(7):e47.
+limma: Ritchie ME, Phipson B, Wu D, Hu Y, Law CW, Shi W, Smyth GK. limma
+powers differential expression analyses for RNA-sequencing and
+microarray studies. Nucleic Acids Research. 2015;43(7):e47.
 <https://doi.org/10.1093/nar/gkv007>
 
+# Algorithm Overview
 
-# Algorithm overview
+The **LimROTS** workflow proceeds as follows:
 
-The **LimROTS** approach initially uses the limma package @limma to
-simulate the intensity data of proteins and metabolites. A linear model
-is subsequently fitted using the design matrix. Empirical Bayes variance
-shrinking is then implemented. To obtain the moderated t-statistics (or
-f-statistics), the adjusted standard error
-$SE_{post} = \sqrt{s^2_{\text{post}}} \times \text{unscaled SD}$ for
-each feature is computed, along with the regression coefficient for each
-feature (indicating the impact of variations in the experimental
-settings). Then, by adapting a reproducibility-optimized technique known
-as ROTS @rots to establish an optimality based on the largest overlap of
-top-ranked features within group-preserving bootstrap datasets (refer to
-@elo2008reproducibility for further information on the
-reproducibility-optimization). Finally based on the optimized parameters
-${\alpha1}$ and ${\alpha2}$ this equation used to calculates the final
-statistics:
-$$t{\alpha(p)} = \frac{\beta_{(p)}}{\alpha1 + \alpha2 \times 
-\text{SEpost}_{(p)}}$$
+1.  A linear model is fitted to the data using a user-supplied design
+    matrix via limma @limma.
+2.  Empirical Bayes variance shrinkage is applied to obtain moderated
+    statistics. The adjusted standard error for each feature is:
+    $SE_{\text{post}} = \sqrt{s^2_{\text{post}}} \times \text{unscaled SD}$,
+    along with the regression coefficient $\beta_{(p)}$.
+3.  A reproducibility-optimization step selects parameters $\alpha_1$
+    and $\alpha_2$ by maximizing the overlap of top-ranked features
+    across group-preserving bootstrap datasets.
+4.  The final statistic for each feature is:
 
-where $t_{\alpha(p)}$ is the final statistics for each feature,
-${\beta_{(p)}}$ is the coefficient, and $SEpost_{(p)}$ is the adjusted
-standard error. LimROTS generates p-values from permutation samples
-using the implementation available in `qvalue` package @qvalue, along
-with internal implementation of FDR adapted from ROTS package @rots.
-Additionally, the `qvalue` package is used to calculate q-values, were
-the proportion of true null p-values is set to the bootstrap method. We
-recommend using permutation-derived p-values and qvalues.
+$$t_{\alpha(p)} = \frac{\beta_{(p)}}{\alpha_1 + \alpha_2 \times SE_{\text{post}(p)}}$$
 
-# Computational Power
+where $t_{\alpha(p)}$ is the optimized statistic, $\beta_{(p)}$ is the
+model coefficient, and $SE_{\text{post}(p)}$ is the adjusted standard
+error.
 
-The number of samples, features, bootstrap iterations, and `k`, which
-denotes the top list size for ranking, are the four primary elements
-that determine the amount of computing resources required for the
-optimisation process in LimROTS. It is therefore advised to use at least
-4 workers to execute LimROTS since it uses a parallel processing (using
-`BiocParallel` @BiocParallel) implementation for the bootstrapping step.
-The optimisation process is sequential and maybe time-consuming, based
-on the `k` value; it is planned to be modified in order to make the
-upcoming LimROTS version faster.
+P-values are derived from permutation-based null distributions using the
+`qvalue` package @qvalue. FDR is estimated using an internal
+implementation adapted from ROTS @rots, and q-values are computed via
+the bootstrap method for the proportion of true null hypotheses.
 
-# Parameter Description for LimROTS Main Function
+# Computational Considerations
 
-The `LimROTS()` function serves as the primary interface function for
-end users, providing core functionality for the analysis implemented
-within the `LimROTS` package.
+LimROTS runtime depends on four primary factors: the number of samples,
+features, bootstrap iterations (`niter`), and the top list size (`K`).
+The bootstrapping step is parallelized using `BiocParallel`
+@BiocParallel; we recommend using at least 4 workers for routine
+analyses. The optimization step is sequential and may be time-consuming
+for large values of `K`.
 
-`LimROTS()`takes several parameters, and it should be called correctly
-to obtain the desired output. For a detailed description of all
-parameters and their usage, refer to the function's help page by typing
-`?LimROTS` in the R console.
+# LimROTS Function Parameters
+
+`LimROTS()` is the primary interface for end users. For a full
+description of all parameters, refer to the function documentation:
+
+```{r, eval=FALSE}
+?LimROTS
+```
 
 # UPS1 Case Study
 
-To demonstrate LimROTS' ability to detect true negatives complex
-scenarios, we are using a DIA proteomics data from a UPS1-spiked E. coli
-protein mixture @GOTTI2022107829 includes 48 samples: 24 samples
-analyzed with Spectronaut and another 24 analyzed with ScaffoldDIA
-software, with total of 1656 proteins. Eight different concentrations of
-UPS1 were used (0.1 to 50 fmol), grouped into two categories: low
-concentrations (0.1–2.5 fmol, labeled as \text{Conc.} 2, 12 Samples from
-each software) and high concentrations (5–50 fmol, labeled as
-\text{Conc.} 1, 12 Samples from each software).
+## Dataset Description
 
-A synthetic, unbalanced fake batches assigned to the samples. The
-assignment follows the ratio of:
+To illustrate LimROTS in a realistic multi-covariate scenario, we use a
+DIA proteomics dataset from a UPS1-spiked *E. coli* protein mixture
+@GOTTI2022107829. The dataset contains 1,656 proteins measured across 48
+samples: 24 processed with Spectronaut and 24 with ScaffoldDIA. Eight
+UPS1 concentrations (0.1–50 fmol) are grouped into two conditions:
 
-```{r load-data-hidden, echo=FALSE, message=FALSE, results='hide'}
+-   **Low concentration** (0.1–2.5 fmol, `Conc. 2`): 12 samples per
+    software.
+-   **High concentration** (5–50 fmol, `Conc. 1`): 12 samples per
+    software.
+
+A synthetic unbalanced batch variable (`fake.batch`) was assigned across
+samples with the following distribution:
+
+```{r, echo="FALSE," message="FALSE," results="hide"}
 library(LimROTS, quietly = TRUE)
 data("UPS1.Case4")
 ```
 
-```{r batch-table, echo=FALSE}
+```{r echo=FALSE}
 table(UPS1.Case4$fake.batch, UPS1.Case4$Conc.)
 ```
 
-Additionally, 100 E. coli proteins were randomly selected, and an effect
-size of 10 was added to each in only one of the fake batches. The
-expected outcome is that only the UPS1 human proteins will be identified
-as truly significant, while none of the remaining proteins should show
-significant differences between the concentration groups.
+Additionally, a simulated batch effect was introduced: an effect size of
+10 was added to 100 randomly selected *E. coli* proteins log2 values in
+one of the fake batches. The expected result is that only the 48 UPS1
+human proteins are truly differentially expressed; no *E. coli* protein
+should show a genuine concentration effect.
 
-This scenario resembles a real-world case where the experiment involves
-unbalanced batch assignments or, for instance, an uneven gender ratio
-among the samples.
+This scenario mirrors real-world conditions such as unbalanced batch
+structures or unequal covariate distributions across groups.
 
-LimROTS can take a SummarizedExperiment object with all the metadata
-needed to run the model. In this example we importing UPS1.Case4 data
-available in LimROTS.
-
-The original source of the dataset can be found here @GOTTI2022107829
+## Loading the Data
 
 ```{r load-packages, message=FALSE}
-# Load necessary packages
 library(LimROTS, quietly = TRUE)
 library(BiocParallel, quietly = TRUE)
 library(ggplot2, quietly = TRUE)
@@ -192,277 +178,127 @@ library(SummarizedExperiment, quietly = TRUE)
 ```
 
 ```{r load-dataset}
-# Load the dataset
 data("UPS1.Case4")
 print(UPS1.Case4)
 ```
 
-### Run LimROTS
+## Running LimROTS
 
-**Before running LimROTS, the seed should be set for reproducibility.**
+Set a seed before running LimROTS to ensure reproducibility.
 
 ```{r set-seed}
-set.seed(1234, kind = "default" , sample.kind = "default")
+set.seed(1234, kind = "default", sample.kind = "default")
 ```
 
-**NOTE:** It is important to define the condition column in the colData
-of a SummarizedExperiment object as a factor to ensure correct fold
-change calculations. For example, the "Conc." variable should have
-factor levels defined as "low" = 2 and "high" = 1. This can be defined
-as
-
-```{r factor-example}
-# colData(se)$Conc. <- factor(c("low" , "low", "high", "high" ,  
-# levels = c("high" , "low")))
-```
+> **Note:** The group column in `colData` must be a `factor` with levels
+> defined in the intended contrast order. For example, `Conc. 1` (high)
+> vs `Conc. 2` (low) reports the fold-change as high − low. Define this
+> explicitly if needed:
+>
+> ``` r
+> colData(UPS1.Case4)$Conc. <- factor(
+>     colData(UPS1.Case4)$Conc.,
+>     levels = c("1", "2")
+> )
+> ```
 
 ```{r run-limrots}
-# Set metadata and formula for LimROTS analysis
-meta.info <- c("Conc.", "tool", "fake.batch")
-niter <- 100 # Number of bootstrap samples
-K <- 100 # Set the value for K based on the data size
-K <- floor(K)
-group.name <- "Conc."
-formula.str <- "~ 0 + Conc. + tool + fake.batch" # Formula for group comparison
+# Define analysis parameters
+meta.info   <- c("Conc.", "tool", "fake.batch")
+niter       <- 100   # bootstrap iterations (use >= 1000 for real analyses)
+K           <- 100   # top list size for reproducibility optimization
+formula.str <- "~ 0 + Conc. + tool + fake.batch"
 
-# Run LimROTS analysis with trend and robust settings enabled
+# Run LimROTS
 UPS1.Case4 <- LimROTS(
-    x = UPS1.Case4,
-    niter = niter, K = K, meta.info = meta.info,
-    BPPARAM  = NULL, group.name = group.name,
-    formula.str = formula.str, trend = TRUE,
-    robust = TRUE, permutating.group = FALSE
+    x           = UPS1.Case4,
+    niter       = niter,
+    K           = K,
+    meta.info   = meta.info,
+    group       = "Conc.",
+    formula.str = formula.str,
+    trend       = TRUE,
+    robust      = TRUE,
+    permutating.group = FALSE
 )
 ```
 
-**NOTE:** "In this instance, we configure the number of bootstrap
-iterations (niter) and the count of top-ranked features for
-reproducibility optimization (K) to 100 both, in order to minimize the
-example's run-time. For actual analyses, it is advisable to utilize a
-greater number of bootstraps (e.g., 1000). Also, for the number of cores
-to use we recommend to use at least 4 workers
+> **Note:** `niter = 100` and `K = 100` are used here to reduce vignette
+> build time. For production analyses, use `niter = 1000` or higher. We
+> also recommend at least 4 parallel workers.
 
-On Windows OS, the user can define a `BPPARAM` to work with more than 2
-workers as follows:
+To increase the number of workers, pass a `BPPARAM` argument:
 
-```{r bpparam-windows}
-# BPPARAM  <- SnowParam(workers = 4)
-# Commented out in the vignette to ensure the limit set by the
-# R_CHECK_LIMIT_CORES environment variable is not exceeded.
+```{r bpparam-example}
+# Windows
+# BPPARAM <- SnowParam(workers = 4)
+
+# Linux / macOS
+# BPPARAM <- MulticoreParam(workers = 4)
+
+# Pass to LimROTS via: LimROTS(..., BPPARAM = BPPARAM)
 ```
 
-On Linux and Mac OS
+The results are appended directly to the `rowData` and `metadata` slots
+of the input `SummarizedExperiment` object.
 
-```{r bpparam-unix}
-# BPPARAM  <- MulticoreParam(workers = 4)
-# Commented out in the vignette to ensure the limit set by the
-# R_CHECK_LIMIT_CORES environment variable is not exceeded.
-```
+## Volcano Plot
 
-And then pass the `BPPARAM` to `LimROTS()`.
-
-The results from the `LimROTS` function will be appended to the
-`SummarizedExperiment` object used, in this case, `UPS1.Case4`.
-
-### Volcano Plot with ggplot2
-
-Utilising a Volcano plot and mapping the human UPS1 proteins at q-values
-5%, it is evident that LimROTS accurately identified the majority of
-actual positive proteins while detecting a limited number of simulated
-E.coli proteins.
+The volcano plot below shows corrected log-fold changes versus
+$-\log_{10}$(q-value). At a 5% q-value threshold, LimROTS recovers the
+majority of true UPS1 human proteins while flagging very few *E. coli*
+proteins.
 
 ```{r volcano-plot}
-# Create a data frame from the LimROTS results
-
-limrots.result.df <- data.frame(rowData(UPS1.Case4), 
-                                row.names = rownames(UPS1.Case4))
-
-# Mark proteins as true positives (HUMAN UPS1 proteins)
-limrots.result.df$TP <- ifelse(grepl("HUMAN", limrots.result.df$GeneID),
-    "HUMAN_TP", "ECOLI_FP"
+# Extract results
+result_df <- data.frame(
+    rowData(UPS1.Case4),
+    row.names = rownames(UPS1.Case4)
 )
 
-# Create a volcano plot
-ggplot(limrots.result.df, aes(
-    x = corrected.logfc, y = -log10(qvalue),
-    color = factor(TP)
+# Annotate proteins
+result_df$label <- ifelse(
+    grepl("HUMAN", result_df$GeneID),
+    "UPS1 (true positive)",
+    "E. coli (true negative)"
+)
+
+ggplot(result_df, aes(
+    x     = corrected.logfc,
+    y     = -log10(qvalue),
+    color = label
 )) +
-    geom_point(alpha = 0.8) +
-    theme_bw() +
-    labs(
-        title = "Volcano Plot", x = "Log Fold Change", y = "-Log10 q.value",
-        color = "True Positive"
+    geom_point(alpha = 0.7, size = 1.2) +
+    geom_hline(
+        yintercept = -log10(0.05),
+        linetype   = "dashed",
+        color      = "steelblue"
     ) +
-    scale_color_manual(values = c("grey", "red")) +
-    geom_hline(yintercept = -log10(0.05), linetype = "dashed", color = "blue")
+    scale_color_manual(values = c(
+        "E. coli (true negative)" = "grey60",
+        "UPS1 (true positive)"    = "firebrick"
+    )) +
+    labs(
+        title = "LimROTS \u2014 UPS1 Case Study",
+        x     = "Corrected Log Fold Change",
+        y     = expression(-log[10](q~value)),
+        color = NULL
+    ) +
+    theme_bw(base_size = 12) +
+    theme(legend.position = "top")
 ```
 
-### Quality Control Plots
+## Quality Control
 
-LimROTS generates p-values from permutation samples, along with FDR.
-Additionally, the `qvalue` package is used to calculate q-values and
-Benjamini-Hochberg adjusted p-values based on the permutation-derived
-p-values. These can be used as Quality Control for the LimROTS results.
-We recommend using permutation-derived p-values and qvalues, though they
-should generally be very similar to the FDR and Benjamini-Hochberg
-adjusted p-values.
+LimROTS produces permutation-derived p-values and q-values that can be
+inspected visually. These are the recommended primary inference
+statistics.
 
 ```{r quality-control, results="hide", message=FALSE, warning=FALSE}
-## Quality Control Plots
-
-# Plot of q-values
 plot(metadata(UPS1.Case4)[["q_values"]])
-
-# Histogram of q-values
 hist(metadata(UPS1.Case4)[["q_values"]])
-
-# Summary of q-values
 print(summary(metadata(UPS1.Case4)[["q_values"]]))
 ```
-
-# Comparison of LimROTS, limma, and ROTS
-
-Before comparing the LimROTS, limma, and ROTS packages, we will need to
-install the necessary packages: limma, ROTS and caret (for the use in
-the comparison).
-
-```{r install-packages, eval=FALSE}
-if (!require("BiocManager", quietly = TRUE)) {
-    install.packages("BiocManager")
-}
-if (!require(limma)) {
-    BiocManager::install("limma")
-}
-if (!require(ROTS)) {
-    BiocManager::install("ROTS")
-}
-if (!require(caret)) {
-    install.packages(caret)
-}
-```
-
-## Run ROTS
-
-```{r run-rots}
-library(ROTS)
-groups <- as.numeric(UPS1.Case4$Conc.)
-rots.result <- ROTS(
-    data = assay(UPS1.Case4), groups = groups, B = niter,
-    K = K, seed = 1234
-)
-rots.result <- data.frame(
-    proteins = row.names(rots.result$data),
-    logFC = rots.result$logfc, FDR = rots.result$FDR
-)
-```
-
-## Run limma
-
-```{r run-limma}
-library(limma)
-
-design.matrix <- model.matrix(formula(formula.str), data = colData(UPS1.Case4))
-fit <- lmFit(assay(UPS1.Case4), design.matrix)
-cont_matrix <- makeContrasts("Conc.1-Conc.2", levels = design.matrix)
-fit2 <- contrasts.fit(fit, cont_matrix)
-fit.ebayes <- eBayes(fit2, trend = TRUE, robust = TRUE)
-limma.result <- topTable(fit.ebayes, coef = "Conc.1-Conc.2", number = "Inf")
-```
-
-## Generating a Confusion Matrix for Comparison
-
-```{r confusion-matrix}
-library(caret, quietly = TRUE, warn.conflicts = TRUE)
-
-
-TP <- elementMetadata(UPS1.Case4)[["GeneID"]]
-TP <- TP[grepl("HUMAN", TP)]
-
-
-predictions_limrots <- elementMetadata(UPS1.Case4)[["qvalue"]] < 0.05
-predictions_limrots <- factor(predictions_limrots, levels = c(TRUE, FALSE))
-true_labels_limrots <- ifelse(rownames(UPS1.Case4) %in% TP,
-    TRUE, FALSE
-)
-true_labels_limrots <- factor(true_labels_limrots, levels = c(TRUE, FALSE))
-conf_matrix_limrots <- confusionMatrix(
-    predictions_limrots,
-    true_labels_limrots
-)
-
-predictions_rots <- rots.result$FDR < 0.05
-predictions_rots <- factor(predictions_rots, levels = c(TRUE, FALSE))
-true_labels_rots <- ifelse(rots.result$protein %in% TP, TRUE, FALSE)
-true_labels_rots <- factor(true_labels_rots, levels = c(TRUE, FALSE))
-conf_matrix_rots <- confusionMatrix(predictions_rots, true_labels_rots)
-
-
-predictions_limma <- limma.result$adj.P.Val < 0.05
-predictions_limma <- factor(predictions_limma, levels = c(TRUE, FALSE))
-true_labels_limma <- ifelse(row.names(limma.result) %in% TP, TRUE, FALSE)
-true_labels_limma <- factor(true_labels_limma, levels = c(TRUE, FALSE))
-conf_matrix_limma <- confusionMatrix(predictions_limma, true_labels_limma)
-```
-
-## Summarizing the Comparison Results
-
-```{r comparison-plot}
-library(ggplot2)
-
-
-extract_metrics <- function(conf_matrix, method_name) {
-    metrics <- c(
-        conf_matrix$byClass["Sensitivity"],
-        conf_matrix$byClass["Specificity"],
-        conf_matrix$byClass["Pos Pred Value"],
-        conf_matrix$byClass["Neg Pred Value"],
-        conf_matrix$byClass["F1"],
-        conf_matrix$byClass["Balanced Accuracy"]
-    )
-
-    data.frame(
-        Method = method_name, Metric = names(metrics),
-        Value = as.numeric(metrics)
-    )
-}
-
-metrics_limrots <- extract_metrics(conf_matrix_limrots, "limROTS")
-metrics_rots <- extract_metrics(conf_matrix_rots, "ROTS")
-metrics_limma <- extract_metrics(conf_matrix_limma, "limma")
-
-
-all_metrics <- do.call(rbind, list(
-    metrics_limrots, metrics_rots,
-    metrics_limma
-))
-
-
-ggplot(all_metrics, aes(x = Metric, y = Value, fill = Method)) +
-    geom_bar(stat = "identity", position = "dodge") +
-    theme_bw() +
-    labs(
-        title = "Comparison of Performance Case Study",
-        y = "Value", x = "Metric"
-    ) +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-    theme(
-        plot.title = element_text(face = "bold", color = "black"),
-        axis.title = element_text(face = "bold", color = "black"),
-        axis.text = element_text(face = "bold", color = "black"),
-        axis.ticks = element_line(color = "black")
-    )
-```
-
-Based on the evaluation, limROTS emerges as the most suitable method
-overall when considering the balance across all performance metrics. It
-achieves a strong combination of sensitivity, specificity, predictive
-values, F1 score, and balanced accuracy, suggesting its ability to
-reliably identify true positives and true negatives while maintaining
-consistent predictive performance. In contrast, while ROTS and limma
-excel in certain metrics like sensitivity, their lower specificity and
-predictive values indicate limitations in broader applicability.
-Therefore, limROTS appears to provide the most consistent and balanced
-performance for general use cases.
 
 ```{r session-info}
 sessionInfo()
