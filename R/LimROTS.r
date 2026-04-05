@@ -307,7 +307,8 @@ LimROTS <- function(x,
             new_rowData <- DataFrame(
                 statistics = d,
                 pvalue = p,
-                qvalue = q_values$qvalues,
+                qvalue = if (is.null(q_values)) rep(NA_real_, length(d))
+                         else q_values$qvalues,
                 FDR = FDR,
                 corrected.logfc = corrected.logfc,
                 BH.pvalue = BH.pvalue,
@@ -405,7 +406,8 @@ LimROTS <- function(x,
             new_rowData <- DataFrame(
                 statistics = d,
                 pvalue = p,
-                qvalue = q_values$qvalues,
+                qvalue = if (is.null(q_values)) rep(NA_real_, length(d))
+                         else q_values$qvalues,
                 FDR = FDR,
                 corrected.logfc = corrected.logfc,
                 BH.pvalue = BH.pvalue,

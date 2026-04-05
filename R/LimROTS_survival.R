@@ -266,24 +266,27 @@ LimROTS_survival <- function(x,
         BH.pvalue <- p.adjust(p, method = "BH")
 
         if (inherits(x, "SummarizedExperiment")) {
+            feat_names <- rownames(x)
             new_rowData <- DataFrame(
-                statistics = d,
-                pvalue = p,
-                qvalue = q_values$qvalues,
-                FDR = FDR,
-                exp_coef = exp_coef,
-                BH.pvalue = BH.pvalue,
-                row.names = row.names(data)
+                statistics = setNames(d, row.names(data))[feat_names],
+                pvalue     = setNames(p, row.names(data))[feat_names],
+                qvalue     = if (is.null(q_values))
+                                 rep(NA_real_, length(feat_names))
+                             else setNames(q_values$qvalues,
+                                          row.names(data))[feat_names],
+                FDR        = setNames(FDR, row.names(data))[feat_names],
+                exp_coef   = setNames(
+                                 as.numeric(exp_coef),
+                                 row.names(data))[feat_names],
+                BH.pvalue  = setNames(BH.pvalue, row.names(data))[feat_names],
+                row.names  = feat_names
             )
-
-            new_rowData <- new_rowData[match(rownames(x), 
-                                                    rownames(new_rowData)), ]
-            if (!identical(rownames(new_rowData), rownames(x))) {
-                stop("Can not add the LimROTS results to the 
-                                                        SummarizedExperiment")
-            }
             correct.order <- rownames(x)
-            rowData(x) <- cbind(rowData(x), new_rowData)
+            if (ncol(rowData(x)) == 0L) {
+                rowData(x) <- new_rowData
+            } else {
+                rowData(x) <- cbind(rowData(x), new_rowData)
+            }
             if (!identical(correct.order, rownames(x))) {
                 stop("Can not add the LimROTS results to the 
                                                         SummarizedExperiment")
@@ -356,25 +359,27 @@ LimROTS_survival <- function(x,
         BH.pvalue <- p.adjust(p, method = "BH")
 
         if (inherits(x, "SummarizedExperiment")) {
+            feat_names <- rownames(x)
             new_rowData <- DataFrame(
-                statistics = d,
-                pvalue = p,
-                qvalue = q_values$qvalues,
-                FDR = FDR,
-                exp_coef = exp_coef,
-                BH.pvalue = BH.pvalue,
-                row.names = row.names(data)
+                statistics = setNames(d, row.names(data))[feat_names],
+                pvalue     = setNames(p, row.names(data))[feat_names],
+                qvalue     = if (is.null(q_values))
+                                 rep(NA_real_, length(feat_names))
+                             else setNames(q_values$qvalues,
+                                          row.names(data))[feat_names],
+                FDR        = setNames(FDR, row.names(data))[feat_names],
+                exp_coef   = setNames(
+                                 as.numeric(exp_coef),
+                                 row.names(data))[feat_names],
+                BH.pvalue  = setNames(BH.pvalue, row.names(data))[feat_names],
+                row.names  = feat_names
             )
-
-            new_rowData <- new_rowData[match(rownames(x), 
-                                                        rownames(new_rowData))
-                                                            , ]
-            if (!identical(rownames(new_rowData), rownames(x))) {
-                stop("Can not add the LimROTS results to the 
-                                                        SummarizedExperiment")
-            }
             correct.order <- rownames(x)
-            rowData(x) <- cbind(rowData(x), new_rowData)
+            if (ncol(rowData(x)) == 0L) {
+                rowData(x) <- new_rowData
+            } else {
+                rowData(x) <- cbind(rowData(x), new_rowData)
+            }
             if (!identical(correct.order, rownames(x))) {
                 stop("Can not add the LimROTS results to the 
                                                         SummarizedExperiment")

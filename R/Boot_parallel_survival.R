@@ -106,6 +106,7 @@ Boot_parallel_survival <- function(BPPARAM = NULL,
     }, BPPARAM = BPPARAM,
     BPOPTIONS = bpoptions(packages = c(
         "utils", "stringr",
-        "stats", "survival")))
+        "stats", "survival",
+        "cmprsk")))
     return(results_list)
 }

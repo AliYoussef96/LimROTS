@@ -108,7 +108,12 @@ assayNames(crohn_survival)
 ```
 
 ```{r convert-to-se}
+taxa_names <- rownames(crohn_survival)
 crohn_survival <- as(crohn_survival, "SummarizedExperiment")
+# as() coercion can drop rownames; restore them
+if (is.null(rownames(crohn_survival))) {
+    rownames(crohn_survival) <- taxa_names
+}
 print(crohn_survival)
 ```
 
@@ -184,11 +189,11 @@ head(cox_res[order(cox_res$pvalue), ])
 Volcano plot of log hazard ratios versus $-\log_{10}$(q-value):
 
 ```{r volcano-cox}
-cox_res$significant <- cox_res$qvalue < 0.05
+cox_res$significant <- cox_res$FDR < 0.05
 
 ggplot(cox_res, aes(
     x     = log(exp_coef),
-    y     = -log10(qvalue),
+    y     = -log10(pvalue),
     color = significant
 )) +
     geom_point(alpha = 0.7, size = 2) +
@@ -199,12 +204,12 @@ ggplot(cox_res, aes(
     ) +
     scale_color_manual(
         values = c("FALSE" = "grey60", "TRUE" = "firebrick"),
-        labels = c("FALSE" = "q \u2265 0.05", "TRUE" = "q < 0.05")
+        labels = c("FALSE" = "FDR \u2265 0.05", "TRUE" = "FDR < 0.05")
     ) +
     labs(
         title = "LimROTS Survival \u2014 Cox Model",
         x     = "Log Hazard Ratio",
-        y     = expression(-log[10](q~value)),
+        y     = expression(-log[10](pvalue)),
         color = NULL
     ) +
     theme_bw(base_size = 12) +
@@ -241,8 +246,8 @@ set.seed(42)
 competing_idx <- sample(censored_idx, floor(length(censored_idx) / 2))
 event_vec[competing_idx] <- 2L
 
-colData(crohn_cr)$event_cr <- event_vec
-table(colData(crohn_cr)$event_cr)
+colData(crohn_cr)$event <- event_vec
+table(colData(crohn_cr)$event)
 ```
 
 > **Note:** In a real study, the competing event column should reflect a
@@ -260,10 +265,10 @@ set.seed(1234, kind = "default", sample.kind = "default")
 crohn_cr <- LimROTS_survival(
     x           = crohn_cr,
     assay.type  = "clr",
-    niter       = 100,
-    K           = 48,
-    meta.info   = c("time", "event_cr"),
-    formula.str = "~ Surv(time, event_cr)",
+    niter       = 30,
+    K           = 10,
+    meta.info   = c("time", "event"),
+    formula.str = "~ Surv(time, event)",
     competing_risks   = TRUE,
     verbose           = FALSE
 )
@@ -282,11 +287,11 @@ head(cr_res[order(cr_res$pvalue), ])
 Volcano plot for the competing risks model:
 
 ```{r volcano-cr}
-cr_res$significant <- cr_res$qvalue < 0.05
+cr_res$significant <- cr_res$FDR < 0.05
 
 ggplot(cr_res, aes(
     x     = log(exp_coef),
-    y     = -log10(qvalue),
+    y     = -log10(pvalue),
     color = significant
 )) +
     geom_point(alpha = 0.7, size = 2) +
@@ -297,12 +302,12 @@ ggplot(cr_res, aes(
     ) +
     scale_color_manual(
         values = c("FALSE" = "grey60", "TRUE" = "firebrick"),
-        labels = c("FALSE" = "q \u2265 0.05", "TRUE" = "q < 0.05")
+        labels = c("FALSE" = "FDR \u2265 0.05", "TRUE" = "FDR < 0.05")
     ) +
     labs(
         title = "LimROTS Survival \u2014 Competing Risks Model",
         x     = "Log Subdistribution Hazard Ratio",
-        y     = expression(-log[10](q~value)),
+        y     = expression(-log[10](pvalue)),
         color = NULL
     ) +
     theme_bw(base_size = 12) +
@@ -312,9 +317,9 @@ ggplot(cr_res, aes(
 # Quality Control
 
 ```{r qc-cox, results="hide", message=FALSE, warning=FALSE}
-plot(metadata(crohn_cox)[["q_values"]])
-hist(metadata(crohn_cox)[["q_values"]])
-print(summary(metadata(crohn_cox)[["q_values"]]))
+plot(metadata(crohn_cr)[["q_values"]])
+hist(metadata(crohn_cr)[["q_values"]])
+print(summary(metadata(crohn_cr)[["q_values"]]))
 ```
 
 ```{r session-info}
