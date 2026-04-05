@@ -3,12 +3,12 @@
 #
 #' Check if SummarizedExperiment or data is correct
 #'
-#' @param data.exp A matrix-like object or a `SummarizedExperiment` containing
+#' @param x A matrix-like object or a `SummarizedExperiment` containing
 #' the data to be analyzed.
 #' @param assay.type A character string or numeric index specifying the assay
-#' to use if `data.exp` is a `SummarizedExperiment`. Default is `NULL`
+#' to use if `x` is a `SummarizedExperiment`. Default is `NULL`
 #' @param meta.info Data frame. Metadata associated with the samples
-#' (columns of `data.exp`). If `data.exp` is a `SummarizedExperiment`,
+#' (columns of `x`). If `x` is a `SummarizedExperiment`,
 #' @param group.name Character. Column name in `meta.info` that defines the
 #' groups or conditions for comparison.
 #' @param survival Logical, indicating whether the analysis is survival
@@ -21,10 +21,10 @@
 #'
 #'
 
-Check_SummarizedExperiment <- function(data.exp,
+Check_SummarizedExperiment <- function(x,
         assay.type = NULL, meta.info,
         group.name, survival = FALSE) {
-    if (inherits(data.exp, "SummarizedExperiment")) {
+    if (inherits(x, "SummarizedExperiment")) {
         message("Data is SummarizedExperiment object")
 
         if (is.null(meta.info)) {
@@ -32,9 +32,9 @@ Check_SummarizedExperiment <- function(data.exp,
         } else {
             meta.info.colnames <- meta.info
             meta.info <- data.frame(
-                colData(data.exp)[, meta.info],
+                colData(x)[, meta.info],
                 check.names = FALSE,
-                row.names = row.names(colData(data.exp))
+                row.names = row.names(colData(x))
             )
             if (length(meta.info) != length(meta.info.colnames)) {
                 stop("meta.info should be a vector of colData names to be used")
@@ -53,13 +53,13 @@ Check_SummarizedExperiment <- function(data.exp,
           }
         }
         if (is.null(assay.type)) {
-            assay.type <- assayNames(data.exp)[1]
+            assay.type <- assayNames(x)[1]
         }
           message(sprintf("Assay: %s will be used", assay.type))
-          data <- assay(data.exp, assay.type)
+          data <- assay(x, assay.type)
           groups <- NULL
       } else {
-          data <- data.exp
+          data <- x
           if (!survival) {
               groups <- meta.info[, group.name]
           } else {

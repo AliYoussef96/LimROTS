@@ -16,7 +16,7 @@
 #' @param K Integer. Top list size. If NULL, it will be set to a quarter of
 #' the number of rows in the data matrix. Default is NULL.
 #' @param meta.info Data frame. Metadata associated with the samples
-#' (columns of `data.exp`). If `data.exp` is a `SummarizedExperiment`,
+#' (columns of `x`). If `x` is a `SummarizedExperiment`,
 #' `meta.info` can be a vector of `colData` column names to use.
 #' @param group.name Character. Column name in `meta.info` that defines the
 #' groups or conditions for comparison.
@@ -52,9 +52,8 @@ SanityChecK <- function(x,
         meta.info, group.name,
         formula.str, verbose = TRUE,
         log = TRUE, survival = FALSE) {
-    data.exp <- x
     Check_SExp <- Check_SummarizedExperiment(
-        data.exp = x,
+        x = x,
         assay.type = assay.type,
         meta.info = meta.info,
         group.name = group.name,

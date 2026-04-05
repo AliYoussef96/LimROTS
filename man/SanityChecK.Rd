@@ -31,7 +31,7 @@ Default is 1000.}
 the number of rows in the data matrix. Default is NULL.}
 
 \item{meta.info}{Data frame. Metadata associated with the samples
-(columns of \code{data.exp}). If \code{data.exp} is a \code{SummarizedExperiment},
+(columns of \code{x}). If \code{x} is a \code{SummarizedExperiment},
 \code{meta.info} can be a vector of \code{colData} column names to use.}
 
 \item{group.name}{Character. Column name in \code{meta.info} that defines the

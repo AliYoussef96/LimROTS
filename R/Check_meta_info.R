@@ -4,7 +4,7 @@
 #' Check if meta info is correct
 #'
 #' @param meta.info Data frame. Metadata associated with the samples
-#' (columns of `data.exp`). If `data.exp` is a `SummarizedExperiment`,
+#' (columns of `x`). If `x` is a `SummarizedExperiment`,
 #' @param data A matrix-like object or a `SummarizedExperiment` containing the
 #' data to be analyzed.
 #' @param log Logical, indicating whether the data is already log-transformed.

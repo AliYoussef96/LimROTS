@@ -8,7 +8,7 @@ Check_meta_info(meta.info, data, log)
 }
 \arguments{
 \item{meta.info}{Data frame. Metadata associated with the samples
-(columns of \code{data.exp}). If \code{data.exp} is a \code{SummarizedExperiment},}
+(columns of \code{x}). If \code{x} is a \code{SummarizedExperiment},}
 
 \item{data}{A matrix-like object or a \code{SummarizedExperiment} containing the
 data to be analyzed.}
