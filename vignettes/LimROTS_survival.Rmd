@@ -1,0 +1,310 @@
+---
+title: "LimROTS: Survival Analysis with Cox and Competing Risks Models"
+bibliography: references.bib
+output:
+    BiocStyle::html_document:
+        fig_height: 7
+        fig_width: 7
+        toc: true
+        toc_float: true
+        toc_depth: 3
+        number_sections: true
+vignette: >
+    %\VignetteIndexEntry{LimROTS: Survival Analysis with Cox and Competing Risks Models}
+    %\VignetteEncoding{UTF-8}
+    %\VignetteEngine{knitr::rmarkdown}
+editor_options:
+  markdown:
+    wrap: 72
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+    collapse = TRUE,
+    comment = "#>"
+)
+```
+
+# Introduction
+
+LimROTS extends its reproducibility-optimized testing framework to
+survival analysis via the `LimROTS_survival()` function. It fits a Cox
+proportional hazards model @survival — or, optionally, a competing risks
+model via the Fine–Gray subdistribution approach @cmprsk — per feature
+across bootstrap resamples. The reproducibility-optimization step then
+selects the parameters $\alpha_1$ and $\alpha_2$ that maximize the
+overlap of top-ranked features over those resamples, yielding:
+
+$$t_{\alpha(p)} = \frac{\beta_{(p)}}{\alpha_1 + \alpha_2 \times SE_{(p)}}$$
+
+where $\beta_{(p)}$ is the Cox model coefficient (log hazard ratio) and
+$SE_{(p)}$ is its standard error for feature $p$.
+
+P-values are derived from permutation-based null distributions using the
+`qvalue` package @qvalue. This vignette demonstrates both models using a
+Crohn's disease gut microbiome dataset.
+
+# Citation
+
+If you use `LimROTS` in your research, please cite:
+
+> Anwar, A. M., Jeba, A., Lahti, L., & Coffey, E. (2025). LimROTS: A
+> Hybrid Method Integrating Empirical Bayes and
+> Reproducibility-Optimized Statistics for Robust Differential
+> Expression Analysis. *Bioinformatics*, btaf570.
+> <https://doi.org/10.1093/bioinformatics/btaf570>
+
+# Dataset Description
+
+We use the `crohn_survival` dataset from the `miaTime` package @miaTime.
+This is a simulated dataset based on a real Crohn's disease microbiome
+study [@Gevers2014; @coda4microbiome]. It contains **150 individuals**
+and **48 gut microbial taxa** stored as a `TreeSummarizedExperiment`
+object.
+
+The relevant `colData` columns are:
+
+| Column       | Description                                                |
+|-----------------|-------------------------------------------------------|
+| `diagnosis`  | Group label (`"CD"` = Crohn's disease, `"Control"`)        |
+| `event`      | Binary event indicator (1 = Crohn's disease, 0 = censored) |
+| `event_time` | Time to event or censoring (unitless)                      |
+
+The analysis goal is to identify taxa whose abundance is associated with
+time to Crohn's disease diagnosis.
+
+## Loading the Data
+
+```{r load-packages, message=FALSE}
+library(LimROTS, quietly = TRUE)
+library(miaTime, quietly = TRUE)
+library(TreeSummarizedExperiment, quietly = TRUE)
+library(BiocParallel, quietly = TRUE)
+library(SummarizedExperiment, quietly = TRUE)
+library(ggplot2, quietly = TRUE)
+```
+
+```{r load-dataset}
+data("crohn_survival")
+print(crohn_survival)
+```
+
+`crohn_survival` is a `TreeSummarizedExperiment`; coerce it to a plain
+`SummarizedExperiment` as required by `LimROTS_survival()`:
+
+```{r convert-to-se}
+crohn_survival <- as(crohn_survival, "SummarizedExperiment")
+print(crohn_survival)
+```
+
+Inspect the survival outcome distribution:
+
+```{r inspect-coldata}
+table(colData(crohn_survival)$diagnosis,
+      colData(crohn_survival)$event)
+```
+
+`LimROTS_survival()` expects log-transformed assay values. The
+`crohn_survival` assay contains relative abundance data; we apply a
+centered log-ratio (CLR) transformation after adding a small pseudocount
+to handle zeros:
+
+```{r clr-transform}
+counts <- assay(crohn_survival)
+# Add pseudocount, compute CLR per sample
+pseudocount <- 0.5
+ra <- sweep(counts + pseudocount, 2, colSums(counts + pseudocount), "/")
+clr <- t(apply(log(ra), 1, function(x) x - mean(x)))
+# Replace the default assay so LimROTS_survival() uses CLR values
+assay(crohn_survival) <- clr
+hist(clr)
+```
+
+# Cox Proportional Hazards Analysis
+
+The standard Cox model tests each taxon for an association with
+time-to-event independently of any other covariates.
+
+## Running `LimROTS_survival`
+
+```{r set-seed-cox}
+set.seed(1234, kind = "default", sample.kind = "default")
+```
+
+```{r run-cox}
+crohn_cox <- LimROTS_survival(
+    x           = crohn_survival,
+    niter       = 100,    # use >= 1000 for real analyses
+    K           = 10,     # number of top taxa
+    meta.info   = c("event_time", "event"),
+    formula.str = "~ Surv(event_time, event)",
+    competing_risks   = FALSE,
+    verbose           = FALSE
+)
+```
+
+> **Note:** `niter = 100` is used here to reduce build time. For
+> production analyses, use `niter = 1000` or higher and increase the
+> number of parallel workers via the `BPPARAM` argument:
+>
+> ``` r
+> # Windows
+> BPPARAM <- SnowParam(workers = 4)
+> # Linux / macOS
+> BPPARAM <- MulticoreParam(workers = 4)
+> # Pass to LimROTS_survival(..., BPPARAM = BPPARAM)
+> ```
+
+## Results
+
+The results are appended to the `rowData` and `metadata` slots of the
+returned `SummarizedExperiment`.
+
+```{r cox-results}
+cox_res <- data.frame(
+    rowData(crohn_cox),
+    row.names = rownames(crohn_cox)
+)
+head(cox_res[order(cox_res$pvalue), ])
+```
+
+Volcano plot of log hazard ratios versus $-\log_{10}$(q-value):
+
+```{r volcano-cox}
+cox_res$significant <- cox_res$qvalue < 0.05
+
+ggplot(cox_res, aes(
+    x     = log(exp_coef),
+    y     = -log10(qvalue),
+    color = significant
+)) +
+    geom_point(alpha = 0.7, size = 2) +
+    geom_hline(
+        yintercept = -log10(0.05),
+        linetype   = "dashed",
+        color      = "steelblue"
+    ) +
+    scale_color_manual(
+        values = c("FALSE" = "grey60", "TRUE" = "firebrick"),
+        labels = c("FALSE" = "q \u2265 0.05", "TRUE" = "q < 0.05")
+    ) +
+    labs(
+        title = "LimROTS Survival \u2014 Cox Model",
+        x     = "Log Hazard Ratio",
+        y     = expression(-log[10](q~value)),
+        color = NULL
+    ) +
+    theme_bw(base_size = 12) +
+    theme(legend.position = "top")
+```
+
+# Competing Risks Analysis
+
+When a competing event (e.g., death from another cause, remission)
+prevents the event of interest from occurring, a competing risks model
+is more appropriate than the standard Cox model. `LimROTS_survival()`
+supports the Fine–Gray subdistribution hazard model @cmprsk when
+`competing_risks = TRUE`.
+
+The event variable must be coded as:
+
+-   **0** — censored
+-   **1** — event of interest
+-   **2** — competing event
+
+## Preparing the Data
+
+The `crohn_survival` dataset has a binary event column (0/1). For
+illustration, we recode half of the censored observations as having
+experienced a competing event:
+
+```{r prepare-competing}
+crohn_cr <- crohn_survival
+
+event_vec <- colData(crohn_cr)$event
+censored_idx <- which(event_vec == 0)
+
+set.seed(42)
+competing_idx <- sample(censored_idx, floor(length(censored_idx) / 2))
+event_vec[competing_idx] <- 2L
+
+colData(crohn_cr)$event_cr <- event_vec
+table(colData(crohn_cr)$event_cr)
+```
+
+> **Note:** In a real study, the competing event column should reflect a
+> genuine competing risk recorded in the original data (e.g., surgical
+> intervention, withdrawal). The recoding above is purely for
+> demonstration purposes.
+
+## Running `LimROTS_survival`
+
+```{r set-seed-cr}
+set.seed(1234, kind = "default", sample.kind = "default")
+```
+
+```{r run-competing}
+crohn_cr <- LimROTS_survival(
+    x           = crohn_cr,
+    niter       = 100,
+    K           = 48,
+    meta.info   = c("event_time", "event_cr"),
+    formula.str = "~ Surv(event_time, event_cr)",
+    competing_risks   = TRUE,
+    verbose           = FALSE
+)
+```
+
+## Results
+
+```{r cr-results}
+cr_res <- data.frame(
+    rowData(crohn_cr),
+    row.names = rownames(crohn_cr)
+)
+head(cr_res[order(cr_res$pvalue), ])
+```
+
+Volcano plot for the competing risks model:
+
+```{r volcano-cr}
+cr_res$significant <- cr_res$qvalue < 0.05
+
+ggplot(cr_res, aes(
+    x     = log(exp_coef),
+    y     = -log10(qvalue),
+    color = significant
+)) +
+    geom_point(alpha = 0.7, size = 2) +
+    geom_hline(
+        yintercept = -log10(0.05),
+        linetype   = "dashed",
+        color      = "steelblue"
+    ) +
+    scale_color_manual(
+        values = c("FALSE" = "grey60", "TRUE" = "firebrick"),
+        labels = c("FALSE" = "q \u2265 0.05", "TRUE" = "q < 0.05")
+    ) +
+    labs(
+        title = "LimROTS Survival \u2014 Competing Risks Model",
+        x     = "Log Subdistribution Hazard Ratio",
+        y     = expression(-log[10](q~value)),
+        color = NULL
+    ) +
+    theme_bw(base_size = 12) +
+    theme(legend.position = "top")
+```
+
+# Quality Control
+
+```{r qc-cox, results="hide", message=FALSE, warning=FALSE}
+plot(metadata(crohn_cox)[["q_values"]])
+hist(metadata(crohn_cox)[["q_values"]])
+print(summary(metadata(crohn_cox)[["q_values"]]))
+```
+
+```{r session-info}
+sessionInfo()
+```
+
+# References

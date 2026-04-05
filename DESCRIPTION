@@ -64,5 +64,7 @@ Suggests:
     knitr,
     rmarkdown,
     caret,
-    ROTS
+    ROTS,
+    miaTime,
+    TreeSummarizedExperiment
 Config/testthat/edition: 3
