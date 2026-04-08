@@ -16,7 +16,12 @@
 #' This includes sample grouping and any covariates to be included in the model.
 #' @param formula.str A string specifying the formula to be used in model
 #' fitting. It should follow the standard R formula syntax
-#' (e.g., `~ covariate1 + covariate2`).
+#' (e.g., `~ covariate1 + covariate2`). If the formula contains a random
+#' effects term (i.e., includes `|`, e.g., `~ 0 + group + (1|subject)`),
+#' the function automatically routes to DREAM analysis via
+#' \code{\link[variancePartition]{dream}}. The DREAM path is restricted to
+#' two-group comparisons; passing more than two groups with a random term
+#' raises an error.
 #' @param trend A logical value indicating whether to allow for an
 #' intensity-dependent trend in the prior variance.
 #' @param robust A logical value indicating whether to use a robust fitting
@@ -34,6 +39,14 @@
 #' covariate, pairwise contrasts are computed, and the moderated F-statistic is
 #' calculated for each feature.
 #'
+#' When `formula.str` contains a `|` character (random effects term), the
+#' function bypasses the standard limma workflow and instead uses
+#' \code{\link[variancePartition]{dream}} to fit a linear mixed model. This
+#' path is only supported for two-group comparisons. Passing more than two
+#' groups with a random-effects formula raises an informative error directing
+#' the user to use the \code{correlation_block} argument with a fixed-effects
+#' formula instead.
+#'
 #' @return A list containing the following elements:
 #' \item{d}{A vector of the test statistics (log-fold changes or F-statistics)
 #' for each feature.}
@@ -45,7 +58,9 @@
 #' @seealso \code{\link[limma]{lmFit}},
 #' \code{\link[limma]{eBayes}},
 #' \code{\link[limma]{topTable}},
-#' \code{\link[limma]{makeContrasts}}
+#' \code{\link[limma]{makeContrasts}},
+#' \code{\link[variancePartition]{dream}},
+#' \code{\link[variancePartition]{makeContrastsDream}}
 #'
 #'
 #'
@@ -53,7 +68,9 @@
 #' @importFrom dplyr bind_cols
 #' @importFrom utils combn
 #' @importFrom limma makeContrasts lmFit contrasts.fit eBayes topTable
-#'@importFrom limma duplicateCorrelation
+#' @importFrom limma duplicateCorrelation
+#' @importFrom variancePartition dream makeContrastsDream eBayes
+#' @importFrom BiocParallel SerialParam
 #'
 #'
 
@@ -74,6 +91,8 @@ Limma_fit <-
             )
         }
         combined_data <- combined_data[, -1]
+        has_random <- grepl("|", formula.str, fixed = TRUE)
+        if (!has_random) {
         design.matrix <- model.matrix(formula(formula.str), data = meta.info)
         colnames(design.matrix) <- make.names(colnames(design.matrix))
         if (!is.null(correlation_block)) {
@@ -136,4 +155,50 @@ Limma_fit <-
                 corrected.logfc = corrected.logfc
             ))
         }
+        } # end if (!has_random)
+        if (has_random) {
+            if (length(data) > 2) {
+                stop(
+                    "DREAM analysis with random effects is only supported for ",
+                    "two-group comparisons. For more than 2 groups, use ",
+                    "correlation_block analysis without a random term in ",
+                    "formula.str."
+                )
+            }
+            pairwise_contrasts <- paste0(group, unique(meta.info[
+                ,
+                group
+            ]))
+            pairwise_contrasts <- combn(pairwise_contrasts, 2, function(x) {
+                paste(x[1], "-", x[2])
+            })
+            L <- variancePartition::makeContrastsDream(
+                formula(formula.str), meta.info,
+                contrasts = pairwise_contrasts
+            )
+            fit <- variancePartition::dream(
+                combined_data, formula(formula.str), meta.info,
+                L = L,
+                BPPARAM = BiocParallel::SerialParam()
+            )
+            fit.ebayes <- variancePartition::eBayes(
+                fit, trend = trend, robust = robust
+            )
+            d_values <- topTable(
+                fit.ebayes,
+                coef = pairwise_contrasts,
+                number = "Inf",
+                sort.by = "none"
+            )
+            corrected.logfc <- d_values$logFC
+            d_values <- abs(d_values$logFC)
+            s_values <-
+                as.numeric(sqrt(fit.ebayes$s2.post) *
+                    fit.ebayes$stdev.unscaled[, 1])
+            return(list(
+                d = d_values,
+                s = s_values,
+                corrected.logfc = corrected.logfc
+            ))
+        } # end if (has_random)
     }
