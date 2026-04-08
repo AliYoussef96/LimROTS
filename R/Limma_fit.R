@@ -116,9 +116,9 @@ Limma_fit <-
                 contrasts = pairwise_contrasts, levels =
                     design.matrix
             )
-            fit2 <- contrasts.fit(fit, cont_matrix)
-            fit.ebayes <- eBayes(fit2, trend = trend, robust = robust)
-            d_values <- topTable(
+            fit2 <- limma::contrasts.fit(fit, cont_matrix)
+            fit.ebayes <- limma::eBayes(fit2, trend = trend, robust = robust)
+            d_values <- limma::topTable(
                 fit.ebayes,
                 coef = pairwise_contrasts,
                 number = "Inf",
@@ -145,8 +145,8 @@ Limma_fit <-
                     contrasts = pairwise_contrasts,
                     levels = design.matrix
                 )
-            fit2 <- contrasts.fit(fit, cont_matrix)
-            fit.ebayes <- eBayes(fit2, trend = trend, robust = robust)
+            fit2 <- limma::contrasts.fit(fit, cont_matrix)
+            fit.ebayes <- limma::eBayes(fit2, trend = trend, robust = robust)
             msr <- fit.ebayes$F * fit.ebayes$s2.post
             corrected.logfc <- fit.ebayes$coefficients
             return(list(

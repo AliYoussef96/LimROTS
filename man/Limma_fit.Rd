@@ -27,7 +27,12 @@ This includes sample grouping and any covariates to be included in the model.}
 
 \item{formula.str}{A string specifying the formula to be used in model
 fitting. It should follow the standard R formula syntax
-(e.g., \code{~ covariate1 + covariate2}).}
+(e.g., \code{~ covariate1 + covariate2}). If the formula contains a random
+effects term (i.e., includes \code{|}, e.g., \code{~ 0 + group + (1|subject)}),
+the function automatically routes to DREAM analysis via
+\code{\link[variancePartition]{dream}}. The DREAM path is restricted to
+two-group comparisons; passing more than two groups with a random term
+raises an error.}
 
 \item{trend}{A logical value indicating whether to allow for an
 intensity-dependent trend in the prior variance.}
@@ -61,10 +66,20 @@ comparisons, the function computes contrasts between the two groups and
 applies empirical Bayes moderation. For multi-group analysis with a single
 covariate, pairwise contrasts are computed, and the moderated F-statistic is
 calculated for each feature.
+
+When \code{formula.str} contains a \code{|} character (random effects term), the
+function bypasses the standard limma workflow and instead uses
+\code{\link[variancePartition]{dream}} to fit a linear mixed model. This
+path is only supported for two-group comparisons. Passing more than two
+groups with a random-effects formula raises an informative error directing
+the user to use the \code{correlation_block} argument with a fixed-effects
+formula instead.
 }
 \seealso{
 \code{\link[limma]{lmFit}},
 \code{\link[limma]{eBayes}},
 \code{\link[limma]{topTable}},
-\code{\link[limma]{makeContrasts}}
+\code{\link[limma]{makeContrasts}},
+\code{\link[variancePartition]{dream}},
+\code{\link[variancePartition]{makeContrastsDream}}
 }
