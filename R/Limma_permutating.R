@@ -48,6 +48,8 @@
 #' @importFrom limma duplicateCorrelation
 #' @importFrom stringr str_split_fixed fixed
 #' @importFrom utils combn
+#' @importFrom variancePartition dream makeContrastsDream eBayes
+#' @importFrom BiocParallel SerialParam
 #'
 #'
 #'
@@ -57,6 +59,8 @@ Limma_permutating <- function(x, group, meta.info, formula.str,
     covariates.p <- meta.info
     covariates.p$sample.id <- NULL
     row.names(covariates.p) <- NULL
+    has_random <- grepl("|", formula.str, fixed = TRUE)
+    if (!has_random) {
     design.matrix <-
         model.matrix(formula(formula.str), data = covariates.p)
     colnames(design.matrix) <-
@@ -107,4 +111,40 @@ Limma_permutating <- function(x, group, meta.info, formula.str,
         msr <- fit.ebayes$F * fit.ebayes$s2.post
         return(list(d = msr, s = fit.ebayes$s2.post))
     }
+    } # end if (!has_random)
+    if (has_random) {
+        if (length( unique( covariates.p[, group] ) ) > 2) {
+            stop(
+                "DREAM analysis with random effects is only supported for ",
+                "two-group comparisons. For more than 2 groups, use ",
+                "correlation_block analysis without a random term in ",
+                "formula.str."
+            )
+        }
+        pairwise_contrasts <-
+            paste0(group, unique(covariates.p[, group]))
+        pairwise_contrasts <- combn(pairwise_contrasts, 2, function(x) {
+            paste(x[1], "-", x[2])
+        })
+        L <- variancePartition::makeContrastsDream(
+            formula(formula.str), covariates.p,
+            contrasts = pairwise_contrasts
+        )
+        fit <- variancePartition::dream(
+            combined_data, formula(formula.str), covariates.p,
+            L = L,
+            BPPARAM = BiocParallel::SerialParam()
+        )
+        fit.ebayes <- variancePartition::eBayes(
+            fit, trend = FALSE, robust = FALSE
+        )
+        d_values <- topTable(fit.ebayes,
+            coef = pairwise_contrasts,
+            number = "Inf", sort.by = "none"
+        )
+        d_values <- abs(d_values$logFC)
+        s_values <- as.numeric(sqrt(fit.ebayes$s2.post) *
+            fit.ebayes$stdev.unscaled[, 1])
+        return(list(d = d_values, s = s_values))
+    } # end if (has_random)
 }
