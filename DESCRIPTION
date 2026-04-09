@@ -55,7 +55,7 @@ Imports:
     S4Vectors,
     dplyr,
     survival,
-    cmprsk
+    cmprsk,
     variancePartition
 Suggests: 
     BiocStyle,
