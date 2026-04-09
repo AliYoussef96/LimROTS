@@ -1,21 +1,22 @@
 # Changelog
 
+## 1.3.24
+- Added differential expression analysis for repeated measures using the dream linear mixed model.
+
 ## 1.3.22
-Incorporating repeated measurement analysis
+- Incorporating repeated measurement analysis.
 
 ## 1.3.17
-Add survival analysis functionality with support for Cox proportional hazards models and competing risks regression.
+- Add survival analysis functionality with support for Cox proportional hazards models and competing risks regression.
 
 ## 1.3.13
-Add copyright statements to R project files
+- Add copyright statements to R project files.
 
 ## 1.3.10
-Change the license from Artistic-2.0 to GPL-2.0-or-later
-
-## 1.3.8
+- Change the license from Artistic-2.0 to GPL-2.0-or-later.
 
 ## 1.3.6
-- Adding Citation and Disclaimer Information
+- Adding Citation and Disclaimer Information.
 
 ## 0.99.0
-- Submitted to Bioconductor
+- Submitted to Bioconductor.
