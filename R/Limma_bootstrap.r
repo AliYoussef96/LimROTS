@@ -46,10 +46,10 @@
 #' @importFrom stats model.matrix formula
 #' @importFrom dplyr bind_cols
 #' @importFrom stringr str_split_fixed fixed
-#' @importFrom limma makeContrasts lmFit contrasts.fit eBayes topTable 
+#' @importFrom limma makeContrasts lmFit contrasts.fit 
 #' @importFrom limma duplicateCorrelation
 #' @importFrom utils combn
-#' @importFrom variancePartition dream makeContrastsDream eBayes
+#' @importFrom variancePartition dream makeContrastsDream
 #' @importFrom BiocParallel SerialParam
 #'
 
@@ -134,7 +134,7 @@ Limma_bootstrap <-
                     levels = design.matrix
                 )
             fit2 <- limma::contrasts.fit(fit, cont_matrix)
-            fit.ebayes <- eBayes(fit2, trend = FALSE, robust = FALSE)
+            fit.ebayes <- limma::eBayes(fit2, trend = FALSE, robust = FALSE)
             msr <- fit.ebayes$F * fit.ebayes$s2.post
             return(list(d = msr, s = fit.ebayes$s2.post))
         }
@@ -165,7 +165,7 @@ Limma_bootstrap <-
             fit.ebayes <- variancePartition::eBayes(
                 fit, trend = FALSE, robust = FALSE
             )
-            d_values <- topTable(
+            d_values <- variancePartition::topTable(
                 fit.ebayes,
                 coef = pairwise_contrasts,
                 number = "Inf",

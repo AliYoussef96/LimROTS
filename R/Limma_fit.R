@@ -67,11 +67,10 @@
 #' @importFrom stats model.matrix formula
 #' @importFrom dplyr bind_cols
 #' @importFrom utils combn
-#' @importFrom limma makeContrasts lmFit contrasts.fit eBayes topTable
+#' @importFrom limma makeContrasts lmFit contrasts.fit
 #' @importFrom limma duplicateCorrelation
-#' @importFrom variancePartition dream makeContrastsDream eBayes
+#' @importFrom variancePartition dream makeContrastsDream
 #' @importFrom BiocParallel SerialParam
-#'
 #'
 
 Limma_fit <-
@@ -184,7 +183,7 @@ Limma_fit <-
             fit.ebayes <- variancePartition::eBayes(
                 fit, trend = trend, robust = robust
             )
-            d_values <- topTable(
+            d_values <- variancePartition::topTable(
                 fit.ebayes,
                 coef = pairwise_contrasts,
                 number = "Inf",

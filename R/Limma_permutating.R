@@ -44,14 +44,12 @@
 #'
 #' @importFrom stats model.matrix formula
 #' @importFrom dplyr bind_cols
-#' @importFrom limma makeContrasts lmFit contrasts.fit eBayes topTable 
+#' @importFrom limma makeContrasts lmFit contrasts.fit 
 #' @importFrom limma duplicateCorrelation
 #' @importFrom stringr str_split_fixed fixed
 #' @importFrom utils combn
-#' @importFrom variancePartition dream makeContrastsDream eBayes
+#' @importFrom variancePartition dream makeContrastsDream
 #' @importFrom BiocParallel SerialParam
-#'
-#'
 #'
 Limma_permutating <- function(x, group, meta.info, formula.str,
                              correlation_block = NULL) {
@@ -138,7 +136,7 @@ Limma_permutating <- function(x, group, meta.info, formula.str,
         fit.ebayes <- variancePartition::eBayes(
             fit, trend = FALSE, robust = FALSE
         )
-        d_values <- topTable(fit.ebayes,
+        d_values <- variancePartition::topTable(fit.ebayes,
             coef = pairwise_contrasts,
             number = "Inf", sort.by = "none"
         )
