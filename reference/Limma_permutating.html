@@ -19,7 +19,7 @@ assignments. It handles two-group comparisons and multi-group settings."><!-- ma
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">LimROTS</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.2.8</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.3.25</span>
       </span>
     </div>
 
@@ -30,6 +30,16 @@ assignments. It handles two-group comparisons and multi-group settings."><!-- ma
 <li>
   <a href="../reference/index.html">Reference</a>
 </li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Articles
+
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu"><li>
+      <a href="../articles/LimROTS_survival.html">LimROTS: Survival Analysis with Cox and Competing Risks Models</a>
+    </li>
+  </ul></li>
 <li>
   <a href="../news/index.html">Changelog</a>
 </li>
@@ -60,7 +70,7 @@ assignments. It handles two-group comparisons and multi-group settings.</p>
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">Limma_permutating</span><span class="op">(</span><span class="va">x</span>, <span class="va">group.name</span>, <span class="va">meta.info</span>, <span class="va">formula.str</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">Limma_permutating</span><span class="op">(</span><span class="va">x</span>, <span class="va">group</span>, <span class="va">meta.info</span>, <span class="va">formula.str</span>, correlation_block <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -73,7 +83,7 @@ features (e.g., genes, proteins) and columns represent samples. The list
 should contain at least two matrices for pairwise group comparison.</p></dd>
 
 
-<dt id="arg-group-name">group.name<a class="anchor" aria-label="anchor" href="#arg-group-name"></a></dt>
+<dt id="arg-group">group<a class="anchor" aria-label="anchor" href="#arg-group"></a></dt>
 <dd><p>A character string indicating the name of the group
 variable in <code>meta.info</code> to be used in the analysis.</p></dd>
 
@@ -87,6 +97,13 @@ This includes sample grouping and any covariates to be included in the model.</p
 <dd><p>A string specifying the formula to be used in model
 fitting. It should follow the standard R formula syntax
 (e.g., <code>~ covariate1 + covariate2</code>).</p></dd>
+
+
+<dt id="arg-correlation-block">correlation_block<a class="anchor" aria-label="anchor" href="#arg-correlation-block"></a></dt>
+<dd><p>Character or NULL. The name of a column in
+<code>meta.info</code> that defines correlation blocks. When not NULL,
+within-block correlation is estimated via <code>duplicateCorrelation</code> and
+accounted for in <code>lmFit</code>. If NULL, standard independent fitting is used.</p></dd>
 
 </dl></div>
     <div id="value">

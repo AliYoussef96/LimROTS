@@ -19,7 +19,7 @@ downstream analysis."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">LimROTS</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.2.8</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.3.25</span>
       </span>
     </div>
 
@@ -30,6 +30,16 @@ downstream analysis."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/
 <li>
   <a href="../reference/index.html">Reference</a>
 </li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Articles
+
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu"><li>
+      <a href="../articles/LimROTS_survival.html">LimROTS: Survival Analysis with Cox and Competing Risks Models</a>
+    </li>
+  </ul></li>
 <li>
   <a href="../news/index.html">Changelog</a>
 </li>
@@ -62,13 +72,15 @@ downstream analysis.</p>
     <div id="ref-usage">
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">SanityChecK</span><span class="op">(</span></span>
 <span>  <span class="va">x</span>,</span>
+<span>  assay.type <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  niter <span class="op">=</span> <span class="fl">1000</span>,</span>
 <span>  K <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">meta.info</span>,</span>
-<span>  <span class="va">group.name</span>,</span>
+<span>  <span class="va">group</span>,</span>
 <span>  <span class="va">formula.str</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  log <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  log <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  survival <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -79,6 +91,11 @@ downstream analysis.</p>
 <dl><dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
 <dd><p>A matrix-like object or a <code>SummarizedExperiment</code> containing the
 data to be analyzed.</p></dd>
+
+
+<dt id="arg-assay-type">assay.type<a class="anchor" aria-label="anchor" href="#arg-assay-type"></a></dt>
+<dd><p>A character string or numeric index specifying the assay
+to use if <code>x</code> is a <code>SummarizedExperiment</code>. Default is <code>NULL</code>.</p></dd>
 
 
 <dt id="arg-niter">niter<a class="anchor" aria-label="anchor" href="#arg-niter"></a></dt>
@@ -93,11 +110,11 @@ the number of rows in the data matrix. Default is NULL.</p></dd>
 
 <dt id="arg-meta-info">meta.info<a class="anchor" aria-label="anchor" href="#arg-meta-info"></a></dt>
 <dd><p>Data frame. Metadata associated with the samples
-(columns of <code>data.exp</code>). If <code>data.exp</code> is a <code>SummarizedExperiment</code>,
+(columns of <code>x</code>). If <code>x</code> is a <code>SummarizedExperiment</code>,
 <code>meta.info</code> can be a vector of <code>colData</code> column names to use.</p></dd>
 
 
-<dt id="arg-group-name">group.name<a class="anchor" aria-label="anchor" href="#arg-group-name"></a></dt>
+<dt id="arg-group">group<a class="anchor" aria-label="anchor" href="#arg-group"></a></dt>
 <dd><p>Character. Column name in <code>meta.info</code> that defines the
 groups or conditions for comparison.</p></dd>
 
@@ -115,6 +132,13 @@ function's execution. Default is TRUE.</p></dd>
 <dt id="arg-log">log<a class="anchor" aria-label="anchor" href="#arg-log"></a></dt>
 <dd><p>Logical, indicating whether the data is already log-transformed.
 Default is TRUE.</p></dd>
+
+
+<dt id="arg-survival">survival<a class="anchor" aria-label="anchor" href="#arg-survival"></a></dt>
+<dd><p>Logical, indicating whether the analysis is survival
+analysis.
+Default is <code>FALSE</code>. If <code>TRUE</code>, <code>meta.info</code> must contain
+<code>time</code> and <code>event</code> columns.</p></dd>
 
 </dl></div>
     <div id="value">

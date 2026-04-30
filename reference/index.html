@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">LimROTS</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.2.8</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.3.25</span>
       </span>
     </div>
 
@@ -28,6 +28,16 @@
 <li>
   <a href="../reference/index.html">Reference</a>
 </li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Articles
+
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu"><li>
+      <a href="../articles/LimROTS_survival.html">LimROTS: Survival Analysis with Cox and Competing Risks Models</a>
+    </li>
+  </ul></li>
 <li>
   <a href="../news/index.html">Changelog</a>
 </li>
@@ -58,6 +68,10 @@
         </td>
         <td><p>Parallel processing handling function</p></td>
       </tr><tr><td>
+          <p><code><a href="Boot_parallel_survival.html">Boot_parallel_survival()</a></code> </p>
+        </td>
+        <td><p>Parallel processing handling function for LimROTS survival</p></td>
+      </tr><tr><td>
           <p><code><a href="Check_SummarizedExperiment.html">Check_SummarizedExperiment()</a></code> </p>
         </td>
         <td><p>Check if SummarizedExperiment or data is correct</p></td>
@@ -69,6 +83,10 @@
           <p><code><a href="LimROTS.html">LimROTS()</a></code> </p>
         </td>
         <td><p><code>LimROTS</code>: A Hybrid Method Integrating Empirical Bayes and Reproducibility-Optimized Statistics for Robust Differential Expression Analysis</p></td>
+      </tr><tr><td>
+          <p><code><a href="LimROTS_survival.html">LimROTS_survival()</a></code> </p>
+        </td>
+        <td><p><code>LimROTS_survival</code>: A Hybrid Method Integrating Empirical Bayes and Reproducibility-Optimized Statistics for Robust survival analysis in Omics Data</p></td>
       </tr><tr><td>
           <p><code><a href="Limma_bootstrap.html">Limma_bootstrap()</a></code> </p>
         </td>
@@ -102,6 +120,18 @@
         </td>
         <td><p>Generate Stratified Bootstrap Samples for limRots</p></td>
       </tr><tr><td>
+          <p><code><a href="bootstrapSamples_limRots_block.html">bootstrapSamples_limRots_block()</a></code> </p>
+        </td>
+        <td><p>Generate Stratified Bootstrap Samples with Correlation Blocks</p></td>
+      </tr><tr><td>
+          <p><code><a href="bootstrapSamples_limRots_cox.html">bootstrapSamples_limRots_cox()</a></code> </p>
+        </td>
+        <td><p>Generate Stratified Bootstrap Samples for Cox limRots with Correlation Blocks</p></td>
+      </tr><tr><td>
+          <p><code><a href="bootstrap_survival.html">bootstrap_survival()</a></code> </p>
+        </td>
+        <td><p>Perform Per-Feature Survival Modeling on Bootstrap Resamples</p></td>
+      </tr><tr><td>
           <p><code><a href="calOverlaps.html">calOverlaps()</a></code> </p>
         </td>
         <td><p>Calculate Overlaps Between Observed and Permuted Data</p></td>
@@ -117,6 +147,14 @@
           <p><code><a href="countLargerThan.html">countLargerThan()</a></code> </p>
         </td>
         <td><p>Count Larger Permuted Values (Modified)</p></td>
+      </tr><tr><td>
+          <p><code><a href="fit_survival.html">fit_survival()</a></code> </p>
+        </td>
+        <td><p>Final Per-Feature Survival Model Fit on the Full Dataset</p></td>
+      </tr><tr><td>
+          <p><code><a href="permutating_survival.html">permutating_survival()</a></code> </p>
+        </td>
+        <td><p>Perform Per-Feature Survival Modeling on Permuted Data</p></td>
       </tr></tbody></table></div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

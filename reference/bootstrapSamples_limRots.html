@@ -20,7 +20,7 @@ factor columns in the metadata."><!-- mathjax --><script src="https://cdnjs.clou
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">LimROTS</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.2.8</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.3.25</span>
       </span>
     </div>
 
@@ -31,6 +31,16 @@ factor columns in the metadata."><!-- mathjax --><script src="https://cdnjs.clou
 <li>
   <a href="../reference/index.html">Reference</a>
 </li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Articles
+
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu"><li>
+      <a href="../articles/LimROTS_survival.html">LimROTS: Survival Analysis with Cox and Competing Risks Models</a>
+    </li>
+  </ul></li>
 <li>
   <a href="../news/index.html">Changelog</a>
 </li>
@@ -62,7 +72,7 @@ factor columns in the metadata.</p>
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">bootstrapSamples_limRots</span><span class="op">(</span><span class="va">niter</span>, <span class="va">meta.info</span>, <span class="va">group.name</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">bootstrapSamples_limRots</span><span class="op">(</span><span class="va">niter</span>, <span class="va">meta.info</span>, <span class="va">group</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -79,7 +89,7 @@ where each row corresponds to a sample. Factor columns in <code>meta.info</code>
 are used to define strata for sampling.</p></dd>
 
 
-<dt id="arg-group-name">group.name<a class="anchor" aria-label="anchor" href="#arg-group-name"></a></dt>
+<dt id="arg-group">group<a class="anchor" aria-label="anchor" href="#arg-group"></a></dt>
 <dd><p>Character. The name of the column in <code>meta.info</code> that
 defines the grouping variable for the samples.</p></dd>
 
@@ -95,7 +105,7 @@ additional factors.</p>
     <h2>Details</h2>
     <p>The function works by first identifying the factors in the <code>meta.info</code> data
 frame that are used to create strata for sampling. Within each group defined
-by <code>group.name</code>, the function samples according to the strata proportions,
+by <code>group</code>, the function samples according to the strata proportions,
 ensuring that samples are drawn from the correct groups and strata in a
 proportional manner.</p>
     </div>
