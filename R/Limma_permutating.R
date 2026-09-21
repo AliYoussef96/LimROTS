@@ -93,8 +93,7 @@ Limma_permutating <- function(x, group, meta.info, formula.str,
         s_values <- as.numeric(sqrt(fit.ebayes$s2.post) *
             fit.ebayes$stdev.unscaled[, 1])
         return(list(d = d_values, s = s_values))
-    } else if (length( unique( covariates.p[,group] ) ) > 2 & 
-                                                    ncol(covariates.p) == 1) {
+    } else if (length(unique( covariates.p[,group])) > 2) {
         pairwise_contrasts <-
             paste0(group, unique(covariates.p[, group]))
         pairwise_contrasts <- combn(pairwise_contrasts, 2, function(x) {

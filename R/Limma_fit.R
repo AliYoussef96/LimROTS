@@ -133,7 +133,7 @@ Limma_fit <-
                 s = s_values,
                 corrected.logfc = corrected.logfc
             ))
-        } else if (length(data) > 2 & ncol(meta.info) == 1) {
+        } else if (length(data) > 2) {
             pairwise_contrasts <-
                 paste0(group, unique(meta.info[, group]))
             pairwise_contrasts <- combn(pairwise_contrasts, 2, function(x) {

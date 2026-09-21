@@ -122,7 +122,7 @@ Limma_bootstrap <-
                 as.numeric(sqrt(fit.ebayes$s2.post) *
                     fit.ebayes$stdev.unscaled[, 1])
             return(list(d = d_values, s = s_values))
-        } else if (length(data) > 2 & ncol(covariates.p) == 1) {
+        } else if (length(data) > 2) {
             pairwise_contrasts <-
                 paste0(group, unique(covariates.p[, group]))
             pairwise_contrasts <- combn(pairwise_contrasts, 2, function(x) {
