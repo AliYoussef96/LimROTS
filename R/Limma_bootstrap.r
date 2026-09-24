@@ -85,6 +85,17 @@ Limma_bootstrap <-
         }
         covariates.p$sample.id <- NULL
         row.names(covariates.p) <- NULL
+        if (!is.null(correlation_block)) {
+            # A block drawn more than once is a separate unit each time; give
+            # the n-th copy of each sample the n-th draw's block ID so that
+            # duplicateCorrelation does not pool the copies into one block.
+            real_names <- str_split_fixed(colnames(combined_data),
+                                          fixed("."), 2)[, 1]
+            draw <- stats::ave(seq_along(real_names), real_names,
+                               FUN = seq_along)
+            covariates.p[, correlation_block] <- paste(
+                covariates.p[, correlation_block], draw, sep = "_")
+        }
         has_random <- grepl("|", formula.str, fixed = TRUE)
         if (!has_random) {
         design.matrix <- model.matrix(formula(formula.str), data = covariates.p)
