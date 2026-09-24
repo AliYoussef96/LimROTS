@@ -160,6 +160,30 @@ bootstrapSamples_limRots_block <- function(niter, meta.info, group,
             group = group
         ))
     }
+    groups <- as.character(meta.info[, group])
+    blocks <- as.character(meta.info[, correlation_block])
+    if (any(tapply(groups, blocks, function(g) length(unique(g)) > 1))) {
+        # Repeated measures: blocks span levels of `group`, so each replicate
+        # draws whole blocks and takes every drawn block's sample from each
+        # level, keeping the pairing intact.
+        if (any(table(blocks, groups) != 1)) {
+            stop("correlation_block spans levels of '", group, "', but not ",
+                 "every block has exactly one sample in each level.")
+        }
+        unique_blocks <- unique(blocks)
+        key <- paste(blocks, groups, sep = "\r")
+        samples <- matrix(nrow = niter, ncol = nrow(meta.info))
+        for (i in seq_len(niter)) {
+            drawn <- sample(unique_blocks, length(unique_blocks),
+                            replace = TRUE)
+            for (g in unique(groups)) {
+                pos <- which(groups == g)
+                samples[i, pos] <- row.names(meta.info)[
+                    match(paste(drawn, g, sep = "\r"), key)]
+            }
+        }
+        return(samples)
+    }
     labels <- as.numeric(meta.info[, group])
     samples <- matrix(nrow = niter, ncol = length(labels))
     for (i in seq_len(niter)) {
@@ -173,8 +197,10 @@ bootstrapSamples_limRots_block <- function(niter, meta.info, group,
                         c(meta.info.factors, colnames(meta.info.pos)[j])
                 }
             }
-            meta.info.factors <-
-                    meta.info.factors[meta.info.factors != group]
+            # The block column is a factor but must not define strata: each
+            # stratum would hold one block and the bootstrap would never vary.
+            meta.info.factors <- meta.info.factors[
+                !meta.info.factors %in% c(group, correlation_block)]
             if (is.null(meta.info.factors) |
                 length(meta.info.factors) == 0) {
                 block_ids <- meta.info.pos[, correlation_block]

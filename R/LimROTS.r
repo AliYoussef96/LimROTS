@@ -193,7 +193,21 @@ LimROTS <- function(x,
             group = group,
             correlation_block = correlation_block
             )
-        if(permutating.group == TRUE){
+        if (!is.null(correlation_block)) {
+            # Permute the group labels within each block, leaving block IDs
+            # attached to their samples; shuffling whole rows would detach them.
+            pSamples <- list()
+            block_rows <- split(seq_len(nrow(meta.info)),
+                                as.character(meta.info[, correlation_block]))
+            for (i in seq_len(nrow(samples)) ) {
+                shuffle_df <- meta.info
+                for (ix in block_rows) {
+                    shuffle_df[ix, group] <-
+                        meta.info[ix[sample.int(length(ix))], group]
+                }
+                pSamples[[i]] <-  shuffle_df
+            }
+        } else if(permutating.group == TRUE){
             pSamples <- list()
             for (i in seq_len(nrow(samples)) ) {
                 shuffle_df <- meta.info
