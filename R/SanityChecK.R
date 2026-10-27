@@ -69,6 +69,7 @@ SanityChecK <- function(x,
     )
   
     if(survival){
+        message("Survival analysis mode activated. Performing additional checks.")
         survival_check <- .generate_survival(meta.info = meta.info, 
         data = data, 
         K = K, 
@@ -76,19 +77,13 @@ SanityChecK <- function(x,
         return(survival_check)
       }
 
-    sort.df <- data.frame(
-        sample.id = colnames(data),
-        groups = meta.info[, group]
-    )
-    sort.df <- sort.df[order(sort.df$groups), ]
-    data <- data[, sort.df$sample.id]
-    meta.info$temp <- row.names(meta.info)
-    meta.info <- data.frame(
-        meta.info[colnames(data), ],
-        check.rows = FALSE,
-        check.names = FALSE
-    )
-    meta.info$temp <- NULL
+    meta.info <- meta.info[order(meta.info[[group]]),]
+    data <- data[, row.names(meta.info)]
+    ifnot( identical(colnames(data) , row.names(meta.info)) ){
+        stop("After sorting, column names of data do not match row names of
+             meta info in colData")
+    }
+
     if (inherits(meta.info[, group], "character")) {
         meta.info[, group] <- as.factor(
             meta.info[, group]
@@ -181,19 +176,12 @@ SanityChecK <- function(x,
         formula.str <- paste0(surv_part, "~y+", rhs_covariates)
       }
       
-      
-      sort.df <- data.frame(
-        sample.id = colnames(data),
-        event = meta.info[, "event"]
-      )
-      sort.df <- sort.df[order(sort.df$event), ]
-      data <- data[, sort.df$sample.id]
-      meta.info$temp <- row.names(meta.info)
-      meta.info <- data.frame(meta.info[colnames(data), ],
-                              check.rows = FALSE,
-                              check.names = FALSE
-      )
-      meta.info$temp <- NULL
+    meta.info <- meta.info[order(meta.info[[event]]),]
+    data <- data[, row.names(meta.info)]
+    ifnot( identical(colnames(data) , row.names(meta.info)) ){
+        stop("After sorting, column names of data do not match row names of
+             meta info in colData")
+    }
       
       if(!identical(colnames(data), row.names(meta.info))){
         stop("After sorting, column names of data do not match row names of

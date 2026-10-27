@@ -23,6 +23,9 @@ Check_meta_info <- function(meta.info, data) {
     if (nrow(meta.info) != ncol(data)) {
         stop("Number of samples in the data does not match the groups")
     }
+    if(!identical(sort(rownames(meta.info)), sort(colnames(data)))){
+        stop("Sample names in the data and meta info in colData do not match")
+    }
 
     return(TRUE)
 }
