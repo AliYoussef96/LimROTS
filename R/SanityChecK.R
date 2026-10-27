@@ -203,6 +203,28 @@ SanityChecK <- function(x,
     return(TRUE)
 }
 
+# Copyright (C) 2025 Ali Youssef.
+# This program is licensed under GPL (>= 2).
+#' Check if survival analysis is correct
+#' 
+#' @param meta.info Data frame. Metadata associated with the samples
+#' (columns of `x`). If `x` is a `SummarizedExperiment
+#' @param data A matrix-like object or a `SummarizedExperiment` containing the
+#' data to be analyzed.
+#' @param K Integer. Top list size. If NULL, it will be set to a quarter of
+#' the number of rows in the data matrix. Default is NULL.
+#' @param formula.str Optional character string representing the formula for
+#' the model.
+#' 
+#' @return A list containing:
+#' \itemize{meta.info: Processed metadata.
+#' \itemize{data: Processed data matrix.
+#' \itemize{K: Top list size to be used in the analysis.
+#' \itemize{formula.str: Processed formula string for the model.
+#' 
+#' 
+
+
 
 .generate_survival <- function(meta.info, data, K, formula.str) {
       

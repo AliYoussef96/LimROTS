@@ -8,15 +8,12 @@
 #' @param x A \code{SummarizedExperiment} object, where rows
 #' represent features (e.g., proteins, metabolites) and columns
 #' represent samples.
-#' The values should be log-transformed.
 #' @param assay.type A character string or numeric index specifying the assay
 #' to use if \code{x} is a \code{SummarizedExperiment}. Default is \code{NULL}
 #' @param niter An integer representing the amount of bootstrap iterations.
 #' Default is 1000.
 #' @param K An optional integer representing the top list size for ranking.
 #' If not specified, it is set to one-fourth of the number of features.
-#' @param log Logical, indicating whether the data is already log-transformed.
-#' Default is \code{TRUE}.
 #' @param meta.info a character vector of the metadata needed for the
 #' model to run and can be retrieved using \code{colData()}.
 #' @param group A string specifying the column in \code{meta.info} that
@@ -148,7 +145,6 @@ LimROTS <- function(x,
     assay.type = NULL,
     niter = 1000,
     K = NULL,
-    log = TRUE,
     meta.info,
     BPPARAM  = NULL,
     group,
@@ -171,7 +167,6 @@ LimROTS <- function(x,
         K = K,
         meta.info = meta.info,
         group = group,
-        log = log
     )
 
     meta.info <- SanityChecK.list$meta.info
