@@ -77,7 +77,7 @@ SanityChecK <- function(x,
         return(survival_check)
       }
 
-    meta.info <- meta.info[order(meta.info[[group]]),]
+    meta.info <- meta.info[order(meta.info[,group]),]
     data <- data[, row.names(meta.info)]
     ifnot( identical(colnames(data) , row.names(meta.info)) ){
         stop("After sorting, column names of data do not match row names of
@@ -176,7 +176,7 @@ SanityChecK <- function(x,
         formula.str <- paste0(surv_part, "~y+", rhs_covariates)
       }
       
-    meta.info <- meta.info[order(meta.info[[event]]),]
+    meta.info <- meta.info[order(meta.info[,event]),]
     data <- data[, row.names(meta.info)]
     ifnot( identical(colnames(data) , row.names(meta.info)) ){
         stop("After sorting, column names of data do not match row names of
