@@ -151,8 +151,6 @@ fit_permutation <- function(x, group, meta.info, formula.str,
     }
 
 
-
-
 .Dream_permutating <- function(x, group, meta.info, formula.str,
             correlation_block = NULL, pairwise_contrasts) {
 
