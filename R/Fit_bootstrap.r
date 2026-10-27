@@ -63,9 +63,11 @@ fit_bootstrap <- function(x, group, meta.info, formula.str,
                             correlation_block= NULL, model="limma",
                             pairwise_contrasts) {
     if(model == "limma"){
-        return(.Limma_bootstrap(x, group, meta.info, formula.str, correlation_block))
+        return(.Limma_bootstrap(x, group, meta.info, formula.str, 
+        correlation_block, pairwise_contrasts))
     }else if (model == "dream") {
-        return(.Dream_bootstrap(x, group, meta.info, formula.str))
+        return(.Dream_bootstrap(x, group, meta.info, formula.str, 
+        correlation_block, pairwise_contrasts))
     }else{
         stop("Invalid model specified. Choose either 'limma' or 'dream'.")
     }

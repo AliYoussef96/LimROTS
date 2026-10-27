@@ -31,7 +31,10 @@
 #' \code{duplicateCorrelation}. If NULL, standard independent fitting is used.
 #' @param model A character string specifying the modeling approach to be used. 
 #' limma for fixed effects and dream for random effects. Default is "limma".
-#'
+#' @param pairwise_contrasts A character vector specifying the pairwise contrasts to be computed. 
+#' Each contrast should be in the format "group1 - group2". for multi-group analysis, 
+#' this will be generated automatically.
+#' 
 #' @return A list containing: \code{D, S, pD, pS} for bootstrapped data and
 #'  for permuted data.
 #'
@@ -51,7 +54,8 @@ Boot_parallel <- function(BPPARAM = NULL,
     a2,
     pSamples,
     correlation_block = NULL,
-    model = "limma") {
+    model = "limma",
+    pairwise_contrasts) {
     if (is.null(BPPARAM)) {
         if (.Platform$OS.type == "windows") {
             BPPARAM <- SnowParam(workers = 2)
@@ -77,7 +81,8 @@ Boot_parallel <- function(BPPARAM = NULL,
         a2 = a2,
         pSamples = pSamples,
         correlation_block = correlation_block,
-        model = model
+        model = model,
+        pairwise_contrasts = pairwise_contrasts
     )
     export_funcs <- list(fit_bootstrap = fit_bootstrap,
                          Limma_permutating = Limma_permutating)
@@ -100,7 +105,8 @@ Boot_parallel <- function(BPPARAM = NULL,
             meta.info = meta.info,
             formula.str = formula.str,
             correlation_block = correlation_block,
-            model = model
+            model = model,
+            pairwise_contrasts = pairwise_contrasts
         )
         d_result <- fit$d
         s_result <- fit$s

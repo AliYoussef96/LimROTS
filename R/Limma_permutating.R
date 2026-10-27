@@ -51,7 +51,23 @@
 #' @importFrom variancePartition dream makeContrastsDream
 #' @importFrom BiocParallel SerialParam
 #'
-Limma_permutating <- function(x, group, meta.info, formula.str,
+#' 
+
+
+fit_permutation <- function(x, group, meta.info, formula.str,
+                             correlation_block = NULL, model = "limma") {
+    if(model == "limma"){
+        return(.Limma_permutating(x, group, meta.info, formula.str, 
+        correlation_block))
+    }else if (model == "dream") {
+        return(.Dream_permutating(x, group, meta.info, formula.str, 
+        correlation_block))
+    }else{
+        stop("Invalid model specified. Choose either 'limma' or 'dream'.")
+    }
+}
+
+.Limma_permutating <- function(x, group, meta.info, formula.str,
                              correlation_block = NULL) {
     combined_data <- x
     covariates.p <- meta.info
@@ -109,40 +125,61 @@ Limma_permutating <- function(x, group, meta.info, formula.str,
         msr <- fit.ebayes$F * fit.ebayes$s2.post
         return(list(d = msr, s = fit.ebayes$s2.post))
     }
-    } # end if (!has_random)
-    if (has_random) {
-        if (length( unique( covariates.p[, group] ) ) > 2) {
-            stop(
-                "DREAM analysis with random effects is only supported for ",
-                "two-group comparisons. For more than 2 groups, use ",
-                "correlation_block analysis without a random term in ",
-                "formula.str."
-            )
-        }
-        pairwise_contrasts <-
-            paste0(group, unique(covariates.p[, group]))
-        pairwise_contrasts <- combn(pairwise_contrasts, 2, function(x) {
-            paste(x[1], "-", x[2])
-        })
-        L <- variancePartition::makeContrastsDream(
-            formula(formula.str), covariates.p,
-            contrasts = pairwise_contrasts
+    }
+    
+}
+
+
+
+
+.Dream_permutating <- function(x, group, meta.info, formula.str,
+            correlation_block == NULL) {
+
+    if(!correlation_block == NULL){
+        stop("DREAM analysis does not support correlation_block. 
+        Please set correlation_block = NULL or use model='limma' 
+        for correlation_block analysis.")
+    }
+    has_random <- grepl("|", formula.str, fixed = TRUE)
+    if(!has_random){
+        stop("DREAM analysis requires a random effect in the formula. 
+        Please include a random term in formula.str or use model='limma' for 
+        fixed effects analysis.")
+    }
+    if (length(x) > 2) {
+        stop(
+            "DREAM analysis with random effects is only supported for ",
+            "two-group comparisons. For more than 2 groups, use ",
+            "correlation_block analysis without a random term in ",
+            "formula.str."
         )
-        fit <- variancePartition::dream(
-            combined_data, formula(formula.str), covariates.p,
-            L = L,
-            BPPARAM = BiocParallel::SerialParam()
-        )
-        fit.ebayes <- variancePartition::eBayes(
-            fit, trend = FALSE, robust = FALSE
-        )
-        d_values <- variancePartition::topTable(fit.ebayes,
-            coef = pairwise_contrasts,
-            number = "Inf", sort.by = "none"
-        )
-        d_values <- abs(d_values$logFC)
-        s_values <- as.numeric(sqrt(fit.ebayes$s2.post) *
-            fit.ebayes$stdev.unscaled[, 1])
-        return(list(d = d_values, s = s_values))
-    } # end if (has_random)
+    }
+
+    pairwise_contrasts <-
+        paste0(group, unique(covariates.p[, group]))
+    pairwise_contrasts <- combn(pairwise_contrasts, 2, function(x) {
+        paste(x[1], "-", x[2])
+    })
+    L <- variancePartition::makeContrastsDream(
+        formula(formula.str), covariates.p,
+        contrasts = pairwise_contrasts
+    )
+    fit <- variancePartition::dream(
+        combined_data, formula(formula.str), covariates.p,
+        L = L,
+        BPPARAM = BiocParallel::SerialParam()
+    )
+    fit.ebayes <- variancePartition::eBayes(
+        fit, trend = FALSE, robust = FALSE
+    )
+    d_values <- variancePartition::topTable(fit.ebayes,
+        coef = pairwise_contrasts,
+        number = "Inf", sort.by = "none"
+    )
+    d_values <- abs(d_values$logFC)
+    s_values <- as.numeric(sqrt(fit.ebayes$s2.post) *
+        fit.ebayes$stdev.unscaled[, 1])
+
+    return(list(d = d_values, s = s_values))
+
 }
