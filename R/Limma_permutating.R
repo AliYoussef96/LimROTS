@@ -55,26 +55,33 @@
 
 
 fit_permutation <- function(x, group, meta.info, formula.str,
-                             correlation_block = NULL, model = "limma") {
+                             correlation_block = NULL, model = "limma",
+                             pairwise_contrasts) {
     if(model == "limma"){
         return(.Limma_permutating(x, group, meta.info, formula.str, 
-        correlation_block))
+        correlation_block, pairwise_contrasts))
     }else if (model == "dream") {
         return(.Dream_permutating(x, group, meta.info, formula.str, 
-        correlation_block))
+        correlation_block, pairwise_contrasts))
     }else{
         stop("Invalid model specified. Choose either 'limma' or 'dream'.")
     }
 }
 
 .Limma_permutating <- function(x, group, meta.info, formula.str,
-                             correlation_block = NULL) {
+                             correlation_block = NULL, pairwise_contrasts) {
     combined_data <- x
     covariates.p <- meta.info
     covariates.p$sample.id <- NULL
     row.names(covariates.p) <- NULL
+
+
     has_random <- grepl("|", formula.str, fixed = TRUE)
-    if (!has_random) {
+    if (has_random) { 
+        stop("random terms analysis with random effects is not supported in Limma.
+        Please use model='dream' for random effects analysis.")
+    }
+
     design.matrix <-
         model.matrix(formula(formula.str), data = covariates.p)
     colnames(design.matrix) <-
@@ -90,27 +97,37 @@ fit_permutation <- function(x, group, meta.info, formula.str,
         fit <- lmFit(combined_data, design.matrix)
     }
     if (length( unique( covariates.p[,group] ) ) == 2) {
-        pairwise_contrasts <-
-            paste0(group, unique(covariates.p[, group]))
-        pairwise_contrasts <- combn(pairwise_contrasts, 2, function(x) {
-            paste(x[1], "-", x[2])
-        })
         cont_matrix <- makeContrasts(
             contrasts = pairwise_contrasts,
             levels = design.matrix
         )
         fit2 <- limma::contrasts.fit(fit, cont_matrix)
+
         fit.ebayes <- limma::eBayes(fit2, trend = FALSE, robust = FALSE)
-        d_values <- limma::topTable(fit.ebayes,
-            coef = pairwise_contrasts,
-            number = "Inf", sort.by = "none"
-        )
-        d_values <- abs(d_values$logFC)
-        s_values <- as.numeric(sqrt(fit.ebayes$s2.post) *
-            fit.ebayes$stdev.unscaled[, 1])
+        ### Fit the contrasts and apply empirical Bayes moderation
+        fit2 <- limma::contrasts.fit(fit, cont_matrix)
+        fit.ebayes <- limma::eBayes(fit2, trend = FALSE, robust = FALSE)
+
+        d_values <- setNames(
+            abs(as.numeric(fit.ebayes[["coefficients"]])),
+            rownames(fit.ebayes[["coefficients"]]))
+    
+        stopifnot(identical(names(fit.ebayes[["s2.post"]]) ,  
+                        row.names(fit.ebayes[["stdev.unscaled"]])))
+
+        s_values <- setNames(
+            as.numeric(sqrt(fit.ebayes[["s2.post"]]) *
+                            fit.ebayes[["stdev.unscaled"]]),
+            names(fit.ebayes[["s2.post"]]))
+    
+        stopifnot(identical(names(s_values), names(d_values) ) )
+
         return(list(d = d_values, s = s_values))
-    } else if (length( unique( covariates.p[,group] ) ) > 2 & 
-                                                    ncol(covariates.p) == 1) {
+    } else if (length( unique( covariates.p[,group] ) ) > 2 ) {
+        if(ncol(covariates.p) == 1){
+                stop("Multi-group analysis with more than one covariate is not supported currently. 
+                Please use a single covariate for multi-group analysis.")
+            }
         pairwise_contrasts <-
             paste0(group, unique(covariates.p[, group]))
         pairwise_contrasts <- combn(pairwise_contrasts, 2, function(x) {
@@ -122,8 +139,8 @@ fit_permutation <- function(x, group, meta.info, formula.str,
         )
         fit2 <- limma::contrasts.fit(fit, cont_matrix)
         fit.ebayes <- limma::eBayes(fit2, trend = FALSE, robust = FALSE)
-        msr <- fit.ebayes$F * fit.ebayes$s2.post
-        return(list(d = msr, s = fit.ebayes$s2.post))
+        msr <- fit.ebayes[["F"]] * fit.ebayes[["s2.post"]]
+        return(list(d = msr, s = fit.ebayes[["s2.post"]]))
     }
     }
     
@@ -133,7 +150,7 @@ fit_permutation <- function(x, group, meta.info, formula.str,
 
 
 .Dream_permutating <- function(x, group, meta.info, formula.str,
-            correlation_block == NULL) {
+            correlation_block = NULL, pairwise_contrasts) {
 
     if(!correlation_block == NULL){
         stop("DREAM analysis does not support correlation_block. 
@@ -155,11 +172,6 @@ fit_permutation <- function(x, group, meta.info, formula.str,
         )
     }
 
-    pairwise_contrasts <-
-        paste0(group, unique(covariates.p[, group]))
-    pairwise_contrasts <- combn(pairwise_contrasts, 2, function(x) {
-        paste(x[1], "-", x[2])
-    })
     L <- variancePartition::makeContrastsDream(
         formula(formula.str), covariates.p,
         contrasts = pairwise_contrasts
