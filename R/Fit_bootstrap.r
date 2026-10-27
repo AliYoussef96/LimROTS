@@ -154,9 +154,6 @@ fit_bootstrap <- function(x, group, meta.info, formula.str,
              }
         
 
-
-
-
 .Dream_bootstrap <- function(x, group, meta.info, formula.str,
              correlation_block = NULL) {
         if(!correlation_block == NULL){
