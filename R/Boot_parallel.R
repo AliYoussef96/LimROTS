@@ -29,7 +29,8 @@
 #' \code{Limma_bootstrap} and \code{Limma_permutating} to account for
 #' within-block correlation during model fitting via
 #' \code{duplicateCorrelation}. If NULL, standard independent fitting is used.
-#'
+#' @param model A character string specifying the modeling approach to be used. 
+#' limma for fixed effects and dream for random effects. Default is "limma".
 #'
 #' @return A list containing: \code{D, S, pD, pS} for bootstrapped data and
 #'  for permuted data.
@@ -49,7 +50,8 @@ Boot_parallel <- function(BPPARAM = NULL,
     a1,
     a2,
     pSamples,
-    correlation_block = NULL) {
+    correlation_block = NULL,
+    model = "limma") {
     if (is.null(BPPARAM)) {
         if (.Platform$OS.type == "windows") {
             BPPARAM <- SnowParam(workers = 2)
@@ -74,10 +76,11 @@ Boot_parallel <- function(BPPARAM = NULL,
         a1 = a1,
         a2 = a2,
         pSamples = pSamples,
-        correlation_block = correlation_block
+        correlation_block = correlation_block,
+        model = model
     )
-    export_funcs <- list(Limma_bootstrap = Limma_bootstrap,
-                                    Limma_permutating = Limma_permutating)
+    export_funcs <- list(fit_bootstrap = fit_bootstrap,
+                         Limma_permutating = Limma_permutating)
     for (name in names(export_vars)) {
         assign(name, export_vars[[name]])
     }
@@ -89,14 +92,15 @@ Boot_parallel <- function(BPPARAM = NULL,
         samples.R <- split(samples[i, ], groups)
         pSamples_i <- pSamples[[i]]
         d_result <- s_result <- pd_result <- ps_result <- NULL
-        fit <- Limma_bootstrap(
+        fit <- fit_bootstrap(
             x = lapply(samples.R, function(x)
                 data[, x]
             ),
             group = group,
             meta.info = meta.info,
             formula.str = formula.str,
-            correlation_block = correlation_block
+            correlation_block = correlation_block,
+            model = model
         )
         d_result <- fit$d
         s_result <- fit$s

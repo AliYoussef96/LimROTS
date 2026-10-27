@@ -26,6 +26,8 @@
 #' @param pairwise_contrasts A character vector specifying the pairwise contrasts to be computed. 
 #' Each contrast should be in the format "group1 - group2". for multi-group analysis, 
 #' this will be generated automatically.
+#' @param model A character string specifying the modeling approach to be used. 
+#' limma for fixed effects and dream for random effects. Default is "limma".
 #'
 #' @details
 #' This function first combines the data matrices from different groups and
