@@ -22,8 +22,6 @@
 #' groups or conditions for comparison.
 #' @param formula.str Optional character string representing the formula for
 #' the model.
-#' @param log Logical, indicating whether the data is already log-transformed.
-#' Default is TRUE.
 #' @param survival Logical, indicating whether the analysis is survival 
 #' analysis.
 #' Default is \code{FALSE}. If \code{TRUE}, \code{meta.info} must contain
@@ -49,9 +47,11 @@ SanityChecK <- function(x,
         assay.type = NULL,
         niter = 1000, K = NULL,
         meta.info, group,
-        formula.str,
-        log = TRUE, survival = FALSE) {
+        formula.str, survival = FALSE) {
 
+    
+    ### Check if x is a SummarizedExperiment and extract data and metadata
+    ### and extract the assay if specified
     Check_SExp <- Check_SummarizedExperiment(
         x = x,
         assay.type = assay.type,
@@ -68,6 +68,7 @@ SanityChecK <- function(x,
         data = data
     )
   
+    ### Check if survival analysis is requested and perform additional checks
     if(survival){
         message("Survival analysis mode activated. Performing additional checks.")
         survival_check <- .generate_survival(meta.info = meta.info, 
@@ -77,64 +78,23 @@ SanityChecK <- function(x,
         return(survival_check)
       }
 
+    ### Final checks and sorting of meta.info and data based on the group column
+
     meta.info <- meta.info[order(meta.info[,group]),]
     data <- data[, row.names(meta.info)]
-    ifnot( identical(colnames(data) , row.names(meta.info)) ){
+    if(!identical(colnames(data) , row.names(meta.info)) ){
         stop("After sorting, column names of data do not match row names of
              meta info in colData")
     }
 
-    if (inherits(meta.info[, group], "character")) {
-        meta.info[, group] <- as.factor(
-            meta.info[, group]
-        )
-        message(paste(
-            "Group Level: ",
-            levels(meta.info[, group]),
-            collapse = " & "
-        ))
-        meta.info[, group] <- as.numeric(
-            meta.info[, group]
-        )
-        groups <- as.numeric(meta.info[, group])
-        meta.info[, group] <- as.factor(
-            meta.info[, group]
-        )
-    } else if (inherits(
-        meta.info[, group], "factor"
-    )) {
-        groups <- as.numeric(meta.info[, group])
-        message(paste(
-            "Group Level: ",
-            levels(meta.info[, group]),
-            collapse = " & "
-        ))
-        meta.info[, group] <- as.numeric(
-            meta.info[, group]
-        )
-        meta.info[, group] <- as.factor(
-            meta.info[, group]
-        )
-    } else {
-        meta.info[, group] <- as.factor(
-            meta.info[, group]
-        )
-        message(paste(
-            "Group Level: ",
-            levels(meta.info[, group]),
-            collapse = " & "
-        ))
-        meta.info[, group] <- as.numeric(
-            meta.info[, group]
-        )
-        groups <- as.numeric(meta.info[, group])
-        meta.info[, group] <- as.factor(
-            meta.info[, group]
-        )
+    if(!inherits(meta.info[, group], "character")) {
+        stop("The group column in meta info from colData must be of type character.")
     }
-    groups <- groups + (1 - min(groups))
+
+    ### Check if K is NULL and set it to a quarter of the number of rows in the data
     if (is.null(K)) {
         K <- floor(nrow(data) / 4)
+        message("Top list size (K) not provided. Setting K to a quarter of the number of rows in the data: ", K)
     }
     return(list(
         meta.info = meta.info,
@@ -178,7 +138,7 @@ SanityChecK <- function(x,
       
     meta.info <- meta.info[order(meta.info[,event]),]
     data <- data[, row.names(meta.info)]
-    ifnot( identical(colnames(data) , row.names(meta.info)) ){
+    if(!identical(colnames(data) , row.names(meta.info)) ){
         stop("After sorting, column names of data do not match row names of
              meta info in colData")
     }
