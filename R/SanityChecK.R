@@ -51,7 +51,7 @@ SanityChecK <- function(x,
         meta.info, group,
         formula.str,
         log = TRUE, survival = FALSE) {
-            
+
     Check_SExp <- Check_SummarizedExperiment(
         x = x,
         assay.type = assay.type,
@@ -59,13 +59,13 @@ SanityChecK <- function(x,
         group = group,
         survival = survival
     )
-    data <- Check_SExp$data
-    groups <- Check_SExp$groups
-    meta.info <- Check_SExp$meta.info
+    data <- Check_SExp[["data"]]
+    groups <- Check_SExp[["groups"]]
+    meta.info <- Check_SExp[["meta.info"]]
 
     Check_meta_info(
         meta.info = meta.info,
-        data = data, log = log
+        data = data
     )
     
     if(survival){

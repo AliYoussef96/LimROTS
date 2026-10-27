@@ -7,30 +7,21 @@
 #' (columns of `x`). If `x` is a `SummarizedExperiment`,
 #' @param data A matrix-like object or a `SummarizedExperiment` containing the
 #' data to be analyzed.
-#' @param log Logical, indicating whether the data is already log-transformed.
-#' Default is TRUE.
 #'
 #' @return Logical
 #'
 #'
 
-Check_meta_info <- function(meta.info, data, log) {
+Check_meta_info <- function(meta.info, data) {
     if (any(!row.names(meta.info) %in% colnames(data))) {
         stop("rownames
-            for meta.info should match the data colnames (samples names)")
+            for colData should match the data colnames (samples names)")
     }
     if (any(grepl(".", colnames(data), fixed = TRUE))) {
         stop("Sample names should contains no '.', please remove it if any")
     }
     if (nrow(meta.info) != ncol(data)) {
-        stop("Number of samples in the data does not match the groups.")
-    }
-    if (log == FALSE) {
-        stop(
-            "log is FALSE, Unlogged values, Please log2 the data and
-                set log to TRUE.
-                If the data is log2 values then only set log to TRUE."
-        )
+        stop("Number of samples in the data does not match the groups")
     }
 
     return(TRUE)
