@@ -55,7 +55,8 @@
 
 
 fit_bootstrap <- function(x, group, meta.info, formula.str, 
-                            correlation_block= NULL, model="limma") {
+                            correlation_block= NULL, model="limma",
+                            pairwise_contrasts) {
     if(model == "limma"){
         return(.Limma_bootstrap(x, group, meta.info, formula.str, correlation_block))
     }else if (model == "dream") {
@@ -67,7 +68,7 @@ fit_bootstrap <- function(x, group, meta.info, formula.str,
 
 .Limma_bootstrap <-
     function(x, group, meta.info, formula.str,
-             correlation_block = NULL) {
+             correlation_block = NULL , pairwise_contrasts) {
 
 
         data_for_fit <- .generate_data_for_fit(x, meta.info, correlation_block)
@@ -76,9 +77,18 @@ fit_bootstrap <- function(x, group, meta.info, formula.str,
 
 
         has_random <- grepl("|", formula.str, fixed = TRUE)
-        if (!has_random) {
+        if (has_random) { 
+            stop("random terms analysis with random effects is not supported in Limma.
+            Please use model='dream' for random effects analysis.")
+        }
+
         design.matrix <- model.matrix(formula(formula.str), data = covariates.p)
         colnames(design.matrix) <- make.names(colnames(design.matrix))
+
+
+        stopifnot(identical(colnames(combined_data) , row.names(design.matrix)))
+
+
         if (!is.null(correlation_block)) {
             corfit <- duplicateCorrelation(combined_data, design.matrix,
                                            block = 
@@ -89,12 +99,10 @@ fit_bootstrap <- function(x, group, meta.info, formula.str,
         } else {
             fit <- lmFit(combined_data, design.matrix)
         }
-        if (length(data) == 2) {
-            pairwise_contrasts <-
-                paste0(group, unique(covariates.p[, group]))
-            pairwise_contrasts <- combn(pairwise_contrasts, 2, function(x) {
-                paste(x[1], "-", x[2])
-            })
+
+
+
+        if (length(x) == 2) {
             cont_matrix <- makeContrasts(
                 contrasts = pairwise_contrasts, levels =
                     design.matrix
@@ -112,7 +120,7 @@ fit_bootstrap <- function(x, group, meta.info, formula.str,
                 as.numeric(sqrt(fit.ebayes$s2.post) *
                     fit.ebayes$stdev.unscaled[, 1])
             return(list(d = d_values, s = s_values))
-        } else if (length(data) > 2 & ncol(covariates.p) == 1) {
+        } else if (length(x) > 2 & ncol(covariates.p) == 1) {
             pairwise_contrasts <-
                 paste0(group, unique(covariates.p[, group]))
             pairwise_contrasts <- combn(pairwise_contrasts, 2, function(x) {
@@ -128,8 +136,8 @@ fit_bootstrap <- function(x, group, meta.info, formula.str,
             msr <- fit.ebayes$F * fit.ebayes$s2.post
             return(list(d = msr, s = fit.ebayes$s2.post))
         }
-        } 
-            if (length(data) > 2) {
+        
+            if (length(x) > 2) {
                 stop(
                     "DREAM analysis with random effects is only supported for ",
                     "two-group comparisons. For more than 2 groups, use ",
