@@ -85,7 +85,7 @@ Boot_parallel <- function(BPPARAM = NULL,
         pairwise_contrasts = pairwise_contrasts
     )
     export_funcs <- list(fit_bootstrap = fit_bootstrap,
-                         Limma_permutating = Limma_permutating)
+                         fit_permutation = fit_permutation)
     for (name in names(export_vars)) {
         assign(name, export_vars[[name]])
     }
@@ -111,12 +111,14 @@ Boot_parallel <- function(BPPARAM = NULL,
         d_result <- fit$d
         s_result <- fit$s
         df1 <- data.frame(d_result = d_result, s_result = s_result)
-        pFit <- Limma_permutating(
+        pFit <- fit_permutation(
             x = data,
             group = group,
             meta.info = pSamples_i,
             formula.str = formula.str,
-            correlation_block = correlation_block
+            correlation_block = correlation_block,
+            model = model,
+            pairwise_contrasts = pairwise_contrasts
             )
         pd_result <- pFit$d
         ps_result <- pFit$s
