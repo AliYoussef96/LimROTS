@@ -67,64 +67,14 @@ SanityChecK <- function(x,
         meta.info = meta.info,
         data = data
     )
-    
+  
     if(survival){
-      
-      if(!all(c("time", "event") %in% colnames(meta.info))){
-        stop("For survival analysis, 'meta.info' must contain 'time' and 
-             'event' columns.")
+        survival_check <- .generate_survival(meta.info = meta.info, 
+        data = data, 
+        K = K, 
+        formula.str = formula.str)
+        return(survival_check)
       }
-      
-      if(!grepl("Surv\\(time, event\\)", formula.str)){
-        stop("For survival analysis, 'formula.str' must include a 
-             'Surv(time, event)' term.")
-      }
-      
-      if (is.null(K)) {
-        K <- floor(nrow(data) / 4)
-      }
-      
-      formula.str <- gsub("\\s+", "", formula.str)
-      
-      terms <- str_split_fixed(formula.str, fixed("~"), 2)
-      rhs <- terms[, 2]
-      surv_part <- regmatches(rhs, regexpr("Surv\\([^)]+\\)", rhs))
-      rhs_covariates <- gsub("Surv\\([^)]+\\)\\+?|\\+?Surv\\([^)]+\\)",
-                             "", rhs)
-      rhs_covariates <- gsub("^\\+|\\+$", "", rhs_covariates)
-      if (rhs_covariates == "") {
-        formula.str <- paste0(surv_part, "~y")
-      } else {
-        formula.str <- paste0(surv_part, "~y+", rhs_covariates)
-      }
-      
-      
-      sort.df <- data.frame(
-        sample.id = colnames(data),
-        event = meta.info[, "event"]
-      )
-      sort.df <- sort.df[order(sort.df$event), ]
-      data <- data[, sort.df$sample.id]
-      meta.info$temp <- row.names(meta.info)
-      meta.info <- data.frame(meta.info[colnames(data), ],
-                              check.rows = FALSE,
-                              check.names = FALSE
-      )
-      meta.info$temp <- NULL
-      
-      if(!identical(colnames(data), row.names(meta.info))){
-        stop("After sorting, column names of data do not match row names of
-             meta.info.")
-      }
-      message("Sanity check completed successfully!")
-      
-      return(list(
-        meta.info = meta.info,
-        data = data,
-        K = K,
-        formula.str = formula.str
-      ))
-    }
 
     sort.df <- data.frame(
         sample.id = colnames(data),
@@ -197,4 +147,65 @@ SanityChecK <- function(x,
         groups = groups,
         K = K
     ))
+}
+
+
+
+.generate_survival <- function(meta.info, data, K, formula.str) {
+      
+      if(!all(c("time", "event") %in% colnames(meta.info))){
+        stop("For survival analysis, 'meta.info' must contain 'time' and 
+             'event' columns.")
+      }
+      
+      if(!grepl("Surv\\(time, event\\)", formula.str)){
+        stop("For survival analysis, 'formula.str' must include a 
+             'Surv(time, event)' term.")
+      }
+      
+      if (is.null(K)) {
+        K <- floor(nrow(data) / 4)
+      }
+      
+      formula.str <- gsub("\\s+", "", formula.str)
+      
+      terms <- str_split_fixed(formula.str, fixed("~"), 2)
+      rhs <- terms[, 2]
+      surv_part <- regmatches(rhs, regexpr("Surv\\([^)]+\\)", rhs))
+      rhs_covariates <- gsub("Surv\\([^)]+\\)\\+?|\\+?Surv\\([^)]+\\)",
+                             "", rhs)
+      rhs_covariates <- gsub("^\\+|\\+$", "", rhs_covariates)
+      if (rhs_covariates == "") {
+        formula.str <- paste0(surv_part, "~y")
+      } else {
+        formula.str <- paste0(surv_part, "~y+", rhs_covariates)
+      }
+      
+      
+      sort.df <- data.frame(
+        sample.id = colnames(data),
+        event = meta.info[, "event"]
+      )
+      sort.df <- sort.df[order(sort.df$event), ]
+      data <- data[, sort.df$sample.id]
+      meta.info$temp <- row.names(meta.info)
+      meta.info <- data.frame(meta.info[colnames(data), ],
+                              check.rows = FALSE,
+                              check.names = FALSE
+      )
+      meta.info$temp <- NULL
+      
+      if(!identical(colnames(data), row.names(meta.info))){
+        stop("After sorting, column names of data do not match row names of
+             meta.info.")
+      }
+      message("Sanity check completed successfully!")
+      
+      return(list(
+        meta.info = meta.info,
+        data = data,
+        K = K,
+        formula.str = formula.str
+      ))
+    
 }
