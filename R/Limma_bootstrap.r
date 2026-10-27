@@ -53,7 +53,19 @@
 #' @importFrom BiocParallel SerialParam
 #'
 
-Limma_bootstrap <-
+
+fit_bootstrap <- function(x, group, meta.info, formula.str, 
+                            correlation_block= NULL, model="limma") {
+    if(model == "limma"){
+        return(.Limma_bootstrap(x, group, meta.info, formula.str, correlation_block))
+    }else if (model == "dream") {
+        return(.Dream_bootstrap(x, group, meta.info, formula.str))
+    }else{
+        stop("Invalid model specified. Choose either 'limma' or 'dream'.")
+    }
+}
+
+.Limma_bootstrap <-
     function(x, group, meta.info, formula.str,
              correlation_block = NULL) {
         data <- x
@@ -72,6 +84,9 @@ Limma_bootstrap <-
         combined_data <- combined_data[, -1]
         colnames(combined_data) <-
             paste0(colnames(combined_data), ".", seq(1, ncol(combined_data)))
+
+
+            
         covariates.p <- data.frame()
         meta.info.temp <- meta.info
         meta.info.temp$sample.id <- row.names(meta.info.temp)
@@ -149,8 +164,7 @@ Limma_bootstrap <-
             msr <- fit.ebayes$F * fit.ebayes$s2.post
             return(list(d = msr, s = fit.ebayes$s2.post))
         }
-        } # end if (!has_random)
-        if (has_random) {
+        } 
             if (length(data) > 2) {
                 stop(
                     "DREAM analysis with random effects is only supported for ",
@@ -187,5 +201,89 @@ Limma_bootstrap <-
                 as.numeric(sqrt(fit.ebayes$s2.post) *
                     fit.ebayes$stdev.unscaled[, 1])
             return(list(d = d_values, s = s_values))
-        } # end if (has_random)
+        
     }
+
+
+
+
+.Dream_bootstrap <- function(x, group, meta.info, formula.str,
+             correlation_block = NULL) {
+        if(!correlation_block == NULL){
+            stop("DREAM analysis does not support correlation_block. 
+            Please set correlation_block = NULL or use model='limma' 
+            for correlation_block analysis.")
+        }
+        has_random <- grepl("|", formula.str, fixed = TRUE)
+        if(!has_random){
+            stop("DREAM analysis requires a random effect in the formula. 
+            Please include a random term in formula.str or use model='limma' for 
+            fixed effects analysis.")
+        }
+        if (length(x) > 2) {
+            stop(
+                "DREAM analysis with random effects is only supported for ",
+                "two-group comparisons. For more than 2 groups, use ",
+                "correlation_block analysis without a random term in ",
+                "formula.str."
+            )
+        }
+        data <- x
+        combined_data <- data.frame(
+            check.rows = FALSE,
+            check.names = FALSE,
+            none = rep("none", nrow(data[[1]]))
+        )
+        for (k.list in names(data)) {
+            combined_data <- cbind(
+                combined_data,
+                data.frame(data[[k.list]], check.rows = FALSE, 
+                                                    check.names = FALSE)
+            )
+        }
+        combined_data <- combined_data[, -1]
+        colnames(combined_data) <-
+            paste0(colnames(combined_data), ".", seq(1, ncol(combined_data)))
+        covariates.p <- data.frame()
+        meta.info.temp <- meta.info
+        meta.info.temp$sample.id <- row.names(meta.info.temp)
+        for (i in colnames(combined_data)) {
+            real_SampleNames <- str_split_fixed(i, fixed("."), 2)[, 1]
+            df.temp <-
+                meta.info.temp[row.names(meta.info.temp) %in% real_SampleNames
+                                                , ]
+            df.temp$sample.id <- i
+            covariates.p <- rbind(covariates.p, df.temp)
+        }
+        covariates.p$sample.id <- NULL
+        row.names(covariates.p) <- NULL
+
+        pairwise_contrasts <-
+            paste0(group, unique(covariates.p[, group]))
+        pairwise_contrasts <- combn(pairwise_contrasts, 2, function(x) {
+            paste(x[1], "-", x[2])
+        })
+        L <- variancePartition::makeContrastsDream(
+            formula(formula.str), covariates.p,
+            contrasts = pairwise_contrasts
+        )
+        fit <- variancePartition::dream(
+            combined_data, formula(formula.str), covariates.p,
+            L = L,
+            BPPARAM = BiocParallel::SerialParam()
+        )
+        fit.ebayes <- variancePartition::eBayes(
+            fit, trend = FALSE, robust = FALSE
+        )
+        d_values <- variancePartition::topTable(
+            fit.ebayes,
+            coef = pairwise_contrasts,
+            number = "Inf",
+            sort.by = "none"
+        )
+        d_values <- abs(d_values$logFC)
+        s_values <-
+            as.numeric(sqrt(fit.ebayes$s2.post) *
+                fit.ebayes$stdev.unscaled[, 1])
+        return(list(d = d_values, s = s_values))
+            }
