@@ -22,11 +22,10 @@
 #'
 
 Check_SummarizedExperiment <- function(x,
-        assay.type = NULL, meta.info,
-        group, survival = FALSE) {
+                                       assay.type = NULL, meta.info,
+                                       group, survival = FALSE) {
     if (inherits(x, "SummarizedExperiment")) {
         message("Data is SummarizedExperiment object")
-
         if (is.null(meta.info)) {
             stop("meta.info should be a vector of colData names to be used")
         } else {
@@ -36,39 +35,31 @@ Check_SummarizedExperiment <- function(x,
                 check.names = FALSE,
                 row.names = row.names(colData(x))
             )
-            if (length(meta.info) != length(meta.info.colnames)) {
+            if (!identical(colnames(meta.info) , meta.info.colnames)) {
                 stop("meta.info should be a vector of colData names to be used")
-            } else {
-                colnames(meta.info) <- meta.info.colnames
             }
         }
         if(!survival){
-          if (!group %in% colnames(meta.info)) {
-              stop(
-                  "group should be a string specifying",
-                  " the column in `meta.info` that",
-                  " represents the groups or conditions",
-                  " for comparison."
-              )
-          }
+            if (!group %in% colnames(meta.info)) {
+                stop(
+                    "group should be a string specifying",
+                    " the column in `meta.info` that",
+                    " represents the groups or conditions",
+                    " for comparison."
+                )
+            }
         }
         if (is.null(assay.type)) {
             assay.type <- assayNames(x)[1]
         }
-          message(sprintf("Assay: %s will be used", assay.type))
-          data <- assay(x, assay.type)
-          groups <- NULL
-      } else {
-          data <- x
-          if (!survival) {
-              groups <- meta.info[, group]
-          } else {
-              groups <- NULL
-          }
-          meta.info <- meta.info
-      }
-      return(list(
-          data = data, groups = groups,
-          meta.info = meta.info
-      ))
-  }
+        message(sprintf("Assay: %s will be used", assay.type))
+        data <- assay(x, assay.type)
+        groups <- NULL
+    } else {
+        stop("x should be a SummarizedExperiment object")
+    }
+    return(list(
+        data = data, groups = groups,
+        meta.info = meta.info
+    ))
+}
