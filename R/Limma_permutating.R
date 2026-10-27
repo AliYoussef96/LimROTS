@@ -70,22 +70,27 @@ fit_permutation <- function(x, group, meta.info, formula.str,
 
 .Limma_permutating <- function(x, group, meta.info, formula.str,
                              correlation_block = NULL, pairwise_contrasts) {
+
+    ### Generate combined data and covariates for model fitting
     combined_data <- x
     covariates.p <- meta.info
     covariates.p$sample.id <- NULL
     row.names(covariates.p) <- NULL
 
-
+    ### Check for random effects in the formula
     has_random <- grepl("|", formula.str, fixed = TRUE)
     if (has_random) { 
         stop("random terms analysis with random effects is not supported in Limma.
         Please use model='dream' for random effects analysis.")
     }
 
+    ### Create the design matrix based on the provided formula and covariates
     design.matrix <-
         model.matrix(formula(formula.str), data = covariates.p)
     colnames(design.matrix) <-
         make.names(colnames(design.matrix))
+
+    ### Fit the linear model using Limma, accounting for correlation blocks if specified
     if (!is.null(correlation_block)) {
         corfit <- duplicateCorrelation(combined_data, design.matrix,
                                        block = 
@@ -96,14 +101,15 @@ fit_permutation <- function(x, group, meta.info, formula.str,
     } else {
         fit <- lmFit(combined_data, design.matrix)
     }
+
+    ### Compute contrasts and apply empirical Bayes moderation based on the number of groups
     if (length( unique( covariates.p[,group] ) ) == 2) {
+        ### For two-group comparisons, compute the specified pairwise contrasts
         cont_matrix <- makeContrasts(
             contrasts = pairwise_contrasts,
             levels = design.matrix
         )
-        fit2 <- limma::contrasts.fit(fit, cont_matrix)
 
-        fit.ebayes <- limma::eBayes(fit2, trend = FALSE, robust = FALSE)
         ### Fit the contrasts and apply empirical Bayes moderation
         fit2 <- limma::contrasts.fit(fit, cont_matrix)
         fit.ebayes <- limma::eBayes(fit2, trend = FALSE, robust = FALSE)
