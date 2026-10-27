@@ -147,10 +147,8 @@ fit_permutation <- function(x, group, meta.info, formula.str,
         fit.ebayes <- limma::eBayes(fit2, trend = FALSE, robust = FALSE)
         msr <- fit.ebayes[["F"]] * fit.ebayes[["s2.post"]]
         return(list(d = msr, s = fit.ebayes[["s2.post"]]))
+        }
     }
-    }
-    
-}
 
 
 
