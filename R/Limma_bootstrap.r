@@ -68,49 +68,13 @@ fit_bootstrap <- function(x, group, meta.info, formula.str,
 .Limma_bootstrap <-
     function(x, group, meta.info, formula.str,
              correlation_block = NULL) {
-        data <- x
-        combined_data <- data.frame(
-            check.rows = FALSE,
-            check.names = FALSE,
-            none = rep("none", nrow(data[[1]]))
-        )
-        for (k.list in names(data)) {
-            combined_data <- cbind(
-                combined_data,
-                data.frame(data[[k.list]], check.rows = FALSE, 
-                                                    check.names = FALSE)
-            )
-        }
-        combined_data <- combined_data[, -1]
-        colnames(combined_data) <-
-            paste0(colnames(combined_data), ".", seq(1, ncol(combined_data)))
 
 
-            
-        covariates.p <- data.frame()
-        meta.info.temp <- meta.info
-        meta.info.temp$sample.id <- row.names(meta.info.temp)
-        for (i in colnames(combined_data)) {
-            real_SampleNames <- str_split_fixed(i, fixed("."), 2)[, 1]
-            df.temp <-
-                meta.info.temp[row.names(meta.info.temp) %in% real_SampleNames
-                                                , ]
-            df.temp$sample.id <- i
-            covariates.p <- rbind(covariates.p, df.temp)
-        }
-        covariates.p$sample.id <- NULL
-        row.names(covariates.p) <- NULL
-        if (!is.null(correlation_block)) {
-            # A block drawn more than once is a separate unit each time; give
-            # the n-th copy of each sample the n-th draw's block ID so that
-            # duplicateCorrelation does not pool the copies into one block.
-            real_names <- str_split_fixed(colnames(combined_data),
-                                          fixed("."), 2)[, 1]
-            draw <- stats::ave(seq_along(real_names), real_names,
-                               FUN = seq_along)
-            covariates.p[, correlation_block] <- paste(
-                covariates.p[, correlation_block], draw, sep = "_")
-        }
+        data_for_fit <- .generate_data_for_fit(x, meta.info, correlation_block)
+        combined_data <- data_for_fit$combined_data
+        covariates.p <- data_for_fit$covariates.p
+
+
         has_random <- grepl("|", formula.str, fixed = TRUE)
         if (!has_random) {
         design.matrix <- model.matrix(formula(formula.str), data = covariates.p)
@@ -287,3 +251,50 @@ fit_bootstrap <- function(x, group, meta.info, formula.str,
                 fit.ebayes$stdev.unscaled[, 1])
         return(list(d = d_values, s = s_values))
             }
+
+
+.generate_data_for_fit <- function(x, meta.info, correlation_block = NULL) {
+    ### Check if x is a list of matrices with identical rownames
+    stopifnot(
+        all(vapply(
+            x,
+            function(z) identical(rownames(z), rownames(x[[1L]])),
+            logical(1)
+        ))
+    )
+    combined_data <- do.call(cbind, x)
+    
+    ### create a unique colnames for the combined data to avoid duplicates
+    colnames(combined_data) <-
+        paste0(colnames(combined_data), ".", seq(1, ncol(combined_data)))
+
+    ### create a covariates data frame for the combined data
+    covariates.p <- data.frame()
+    meta.info.temp <- meta.info
+    meta.info.temp$sample.id <- row.names(meta.info.temp)
+    for (i in colnames(combined_data)) {
+        real_SampleNames <- str_split_fixed(i, fixed("."), 2)[, 1]
+        df.temp <- meta.info.temp[real_SampleNames, , drop = FALSE]
+        df.temp[,"sample.id"] <- i
+        covariates.p <- rbind(covariates.p, df.temp)
+    }
+    stopifnot(identical(colnames(combined_data), covariates.p[,"sample.id"]))
+    row.names(covariates.p) <- covariates.p[,"sample.id"]
+    covariates.p[,"sample.id"] <- NULL
+
+    ### if correlation_block is specified, modify the block IDs for duplicate samples
+
+    if (!is.null(correlation_block)) {
+        # A block drawn more than once is a separate unit each time; give
+        # the n-th copy of each sample the n-th draw's block ID so that
+        # duplicateCorrelation does not pool the copies into one block.
+        real_names <- str_split_fixed(colnames(combined_data),
+                                    fixed("."), 2)[, 1]
+        draw <- stats::ave(seq_along(real_names), real_names,
+                        FUN = seq_along)
+        covariates.p[, correlation_block] <- paste(
+            covariates.p[, correlation_block], draw, sep = "_")
+    }
+
+    return(list(combined_data = combined_data, covariates.p = covariates.p))
+}
