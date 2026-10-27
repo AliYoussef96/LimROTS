@@ -192,9 +192,9 @@ fit_permutation <- function(x, group, meta.info, formula.str,
         coef = pairwise_contrasts,
         number = "Inf", sort.by = "none"
     )
-    d_values <- abs(d_values$logFC)
-    s_values <- as.numeric(sqrt(fit.ebayes$s2.post) *
-        fit.ebayes$stdev.unscaled[, 1])
+    d_values <- abs(d_values[["logFC"]])
+    s_values <- as.numeric(sqrt(fit.ebayes[["s2.post"]]) *
+        fit.ebayes[["stdev.unscaled"]][, 1])
 
     return(list(d = d_values, s = s_values))
 
