@@ -15,14 +15,8 @@
 #' Default is 1000.
 #' @param K An optional integer representing the top list size for ranking.
 #' If not specified, it is set to one-fourth of the number of features.
-#' @param a1 Optional numeric value used in the optimization process.
-#' If defined by the user, no optimization occurs.
-#' @param a2 Optional numeric value used in the optimization process.
-#' If defined by the user, no optimization occurs.
 #' @param log Logical, indicating whether the data is already log-transformed.
 #' Default is \code{TRUE}.
-#' @param verbose Logical, indicating whether to display messages during the
-#' function's execution. Default is \code{TRUE}.
 #' @param meta.info a character vector of the metadata needed for the
 #' model to run and can be retrieved using \code{colData()}.
 #' @param group A string specifying the column in \code{meta.info} that
@@ -154,10 +148,7 @@ LimROTS <- function(x,
     assay.type = NULL,
     niter = 1000,
     K = NULL,
-    a1 = NULL,
-    a2 = NULL,
     log = TRUE,
-    verbose = TRUE,
     meta.info,
     BPPARAM  = NULL,
     group,
@@ -166,6 +157,13 @@ LimROTS <- function(x,
     trend = TRUE,
     permutating.group = FALSE,
     correlation_block = NULL) {
+
+
+    if(!inherits(x, "SummarizedExperiment")){
+        stop("Input 'x' must be a SummarizedExperiment object.")
+    }
+
+    ### Perform sanity checks on the input parameters and data.
     SanityChecK.list <- SanityChecK(
         x,
         assay.type = assay.type,
@@ -173,19 +171,120 @@ LimROTS <- function(x,
         K = K,
         meta.info = meta.info,
         group = group,
-        verbose = verbose,
         log = log
     )
+
     meta.info <- SanityChecK.list$meta.info
     data <- SanityChecK.list$data
     groups <- SanityChecK.list$groups
     event <- SanityChecK.list$event
     K <- SanityChecK.list$K
-    
-    if (verbose) {
-        message("Initiating limma on bootstrapped samples")
+
+    ### bootstrap and permutation samples
+
+    list_boot_perm <- .generate_bootstrap_permutations(
+        niter = niter,
+        meta.info = meta.info,
+        group = group,
+        correlation_block = correlation_block,
+        permutating.group = permutating.group
+    )
+
+    boot_Samples = list_boot_perm[["boot_Samples"]]
+    perm_Samples = list_boot_perm[["perm_Samples"]]
+
+    D <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(boot_Samples))
+    S <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(boot_Samples))
+    pD <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(boot_Samples))
+    pS <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(boot_Samples))
+
+    ### parallelized bootstrapping and permutation fit
+
+    results_list <- Boot_parallel(
+        BPPARAM  = BPPARAM ,
+        samples = boot_Samples, data = data,
+        formula.str = formula.str,
+        group = group,
+        groups = groups,
+        meta.info = meta.info,
+        a1 = a1, a2 = a2,
+        pSamples = perm_Samples,
+        correlation_block = correlation_block
+    )
+
+    for (i in seq_along(results_list)) {
+        D[, i] <- results_list[[i]][["ds"]][["d_result"]]
+        S[, i] <- results_list[[i]][["ds"]][["s_result"]]
+        pD[, i] <- results_list[[i]][["pdps"]][["pd_result"]]
+        pS[, i] <- results_list[[i]][["pdps"]][["ps_result"]]
     }
 
+    ### optimize parameters
+
+    ssq <- c(
+        seq(0, 20) / 100, 
+        seq(11, 50) / 50, 
+        seq(6, 25) / 5
+        )
+    N <- c(
+        seq(1, 20) * 5,
+        seq(11, 50) * 10,
+        seq(21, 40) * 25,
+        seq(11, 1000) * 100
+    )
+    K <- min(K, nrow(data))
+    N <- N[N < K]
+    optimized.parameters <-
+        Optimizing(niter =  niter, ssq = ssq, N = N, D = D, S = S, pD = pD, pS = pS)
+    a1 <- optimized.parameters[["a1"]]
+    a2 <- optimized.parameters[["a2"]]
+    k <- optimized.parameters[["k"]]
+    R <- optimized.parameters[["R"]]
+    Z <- optimized.parameters[["Z"]]
+    ztable <- optimized.parameters[["ztable"]]
+
+    ### fit limma on the original data
+
+    fit_limma <- .fit_limma(
+        data = data,
+        meta.info = meta.info,
+        group = group,
+        formula.str = formula.str,
+        trend = trend,
+        robust = robust,
+        correlation_block = correlation_block,
+        a1 = a1, a2 = a2
+    )
+    d = fit_limma[["d"]]
+    pD = fit_limma[["pD"]]
+    p = fit_limma[["p"]]
+    FDR = fit_limma[["FDR"]]
+    corrected.logfc = fit_limma[["corrected.logfc"]]
+    q_values = fit_limma[["q_values"]]
+    BH.pvalue = fit_limma[["BH.pvalue"]]
+
+    ### generate output
+
+    LimROTS.output <- .generate_output(
+        x = x,
+        data = data,
+        d = d,
+        p = p,
+        FDR = FDR,
+        corrected.logfc = corrected.logfc,
+        q_values = q_values,
+        BH.pvalue = BH.pvalue,
+        a1 = a1, a2 = a2, k = k, Z = Z, R = R, ztable = ztable, pD = pD
+    )
+    
+    return(LimROTS.output)
+}
+
+
+
+.generate_bootstrap_permutations <- function(niter, meta.info, group, 
+correlation_block = NULL, permutating.group = FALSE) {
+    # Generate bootstrap and permutation samples based on the provided metadata.
     if (ncol(meta.info) > 1) {
         samples <- bootstrapSamples_limRots_block(
             niter = 2 * niter,
@@ -235,49 +334,13 @@ LimROTS <- function(x,
         }
         
     }
-    D <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
-    S <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
-    pD <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
-    pS <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
-    results_list <- Boot_parallel(
-        BPPARAM  = BPPARAM ,
-        samples = samples, data = data,
-        formula.str = formula.str,
-        group = group,
-        groups = groups,
-        meta.info = meta.info,
-        a1 = a1, a2 = a2,
-        pSamples = pSamples,
-        correlation_block = correlation_block
-    )
+    return(list(boot_Samples = samples, perm_Samples = pSamples))
+}
 
-    for (i in seq_along(results_list)) {
-        D[, i] <- results_list[[i]][["ds"]][["d_result"]]
-        S[, i] <- results_list[[i]][["ds"]][["s_result"]]
-        pD[, i] <- results_list[[i]][["pdps"]][["pd_result"]]
-        pS[, i] <- results_list[[i]][["pdps"]][["ps_result"]]
-    }
-    rm(samples)
-    gc()
-    if (is.null(a1) | is.null(a2)) {
-        ssq <- c(seq(0, 20) / 100, seq(11, 50) / 50, seq(6, 25) / 5)
-        N <- c(
-            seq(1, 20) * 5,
-            seq(11, 50) * 10,
-            seq(21, 40) * 25,
-            seq(11, 1000) * 100
-        )
-        K <- min(K, nrow(data))
-        N <- N[N < K]
-        optimized.parameters <-
-            Optimizing(niter, ssq, N, D, S, pD, pS, verbose)
-        a1 <- optimized.parameters$a1
-        a2 <- optimized.parameters$a2
-        k <- optimized.parameters$k
-        R <- optimized.parameters$R
-        Z <- optimized.parameters$Z
-        ztable <- optimized.parameters$ztable
-        fit <- Limma_fit(
+.fit_limma <- function(data, meta.info, group, formula.str, trend, robust,
+    correlation_block, a1, a2) {
+        # Fit the limma model on the original data and compute statistics, p-values, and FDR.
+ fit <- Limma_fit(
             x = lapply(split(seq_len(length(
                 groups
             )), groups), function(x) {
@@ -292,11 +355,7 @@ LimROTS <- function(x,
         )
         d <- fit$d / (a1 + a2 * fit$s)
         pD <- pD / (a1 + a2 * pS)
-        rm(pS)
-        gc()
-        if (verbose) {
-            message("Computing p-values and FDR")
-        }
+
         p <- empPvals(
             stat = d,
             stat0 = pD,
@@ -317,163 +376,56 @@ LimROTS <- function(x,
             }
         )
         BH.pvalue <- p.adjust(p, method = "BH")
+    return(list(
+        d = d,
+        pD = pD,
+        p = p,
+        FDR = FDR,
+        corrected.logfc = corrected.logfc,
+        q_values = q_values,
+        BH.pvalue = BH.pvalue
+    ))
 
-        if (inherits(x, "SummarizedExperiment")) {
-            new_rowData <- DataFrame(
-                statistics = d,
-                pvalue = p,
-                qvalue = if (is.null(q_values)) rep(NA_real_, length(d))
-                         else q_values$qvalues,
-                FDR = FDR,
-                corrected.logfc = corrected.logfc,
-                BH.pvalue = BH.pvalue,
-                row.names = row.names(data)
-            )
-
-            new_rowData <- new_rowData[match(rownames(x), 
-                                                    rownames(new_rowData)), ]
-            if (!identical(rownames(new_rowData), rownames(x))) {
-                stop("Can not add the LimROTS results to the 
-                                                        SummarizedExperiment")
-            }
-            correct.order <- rownames(x)
-            rowData(x) <- cbind(rowData(x), new_rowData)
-            if (!identical(correct.order, rownames(x))) {
-                stop("Can not add the LimROTS results to the 
-                                                        SummarizedExperiment")
-            }
-            metadata(x) <- c(metadata(x), list(
-                a1 = a1,
-                a2 = a2,
-                k = k,
-                Z = Z,
-                R = R,
-                ztable = ztable,
-                q_values = q_values,
-                null.statistics = pD
-            ))
-
-            LimROTS.output <- x
-            remove(x)
-            gc()
-        } else {
-            LimROTS.output <- list(
-                data = data,
-                niter = niter,
-                statistics = d,
-                pvalue = p,
-                FDR = FDR,
-                a1 = a1,
-                a2 = a2,
-                k = k,
-                R = R,
-                Z = Z,
-                ztable = ztable,
-                groups = groups,
-                corrected.logfc = corrected.logfc,
-                q_values = q_values,
-                BH.pvalue = BH.pvalue,
-                null.statistics = pD
-            )
-        }
-    } else {
-        fit <- Limma_fit(
-            x = lapply(split(seq_len(length(
-                groups
-            )), groups), function(x) {
-                data[, x]
-            }),
-            group = group,
-            meta.info = meta.info,
-            formula.str = formula.str,
-            trend = trend,
-            robust = robust,
-            correlation_block = correlation_block
-        )
-        d <- fit$d / (a1 + a2 * fit$s)
-        pD <- pD / (a1 + a2 * pS)
-        if (verbose) {
-            message("Calculating p-values and FDR")
-        }
-        p <- empPvals(
-            stat = d,
-            stat0 = pD,
-            pool = TRUE
-        )
-        FDR <- calculateFalseDiscoveryRate(d, pD)
-        corrected.logfc <- fit$corrected.logfc
-        q_values <- tryCatch(
-            {
-                qvalue(
-                    p,
-                    pi0.method = "bootstrap",
-                    lambda = seq(0.01, 0.95, 0.01)
-                )
-            },
-            error = function(e) {
-                message("qvalue() failed (return NULL): ", e$message)
-                NULL
-            }
-        )
-        BH.pvalue <- p.adjust(p, method = "BH")
-
-        if (inherits(x, "SummarizedExperiment")) {
-            new_rowData <- DataFrame(
-                statistics = d,
-                pvalue = p,
-                qvalue = if (is.null(q_values)) rep(NA_real_, length(d))
-                         else q_values$qvalues,
-                FDR = FDR,
-                corrected.logfc = corrected.logfc,
-                BH.pvalue = BH.pvalue,
-                row.names = row.names(data)
-            )
-
-            new_rowData <- new_rowData[match(rownames(x), 
-                                                        rownames(new_rowData))
-                                                            , ]
-            if (!identical(rownames(new_rowData), rownames(x))) {
-                stop("Can not add the LimROTS results to the 
-                                                        SummarizedExperiment")
-            }
-            correct.order <- rownames(x)
-            rowData(x) <- cbind(rowData(x), new_rowData)
-            if (!identical(correct.order, rownames(x))) {
-                stop("Can not add the LimROTS results to the 
-                                                        SummarizedExperiment")
-            }
-            metadata(x) <- c(metadata(x), list(
-                a1 = a1,
-                a2 = a2,
-                k = NULL,
-                Z = NULL,
-                R = NULL,
-                ztable = ztable,
-                q_values = q_values,
-                null.statistics = pD
-            ))
-            LimROTS.output <- x
-            remove(x)
-            gc()
-        } else {
-            LimROTS.output <- list(
-                data = data,
-                niter = niter,
-                statistics = d,
-                pvalue = p,
-                FDR = FDR,
-                a1 = a1,
-                a2 = a2,
-                k = NULL,
-                R = NULL,
-                Z = NULL,
-                groups = groups,
-                corrected.logfc = corrected.logfc,
-                q_values = q_values,
-                BH.pvalue = BH.pvalue,
-                null.statistics = pD
-            )
-        }
     }
+
+
+.generate_output <- function(x, data, d, p, FDR, corrected.logfc,
+    q_values, BH.pvalue, a1, a2, k, Z, R, ztable, pD) {
+        # Generate the output SummarizedExperiment object with the LimROTS results.
+    new_rowData <- DataFrame(
+        statistics = d,
+        pvalue = p,
+        qvalue = if (is.null(q_values)) rep(NA_real_, length(d))
+                    else q_values$qvalues,
+        FDR = FDR,
+        corrected.logfc = corrected.logfc,
+        BH.pvalue = BH.pvalue,
+        row.names = row.names(data)
+    )
+
+    new_rowData <- new_rowData[match(rownames(x), 
+                                            rownames(new_rowData)), ]
+    if (!identical(rownames(new_rowData), rownames(x))) {
+        stop("Can not add the LimROTS results to the 
+                                                SummarizedExperiment")
+    }
+    correct.order <- rownames(x)
+    rowData(x) <- cbind(rowData(x), new_rowData)
+    if (!identical(correct.order, rownames(x))) {
+        stop("Can not add the LimROTS results to the 
+                                                SummarizedExperiment")
+    }
+    metadata(x) <- c(metadata(x), list(
+        a1 = a1,
+        a2 = a2,
+        k = k,
+        Z = Z,
+        R = R,
+        ztable = ztable,
+        q_values = q_values,
+        null.statistics = pD
+    ))
+
+    LimROTS.output <- x
     return(LimROTS.output)
-}
+    }

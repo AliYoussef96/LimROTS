@@ -22,8 +22,6 @@
 #' groups or conditions for comparison.
 #' @param formula.str Optional character string representing the formula for
 #' the model.
-#' @param verbose Logical, indicating whether to display messages during the
-#' function's execution. Default is TRUE.
 #' @param log Logical, indicating whether the data is already log-transformed.
 #' Default is TRUE.
 #' @param survival Logical, indicating whether the analysis is survival 
@@ -51,8 +49,9 @@ SanityChecK <- function(x,
         assay.type = NULL,
         niter = 1000, K = NULL,
         meta.info, group,
-        formula.str, verbose = TRUE,
+        formula.str,
         log = TRUE, survival = FALSE) {
+            
     Check_SExp <- Check_SummarizedExperiment(
         x = x,
         assay.type = assay.type,
@@ -83,9 +82,6 @@ SanityChecK <- function(x,
       
       if (is.null(K)) {
         K <- floor(nrow(data) / 4)
-        if (verbose) {
-          message(sprintf("No top list size K given, using %s", K))
-        }
       }
       
       formula.str <- gsub("\\s+", "", formula.str)
@@ -194,11 +190,6 @@ SanityChecK <- function(x,
     groups <- groups + (1 - min(groups))
     if (is.null(K)) {
         K <- floor(nrow(data) / 4)
-        if (verbose) {
-            message(sprintf(
-                "No top list size K given, using %s", K
-            ))
-        }
     }
     return(list(
         meta.info = meta.info,
