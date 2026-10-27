@@ -23,6 +23,9 @@
 #' \code{meta.info} that defines correlation blocks. When not NULL,
 #' within-block correlation is estimated via \code{duplicateCorrelation} and
 #' accounted for in \code{lmFit}. If NULL, standard independent fitting is used.
+#' @param pairwise_contrasts A character vector specifying the pairwise contrasts to be computed. 
+#' Each contrast should be in the format "group1 - group2". for multi-group analysis, 
+#' this will be generated automatically.
 #'
 #' @details
 #' This function first combines the data matrices from different groups and
@@ -175,45 +178,19 @@ fit_bootstrap <- function(x, group, meta.info, formula.str,
                 "formula.str."
             )
         }
-        data <- x
-        combined_data <- data.frame(
-            check.rows = FALSE,
-            check.names = FALSE,
-            none = rep("none", nrow(data[[1]]))
-        )
-        for (k.list in names(data)) {
-            combined_data <- cbind(
-                combined_data,
-                data.frame(data[[k.list]], check.rows = FALSE, 
-                                                    check.names = FALSE)
-            )
-        }
-        combined_data <- combined_data[, -1]
-        colnames(combined_data) <-
-            paste0(colnames(combined_data), ".", seq(1, ncol(combined_data)))
-        covariates.p <- data.frame()
-        meta.info.temp <- meta.info
-        meta.info.temp$sample.id <- row.names(meta.info.temp)
-        for (i in colnames(combined_data)) {
-            real_SampleNames <- str_split_fixed(i, fixed("."), 2)[, 1]
-            df.temp <-
-                meta.info.temp[row.names(meta.info.temp) %in% real_SampleNames
-                                                , ]
-            df.temp$sample.id <- i
-            covariates.p <- rbind(covariates.p, df.temp)
-        }
-        covariates.p$sample.id <- NULL
-        row.names(covariates.p) <- NULL
 
-        pairwise_contrasts <-
-            paste0(group, unique(covariates.p[, group]))
-        pairwise_contrasts <- combn(pairwise_contrasts, 2, function(x) {
-            paste(x[1], "-", x[2])
-        })
+        ### Generate combined data and covariates for model fitting
+        data_for_fit <- .generate_data_for_fit(x, meta.info, correlation_block)
+        combined_data <- data_for_fit$combined_data
+        covariates.p <- data_for_fit$covariates.p
+
+        ### Create the design matrix based on the provided formula and covariates
         L <- variancePartition::makeContrastsDream(
             formula(formula.str), covariates.p,
             contrasts = pairwise_contrasts
         )
+
+        ### Fit the model using DREAM
         fit <- variancePartition::dream(
             combined_data, formula(formula.str), covariates.p,
             L = L,
@@ -228,10 +205,10 @@ fit_bootstrap <- function(x, group, meta.info, formula.str,
             number = "Inf",
             sort.by = "none"
         )
-        d_values <- abs(d_values$logFC)
+        d_values <- abs(d_values[["logFC"]])
         s_values <-
-            as.numeric(sqrt(fit.ebayes$s2.post) *
-                fit.ebayes$stdev.unscaled[, 1])
+            as.numeric(sqrt(fit.ebayes[["s2.post"]]) *
+                fit.ebayes[["stdev.unscaled"]][, 1])
         return(list(d = d_values, s = s_values))
             }
 
