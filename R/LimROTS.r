@@ -153,7 +153,7 @@ LimROTS <- function(x,
     trend = TRUE,
     permutating.group = FALSE,
     correlation_block = NULL,
-    pairwise_contrasts = NULL,
+    pairwise_contrasts,
     model = "limma"
     ) {
 

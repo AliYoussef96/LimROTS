@@ -47,7 +47,7 @@ SanityChecK <- function(x,
         assay.type = NULL,
         niter = 1000, K = NULL,
         meta.info, group, model = "limma",
-        formula.str, survival = FALSE, pairwise_contrasts = NULL) {
+        formula.str, survival = FALSE, pairwise_contrasts) {
 
     ### Check if x is a SummarizedExperiment and extract data and metadata
     ### and extract the assay if specified
@@ -67,9 +67,8 @@ SanityChecK <- function(x,
         data = data
     )
 
-    ### Check if pairwise contrasts are provided for two-group analysis
-    if(is.null(pairwise_contrasts) && length(unique(meta.info[, group])) == 2){
-        stop("For two-group analysis, pairwise_contrasts must be provided.")
+    if(length(unique(meta.info[, group])) != 2){
+        stop("LimROTS only supports two-group comparisons.")
     }
   
     ### Check if survival analysis is requested and perform additional checks
@@ -84,11 +83,7 @@ SanityChecK <- function(x,
 
 
     ### Checks for the model type and random effects in the formula
-    if(model == "limma"){
-        .check_limma_model(formula.str = formula.str, model = model,correlation_block = correlation_block, 
-        meta.info = meta.info, group = group)
-    }else if(model == "dream"){
-        .check_dream_model(formula.str = formula.str, model = model, correlation_block = correlation_block, meta.info = meta.info, group = group)
+    .check_random_effects(formula.str = formula.str, model = model, correlation_block = correlation_block)
 
 
     ### Final checks and sorting of meta.info and data based on the group column
@@ -244,7 +239,6 @@ SanityChecK <- function(x,
 #' 
 
 
-
 .check_survival <- function(meta.info, data, K, formula.str) {
       
       if(!all(c("time", "event") %in% colnames(meta.info))){
@@ -325,39 +319,4 @@ SanityChecK <- function(x,
                 rlang::as_string(rlang::get_expr(x[[3]])) == correlation_block
             }, logical(1)))
         }
-}
-
-.check_limma_model <- function(formula.str, model, correlation_block,
-                              meta.info, group ) {
-
-    ### check if no random effects are specified in the formula and if the model is set to "limma"
-    .check_random_effects(formula.str = formula.str, model = model, correlation_block = correlation_block)
-
-    ### Check if the number of unique groups is greater than 2 and if there is more than one covariate in meta.info
-    if(length(unique(meta.info[,group])) > 2){
-        if(ncol(meta.info) != 1){
-            stop("Multi-group analysis with more than one covariate is not supported currently. 
-            Please use a single covariate for multi-group analysis.") 
-            }
-            }
-}
-
-
-.check_dream_model <- function(formula.str, model, correlation_block,
-                              meta.info, group ) {
-
-    ### check if there are random effects are specified in the formula and if the model is set to "dream"
-    .check_random_effects(formula.str = formula.str, model = model, correlation_block = correlation_block)
-
-
-    if (length(unique(meta.info[,group])) > 2) {
-            stop(
-                "DREAM analysis with random effects is only supported for ",
-                "two-group comparisons. For more than 2 groups, use ",
-                "correlation_block analysis without a random term in ",
-                "formula.str. with model == 'limma'"
-            )
-        }
-
-
 }

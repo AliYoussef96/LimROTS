@@ -120,65 +120,42 @@ fit_original <- function(x, group, meta.info, formula.str, trend, robust,
         } else {
             fit <- lmFit(combined_data, design.matrix)
         }
-        if (length(x) == 2) {
-            ### For two-group comparisons, compute the specified pairwise contrasts
-            cont_matrix <- makeContrasts(
-                contrasts = pairwise_contrasts, levels =
-                    design.matrix
-            )
 
-            ### Fit the contrasts and apply empirical Bayes moderation
-            fit2 <- limma::contrasts.fit(fit, cont_matrix)
-            fit.ebayes <- limma::eBayes(fit2, trend = trend, robust = robust)
+        ### For two-group comparisons, compute the specified pairwise contrasts
+        cont_matrix <- makeContrasts(
+            contrasts = pairwise_contrasts, levels =
+                design.matrix
+        )
 
-            d_values <- setNames(
-                abs(as.numeric(fit.ebayes[["coefficients"]])),
-                rownames(fit.ebayes[["coefficients"]]))
+        ### Fit the contrasts and apply empirical Bayes moderation
+        fit2 <- limma::contrasts.fit(fit, cont_matrix)
+        fit.ebayes <- limma::eBayes(fit2, trend = trend, robust = robust)
 
-            corrected.logfc <- setNames(
-                as.numeric(fit.ebayes[["coefficients"]]),
-                rownames(fit.ebayes[["coefficients"]]))
+        d_values <- setNames(
+            abs(as.numeric(fit.ebayes[["coefficients"]])),
+            rownames(fit.ebayes[["coefficients"]]))
 
-            stopifnot(identical(names(fit.ebayes[["s2.post"]]) ,  
-                          row.names(fit.ebayes[["stdev.unscaled"]])))
+        corrected.logfc <- setNames(
+            as.numeric(fit.ebayes[["coefficients"]]),
+            rownames(fit.ebayes[["coefficients"]]))
 
-            s_values <- setNames(
-                as.numeric(sqrt(fit.ebayes[["s2.post"]]) *
-                               fit.ebayes[["stdev.unscaled"]]),
-                names(fit.ebayes[["s2.post"]]))
+        stopifnot(identical(names(fit.ebayes[["s2.post"]]) ,  
+                        row.names(fit.ebayes[["stdev.unscaled"]])))
 
-            stopifnot(identical(names(s_values), names(d_values) ) )
-            stopifnot(identical(names(corrected.logfc), names(d_values) ) )
-            stopifnot(identical(names(s_values), names(corrected.logfc) ) )
+        s_values <- setNames(
+            as.numeric(sqrt(fit.ebayes[["s2.post"]]) *
+                            fit.ebayes[["stdev.unscaled"]]),
+            names(fit.ebayes[["s2.post"]]))
 
-            return(list(
-                d = d_values,
-                s = s_values,
-                corrected.logfc = corrected.logfc
-            ))
+        stopifnot(identical(names(s_values), names(d_values) ) )
+        stopifnot(identical(names(corrected.logfc), names(d_values) ) )
+        stopifnot(identical(names(s_values), names(corrected.logfc) ) )
 
-        } else if (length(x) > 2) {
-            pairwise_contrasts <-
-                paste0(group, unique(meta.info[, group]))
-            pairwise_contrasts <- combn(pairwise_contrasts, 2, function(x) {
-                paste(x[1], "-", x[2])
-            })
-            cont_matrix <-
-                makeContrasts(
-                    contrasts = pairwise_contrasts,
-                    levels = design.matrix
-                )
-            fit2 <- limma::contrasts.fit(fit, cont_matrix)
-            fit.ebayes <- limma::eBayes(fit2, trend = trend, robust = robust)
-            msr <- fit.ebayes[["F"]] * fit.ebayes[["s2.post"]]
-            corrected.logfc <- fit.ebayes[["coefficients"]]
-            return(list(
-                d = msr,
-                s = fit.ebayes[["s2.post"]],
-                corrected.logfc = corrected.logfc
-            ))
-        }
-  
+        return(list(
+            d = d_values,
+            s = s_values,
+            corrected.logfc = corrected.logfc
+        ))
             
     }
 

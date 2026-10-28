@@ -95,47 +95,32 @@ fit_permutation <- function(x, group, meta.info, formula.str,
     }
 
     ### Compute contrasts and apply empirical Bayes moderation based on the number of groups
-    if (length( unique( covariates.p[,group] ) ) == 2) {
-        ### For two-group comparisons, compute the specified pairwise contrasts
-        cont_matrix <- makeContrasts(
-            contrasts = pairwise_contrasts,
-            levels = design.matrix
-        )
 
-        ### Fit the contrasts and apply empirical Bayes moderation
-        fit2 <- limma::contrasts.fit(fit, cont_matrix)
-        fit.ebayes <- limma::eBayes(fit2, trend = FALSE, robust = FALSE)
+    cont_matrix <- makeContrasts(
+        contrasts = pairwise_contrasts,
+        levels = design.matrix
+    )
 
-        d_values <- setNames(
-            abs(as.numeric(fit.ebayes[["coefficients"]])),
-            rownames(fit.ebayes[["coefficients"]]))
+    ### Fit the contrasts and apply empirical Bayes moderation
+    fit2 <- limma::contrasts.fit(fit, cont_matrix)
+    fit.ebayes <- limma::eBayes(fit2, trend = FALSE, robust = FALSE)
+
+    d_values <- setNames(
+        abs(as.numeric(fit.ebayes[["coefficients"]])),
+        rownames(fit.ebayes[["coefficients"]]))
+
+    stopifnot(identical(names(fit.ebayes[["s2.post"]]) ,  
+                    row.names(fit.ebayes[["stdev.unscaled"]])))
+
+    s_values <- setNames(
+        as.numeric(sqrt(fit.ebayes[["s2.post"]]) *
+                        fit.ebayes[["stdev.unscaled"]]),
+        names(fit.ebayes[["s2.post"]]))
+
+    stopifnot(identical(names(s_values), names(d_values) ) )
+
+    return(list(d = d_values, s = s_values))
     
-        stopifnot(identical(names(fit.ebayes[["s2.post"]]) ,  
-                        row.names(fit.ebayes[["stdev.unscaled"]])))
-
-        s_values <- setNames(
-            as.numeric(sqrt(fit.ebayes[["s2.post"]]) *
-                            fit.ebayes[["stdev.unscaled"]]),
-            names(fit.ebayes[["s2.post"]]))
-    
-        stopifnot(identical(names(s_values), names(d_values) ) )
-
-        return(list(d = d_values, s = s_values))
-    } else if (length( unique( covariates.p[,group] ) ) > 2 ) {
-        pairwise_contrasts <-
-            paste0(group, unique(covariates.p[, group]))
-        pairwise_contrasts <- combn(pairwise_contrasts, 2, function(x) {
-            paste(x[1], "-", x[2])
-        })
-        cont_matrix <- makeContrasts(
-            contrasts = pairwise_contrasts,
-            levels = design.matrix
-        )
-        fit2 <- limma::contrasts.fit(fit, cont_matrix)
-        fit.ebayes <- limma::eBayes(fit2, trend = FALSE, robust = FALSE)
-        msr <- fit.ebayes[["F"]] * fit.ebayes[["s2.post"]]
-        return(list(d = msr, s = fit.ebayes[["s2.post"]]))
-        }
     }
 
 
