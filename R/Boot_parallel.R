@@ -96,7 +96,10 @@ Boot_parallel <- function(BPPARAM = NULL,
     results_list <- bplapply(seq_len(nrow(samples)), function(i) {
         samples.R <- split(samples[i, ], groups)
         pSamples_i <- pSamples[[i]]
-        d_result <- s_result <- pd_result <- ps_result <- NULL
+        d_result <- NULL
+        s_result <- NULL
+        pd_result <- NULL
+        ps_result <- NULL
         fit <- fit_bootstrap(
             x = lapply(samples.R, function(x)
                 data[, x]
