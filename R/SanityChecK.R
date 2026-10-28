@@ -71,7 +71,7 @@ SanityChecK <- function(x,
     ### Check if survival analysis is requested and perform additional checks
     if(survival){
         message("Survival analysis mode activated. Performing additional checks.")
-        survival_check <- .generate_survival(meta.info = meta.info, 
+        survival_check <- .check_survival(meta.info = meta.info, 
         data = data, 
         K = K, 
         formula.str = formula.str)
@@ -226,7 +226,7 @@ SanityChecK <- function(x,
 
 
 
-.generate_survival <- function(meta.info, data, K, formula.str) {
+.check_survival <- function(meta.info, data, K, formula.str) {
       
       if(!all(c("time", "event") %in% colnames(meta.info))){
         stop("For survival analysis, 'meta.info' must contain 'time' and 
