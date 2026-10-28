@@ -157,11 +157,6 @@ LimROTS <- function(x,
     model = "limma"
     ) {
 
-
-    if(!inherits(x, "SummarizedExperiment")){
-        stop("Input 'x' must be a SummarizedExperiment object.")
-    }
-
     ### Perform sanity checks on the input parameters and data.
     SanityChecK.list <- SanityChecK(
         x,

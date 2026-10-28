@@ -142,6 +142,12 @@ SanityChecK <- function(x,
 .Check_SummarizedExperiment <- function(x,
                                        assay.type = NULL, meta.info,
                                        group, survival = FALSE) {
+
+    
+    if(!inherits(x, "SummarizedExperiment")){
+        stop("Input 'x' must be a SummarizedExperiment object.")
+    }
+
     if (inherits(x, "SummarizedExperiment")) {
         message("Data is SummarizedExperiment object")
         if (is.null(meta.info)) {
@@ -174,8 +180,9 @@ SanityChecK <- function(x,
         data <- assay(x, assay.type)
         groups <- NULL
     } else {
-        stop("x should be a SummarizedExperiment object")
+        stop("Input 'x' must be a SummarizedExperiment object.")
     }
+
     return(list(
         data = data, groups = groups,
         meta.info = meta.info
