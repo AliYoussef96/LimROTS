@@ -175,114 +175,201 @@ bootstrapSamples_limRots <- function(niter, meta.info, group) {
 #' together across the two groups.
 #'
 
-bootstrapSamples_limRots_block <- function(niter, meta.info, group,
-                                           stratum = TRUE,
-                                           correlation_block = NULL) {
+bootstrapSamples_limRots_block <- function(
+    niter,
+    meta.info,
+    group,
+    correlation_block = NULL
+) {
+    
+    # If no correlation block is provided, use the original
+    # limRots bootstrap procedure.
+    if (is.null(correlation_block)) {
+        return(
+            bootstrapSamples_limRots(
+                niter = niter,
+                meta.info = meta.info,
+                group = group
+            )
+        )
+    }
 
-if (is.null(correlation_block)) {
-    return(bootstrapSamples_limRots(
-        niter = niter,
-        meta.info = meta.info,
-        group = group
-    ))
-}
-
-groups <- as.character(meta.info[, group])
-blocks <- as.character(meta.info[, correlation_block])
-
-if (any(tapply(groups, blocks, function(g) length(unique(g)) > 1))) {
-    # Repeated measures: blocks span levels of `group`, so each replicate
-    # draws whole blocks and takes every drawn block's sample from each
-    # level, keeping the pairing intact.
-    if (any(table(blocks, groups) != 1)) {
-        stop("correlation_block spans levels of '", group, "', but not ",
-             "every block has exactly one sample in each level.")
+    message(
+        "Using correlation blocks for bootstrap sampling. ",
+        "All samples sharing the same block ID will be sampled together. ",
+        "No stratification will be applied."
+    )
+    
+    groups <- as.character(meta.info[, group])
+    blocks <- as.character(meta.info[, correlation_block])
+    
+    if (anyNA(blocks)) {
+        stop("The correlation-block column contains missing values.")
     }
     
+    # Every block must contain exactly one sample from each group.
+    if (any(table(blocks, groups) != 1L)) {
+        stop(
+            "Every correlation block must contain exactly one sample ",
+            "from each of the two groups."
+        )
+    }
+    
+    unique_groups <- unique(groups)    
     unique_blocks <- unique(blocks)
     
-    if(stratum == TRUE){
+    # Connect each block-group combination to its sample.
+    key <- paste(blocks, groups, sep = "\r")
     
-    # Detect factor columns defining the strata.
-    meta.info.factors <- c()
-
-    for (j in seq_len(ncol(meta.info))) {
-        if (is.factor(meta.info[, j])) {
-            meta.info.factors <- c(
-                meta.info.factors,
-                colnames(meta.info)[j]
-            )
-        }
-    }
-    
-    # Group and correlation block must not define strata.
-    meta.info.factors <- meta.info.factors[
-        !meta.info.factors %in% c(group, correlation_block)
-    ]
-    }else{
-        meta.info.factors = character(0)
-    }
-    
-    # Assign each block to a stratum.
-    if (length(meta.info.factors) == 0) {
-        blocks_by_stratum <- list(all = unique_blocks)
-    } else {
-        block_strata <- sapply(unique_blocks, function(b) {
-            block_meta <- meta.info[
-                blocks == b,
-                meta.info.factors,
-                drop = FALSE
-            ]
+    # Each row represents one bootstrap iteration.
+    # Each column represents one sample position.
+    samples <- matrix(nrow = niter, ncol = nrow(meta.info))    
+    for (i in seq_len(niter)) {
+        
+        # Sample complete pairs with replacement.
+        drawn_blocks <- sample(
+            unique_blocks,
+            size = length(unique_blocks),
+            replace = TRUE
+        )
+        
+        # Retrieve the corresponding sample from each group using
+        # the same drawn-block order, preserving the pairing.
+        for (g in unique_groups) {
             
-            # Strata must be the same for all samples in one block.
-            if (any(vapply(
-                block_meta,
-                function(x) length(unique(x)) != 1,
-                logical(1)
-            ))) {
+            group_positions <- which(groups == g)
+            
+            matched_positions <- match(
+                paste(drawn_blocks, g, sep = "\r"),
+                key
+            )
+            
+            # Defensive check: all block-group combinations
+            # should have corresponding samples.
+            if (anyNA(matched_positions)) {
                 stop(
-                    "Strata variables must be constant within ",
-                    "correlation block '", b, "'."
+                    "A sample could not be found for one or more ",
+                    "block-group combinations."
                 )
             }
             
-            paste(
-                vapply(block_meta[1, , drop = FALSE], as.character, character(1)),
-                collapse = "."
-            )
-        })
-        
-        blocks_by_stratum <- split(
-            unique_blocks,
-            block_strata
-        )
-    }
-    
-    key <- paste(blocks, groups, sep = "\r")
-    samples <- matrix(nrow = niter, ncol = nrow(meta.info))
-    
-    for (i in seq_len(niter)) {
-        
-        # Sample the same number of complete blocks within each stratum.
-        drawn <- unlist(
-            lapply(blocks_by_stratum, function(x) {
-                sample(x, length(x), replace = TRUE)
-            }),
-            use.names = FALSE
-        )
-        
-        for (g in unique(groups)) {
-            pos <- which(groups == g)
-            
-            samples[i, pos] <- row.names(meta.info)[
-                match(paste(drawn, g, sep = "\r"), key)
-            ]
+            samples[i, group_positions] <-
+                row.names(meta.info)[matched_positions]
         }
     }
     
     return(samples)
-    }
 }
+
+
+# bootstrapSamples_limRots_block <- function(niter, meta.info, group,
+#                                            stratum = TRUE,
+#                                            correlation_block = NULL) {
+#   
+#   if (is.null(correlation_block)) {
+#     return(bootstrapSamples_limRots(
+#       niter = niter,
+#       meta.info = meta.info,
+#       group = group
+#     ))
+#   }
+#   
+#   groups <- as.character(meta.info[, group])
+#   blocks <- as.character(meta.info[, correlation_block])
+#   
+#   if (any(tapply(groups, blocks, function(g) length(unique(g)) > 1))) {
+#     # Repeated measures: blocks span levels of `group`, so each replicate
+#     # draws whole blocks and takes every drawn block's sample from each
+#     # level, keeping the pairing intact.
+#     if (any(table(blocks, groups) != 1)) {
+#       stop("correlation_block spans levels of '", group, "', but not ",
+#            "every block has exactly one sample in each level.")
+#     }
+#     
+#     unique_blocks <- unique(blocks)
+#     
+#     if(stratum == TRUE){
+#       
+#       # Detect factor columns defining the strata.
+#       meta.info.factors <- c()
+#       
+#       for (j in seq_len(ncol(meta.info))) {
+#         if (is.factor(meta.info[, j])) {
+#           meta.info.factors <- c(
+#             meta.info.factors,
+#             colnames(meta.info)[j]
+#           )
+#         }
+#       }
+#       
+#       # Group and correlation block must not define strata.
+#       meta.info.factors <- meta.info.factors[
+#         !meta.info.factors %in% c(group, correlation_block)
+#       ]
+#     }else{
+#       meta.info.factors = character(0)
+#     }
+#     
+#     # Assign each block to a stratum.
+#     if (length(meta.info.factors) == 0) {
+#       blocks_by_stratum <- list(all = unique_blocks)
+#     } else {
+#       block_strata <- sapply(unique_blocks, function(b) {
+#         block_meta <- meta.info[
+#           blocks == b,
+#           meta.info.factors,
+#           drop = FALSE
+#         ]
+#         
+#         # Strata must be the same for all samples in one block.
+#         if (any(vapply(
+#           block_meta,
+#           function(x) length(unique(x)) != 1,
+#           logical(1)
+#         ))) {
+#           stop(
+#             "Strata variables must be constant within ",
+#             "correlation block '", b, "'."
+#           )
+#         }
+#         
+#         paste(
+#           vapply(block_meta[1, , drop = FALSE], as.character, character(1)),
+#           collapse = "."
+#         )
+#       })
+#       
+#       blocks_by_stratum <- split(
+#         unique_blocks,
+#         block_strata
+#       )
+#     }
+#     
+#     key <- paste(blocks, groups, sep = "\r")
+#     samples <- matrix(nrow = niter, ncol = nrow(meta.info))
+#     
+#     for (i in seq_len(niter)) {
+#       
+#       # Sample the same number of complete blocks within each stratum.
+#       drawn <- unlist(
+#         lapply(blocks_by_stratum, function(x) {
+#           sample(x, length(x), replace = TRUE)
+#         }),
+#         use.names = FALSE
+#       )
+#       
+#       for (g in unique(groups)) {
+#         pos <- which(groups == g)
+#         
+#         samples[i, pos] <- row.names(meta.info)[
+#           match(paste(drawn, g, sep = "\r"), key)
+#         ]
+#       }
+#     }
+#     
+#     return(samples)
+#   }
+# }
 
 #' Generate Stratified Bootstrap Samples for Cox limRots with Correlation Blocks
 #'

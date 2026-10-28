@@ -66,10 +66,6 @@ SanityChecK <- function(x,
         meta.info = meta.info,
         data = data
     )
-
-    if(length(unique(meta.info[, group])) != 2){
-        stop("LimROTS only supports two-group comparisons.")
-    }
   
     ### Check if survival analysis is requested and perform additional checks
     if(survival){
@@ -213,6 +209,16 @@ SanityChecK <- function(x,
     if(!identical(sort(rownames(meta.info)), sort(colnames(data)))){
         stop("Sample names in the data and meta info in colData do not match")
     }
+    if (is.null(row.names(meta.info)) ||
+        anyDuplicated(row.names(meta.info))) {
+        stop("meta.info must have unique sample names as row names.")
+    }
+    if(length(unique(meta.info[, group])) != 2){
+        stop("LimROTS only supports two-group comparisons.")
+    }
+    if (anyNA(meta.info[[, group]])) {
+        stop("The group column contains missing values.")
+    }
 
     return(TRUE)
 }
@@ -299,6 +305,13 @@ SanityChecK <- function(x,
                 stop("correlation_block should be a single character string specifying the 
                 column name in meta.info that defines correlation blocks.")
             }
+            if (!correlation_block %in% colnames(meta.info)) {
+            stop(
+                "The correlation-block column '",
+                correlation_block,
+                "' was not found in meta.info."
+            )
+        }
         }
 
         ### Check for random effects in the formula
