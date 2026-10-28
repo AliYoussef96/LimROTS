@@ -152,7 +152,10 @@ LimROTS <- function(x,
     robust = TRUE,
     trend = TRUE,
     permutating.group = FALSE,
-    correlation_block = NULL) {
+    correlation_block = NULL,
+    pairwise_contrasts = NULL,
+    model = "limma"
+    ) {
 
 
     if(!inherits(x, "SummarizedExperiment")){
@@ -248,7 +251,9 @@ LimROTS <- function(x,
         trend = trend,
         robust = robust,
         correlation_block = correlation_block,
-        a1 = a1, a2 = a2
+        a1 = a1, a2 = a2,
+        pairwise_contrasts = pairwise_contrasts,
+        model = model
     )
     d = fit_limma[["d"]]
     pD = fit_limma[["pD"]]
@@ -333,9 +338,9 @@ correlation_block = NULL, permutating.group = FALSE) {
 }
 
 .fit_limma <- function(data, meta.info, group, formula.str, trend, robust,
-    correlation_block, a1, a2) {
+    correlation_block, a1, a2, pairwise_contrasts, model = "limma") {
         # Fit the limma model on the original data and compute statistics, p-values, and FDR.
- fit <- Limma_fit(
+ fit <- fit_original(
             x = lapply(split(seq_len(length(
                 groups
             )), groups), function(x) {
@@ -346,7 +351,9 @@ correlation_block = NULL, permutating.group = FALSE) {
             formula.str = formula.str,
             trend = trend,
             robust = robust,
-            correlation_block = correlation_block
+            correlation_block = correlation_block,
+            pairwise_contrasts = pairwise_contrasts,
+            model = model
         )
         d <- fit$d / (a1 + a2 * fit$s)
         pD <- pD / (a1 + a2 * pS)
