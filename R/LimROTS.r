@@ -190,29 +190,29 @@ LimROTS <- function(x,
         permutating.group = permutating.group
     )
 
-    boot_Samples = list_boot_perm[["boot_Samples"]]
-    perm_Samples = list_boot_perm[["perm_Samples"]]
-
-    D <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(boot_Samples))
-    S <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(boot_Samples))
-    pD <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(boot_Samples))
-    pS <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(boot_Samples))
-
     ### parallelized bootstrapping and permutation fit
-
     results_list <- Boot_parallel(
         BPPARAM  = BPPARAM ,
-        samples = boot_Samples, data = data,
+        samples = list_boot_perm[["boot_Samples"]], 
+        data = data,
         formula.str = formula.str,
         group = group,
         groups = groups,
         meta.info = meta.info,
         a1 = a1, a2 = a2,
-        pSamples = perm_Samples,
+        pSamples = list_boot_perm[["perm_Samples"]],
         correlation_block = correlation_block,
         model = model,
         pairwise_contrasts = pairwise_contrasts
     )
+
+    row_length <- nrow(as.matrix(data))
+    col_length <- nrow(list_boot_perm[["boot_Samples"]])
+
+    D <- matrix(nrow = row_length, ncol = col_length)
+    S <- matrix(nrow = row_length, ncol = col_length)
+    pD <- matrix(nrow = row_length, ncol = col_length)
+    pS <- matrix(nrow = row_length, ncol = col_length)
 
     for (i in seq_along(results_list)) {
         D[, i] <- results_list[[i]][["ds"]][["d_result"]]
