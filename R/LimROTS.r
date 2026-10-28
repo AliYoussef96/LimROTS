@@ -178,8 +178,11 @@ LimROTS <- function(x,
     event <- SanityChecK.list$event
     K <- SanityChecK.list$K
 
-    ### bootstrap and permutation samples
+    if(is.null(pairwise_contrasts) && length(unique(meta.info[, group])) == 2){
+        stop("For two-group analysis, pairwise_contrasts must be provided.")
+    }
 
+    ### bootstrap and permutation samples
     list_boot_perm <- .generate_bootstrap_permutations(
         niter = niter,
         meta.info = meta.info,
@@ -207,7 +210,9 @@ LimROTS <- function(x,
         meta.info = meta.info,
         a1 = a1, a2 = a2,
         pSamples = perm_Samples,
-        correlation_block = correlation_block
+        correlation_block = correlation_block,
+        model = model,
+        pairwise_contrasts = pairwise_contrasts
     )
 
     for (i in seq_along(results_list)) {
@@ -233,7 +238,8 @@ LimROTS <- function(x,
     K <- min(K, nrow(data))
     N <- N[N < K]
     optimized.parameters <-
-        Optimizing(niter =  niter, ssq = ssq, N = N, D = D, S = S, pD = pD, pS = pS)
+        Optimizing(niter =  niter, ssq = ssq, 
+        N = N, D = D, S = S, pD = pD, pS = pS)
     a1 <- optimized.parameters[["a1"]]
     a2 <- optimized.parameters[["a2"]]
     k <- optimized.parameters[["k"]]
