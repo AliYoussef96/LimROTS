@@ -52,7 +52,7 @@ SanityChecK <- function(x,
     
     ### Check if x is a SummarizedExperiment and extract data and metadata
     ### and extract the assay if specified
-    Check_SExp <- Check_SummarizedExperiment(
+    Check_SExp <- .Check_SummarizedExperiment(
         x = x,
         assay.type = assay.type,
         meta.info = meta.info,
