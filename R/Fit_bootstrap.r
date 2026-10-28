@@ -136,7 +136,7 @@ fit_bootstrap <- function(x, group, meta.info, formula.str,
             return(list(d = d_values, s = s_values))
 
         } else if (length(x) > 2) {
-            if(ncol(covariates.p) == 1){
+            if(ncol(covariates.p) != 1){
                 stop("Multi-group analysis with more than one covariate is not supported currently. 
                 Please use a single covariate for multi-group analysis.")
             }
