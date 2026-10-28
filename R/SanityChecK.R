@@ -46,8 +46,9 @@
 SanityChecK <- function(x,
         assay.type = NULL,
         niter = 1000, K = NULL,
-        meta.info, group,
+        meta.info, group, model = "limma",
         formula.str, survival = FALSE) {
+
 
     
     ### Check if x is a SummarizedExperiment and extract data and metadata
@@ -78,8 +79,15 @@ SanityChecK <- function(x,
         return(survival_check)
       }
 
-    ### Final checks and sorting of meta.info and data based on the group column
 
+    ### check if random effects are specified in the formula and if the model is set to "dream"
+    .check_random_effects(
+        formula.str = formula.str,
+        model = model,
+        correlation_block = correlation_block
+    )
+
+    ### Final checks and sorting of meta.info and data based on the group column
     meta.info <- meta.info[order(meta.info[,group]),]
     data <- data[, row.names(meta.info)]
     if(!identical(colnames(data) , row.names(meta.info)) ){
@@ -277,3 +285,32 @@ SanityChecK <- function(x,
       ))
     
 }
+
+.check_random_effects <- function(formula.str, model, correlation_block) {
+
+        #### Check if correlation_block is provided and is a single character string
+        if(!is.null(correlation_block)){
+            if(length(correlation_block) != 1){
+                stop("correlation_block should be a single character string specifying the 
+                column name in meta.info that defines correlation blocks.")
+            }
+        }
+
+        ### Check for random effects in the formula
+        random_terms <- lme4::findbars(formula(formula.str))
+        if(model == "limma"){
+            if (!is.null(random_terms)) { 
+                stop("random terms analysis with random effects is not supported in Limma.
+                Please use model='dream' for random effects analysis.")
+            }
+        }else if(model == "dream"){
+            if (is.null(random_terms)) { 
+                stop("dream need a random term(s) in the formula.str")
+            }
+            if(is.null(correlation_block)){
+                stop("Please specify which random effect term to use via correlation_block")
+            }
+            any(vapply(random_terms, function(x) {
+                rlang::as_string(rlang::get_expr(x[[3]])) == correlation_block
+            }, logical(1)))
+        }
