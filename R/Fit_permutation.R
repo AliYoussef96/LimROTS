@@ -74,7 +74,6 @@ fit_permutation <- function(x, group, meta.info, formula.str,
     ### Generate combined data and covariates for model fitting
     combined_data <- x
     covariates.p <- meta.info
-    covariates.p$sample.id <- NULL
     row.names(covariates.p) <- NULL
 
     ### Check for random effects in the formula
