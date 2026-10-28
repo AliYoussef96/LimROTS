@@ -47,10 +47,8 @@ SanityChecK <- function(x,
         assay.type = NULL,
         niter = 1000, K = NULL,
         meta.info, group, model = "limma",
-        formula.str, survival = FALSE) {
+        formula.str, survival = FALSE, pairwise_contrasts = NULL) {
 
-
-    
     ### Check if x is a SummarizedExperiment and extract data and metadata
     ### and extract the assay if specified
     Check_SExp <- .Check_SummarizedExperiment(
@@ -68,6 +66,11 @@ SanityChecK <- function(x,
         meta.info = meta.info,
         data = data
     )
+
+    ### Check if pairwise contrasts are provided for two-group analysis
+    if(is.null(pairwise_contrasts) && length(unique(meta.info[, group])) == 2){
+        stop("For two-group analysis, pairwise_contrasts must be provided.")
+    }
   
     ### Check if survival analysis is requested and perform additional checks
     if(survival){

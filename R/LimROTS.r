@@ -170,6 +170,9 @@ LimROTS <- function(x,
         K = K,
         meta.info = meta.info,
         group = group,
+        model = model,
+        formula.str = formula.str,
+        pairwise_contrasts = pairwise_contrasts
     )
 
     meta.info <- SanityChecK.list$meta.info
@@ -177,10 +180,6 @@ LimROTS <- function(x,
     groups <- SanityChecK.list$groups
     event <- SanityChecK.list$event
     K <- SanityChecK.list$K
-
-    if(is.null(pairwise_contrasts) && length(unique(meta.info[, group])) == 2){
-        stop("For two-group analysis, pairwise_contrasts must be provided.")
-    }
 
     ### bootstrap and permutation samples
     list_boot_perm <- .generate_bootstrap_permutations(
