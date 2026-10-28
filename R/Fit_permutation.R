@@ -76,13 +76,6 @@ fit_permutation <- function(x, group, meta.info, formula.str,
     covariates.p <- meta.info
     row.names(covariates.p) <- NULL
 
-    ### Check for random effects in the formula
-    has_random <- grepl("|", formula.str, fixed = TRUE)
-    if (has_random) { 
-        stop("random terms analysis with random effects is not supported in Limma.
-        Please use model='dream' for random effects analysis.")
-    }
-
     ### Create the design matrix based on the provided formula and covariates
     design.matrix <-
         model.matrix(formula(formula.str), data = covariates.p)
@@ -129,11 +122,6 @@ fit_permutation <- function(x, group, meta.info, formula.str,
 
         return(list(d = d_values, s = s_values))
     } else if (length( unique( covariates.p[,group] ) ) > 2 ) {
-        if(ncol(covariates.p) != 1){
-                stop("Multi-group analysis with more than one covariate is not 
-                supported currently. 
-                Please use a single covariate for multi-group analysis.")
-            }
         pairwise_contrasts <-
             paste0(group, unique(covariates.p[, group]))
         pairwise_contrasts <- combn(pairwise_contrasts, 2, function(x) {
@@ -153,26 +141,6 @@ fit_permutation <- function(x, group, meta.info, formula.str,
 
 .Dream_permutating <- function(x, group, meta.info, formula.str,
             correlation_block = NULL, pairwise_contrasts) {
-
-    if(!correlation_block == NULL){
-        stop("DREAM analysis does not support correlation_block. 
-        Please set correlation_block = NULL or use model='limma' 
-        for correlation_block analysis.")
-    }
-    has_random <- grepl("|", formula.str, fixed = TRUE)
-    if(!has_random){
-        stop("DREAM analysis requires a random effect in the formula. 
-        Please include a random term in formula.str or use model='limma' for 
-        fixed effects analysis.")
-    }
-    if (length(x) > 2) {
-        stop(
-            "DREAM analysis with random effects is only supported for ",
-            "two-group comparisons. For more than 2 groups, use ",
-            "correlation_block analysis without a random term in ",
-            "formula.str."
-        )
-    }
 
     L <- variancePartition::makeContrastsDream(
         formula(formula.str), covariates.p,

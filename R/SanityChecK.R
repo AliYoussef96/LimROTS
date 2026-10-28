@@ -83,12 +83,13 @@ SanityChecK <- function(x,
       }
 
 
-    ### check if random effects are specified in the formula and if the model is set to "dream"
-    .check_random_effects(
-        formula.str = formula.str,
-        model = model,
-        correlation_block = correlation_block
-    )
+    ### Checks for the model type and random effects in the formula
+    if(model == "limma"){
+        .check_limma_model(formula.str = formula.str, model = model,correlation_block = correlation_block, 
+        meta.info = meta.info, group = group)
+    }else if(model == "dream"){
+        .check_dream_model(formula.str = formula.str, model = model, correlation_block = correlation_block, meta.info = meta.info, group = group)
+
 
     ### Final checks and sorting of meta.info and data based on the group column
     meta.info <- meta.info[order(meta.info[,group]),]
@@ -324,4 +325,39 @@ SanityChecK <- function(x,
                 rlang::as_string(rlang::get_expr(x[[3]])) == correlation_block
             }, logical(1)))
         }
+}
+
+.check_limma_model <- function(formula.str, model, correlation_block,
+                              meta.info, group ) {
+
+    ### check if no random effects are specified in the formula and if the model is set to "limma"
+    .check_random_effects(formula.str = formula.str, model = model, correlation_block = correlation_block)
+
+    ### Check if the number of unique groups is greater than 2 and if there is more than one covariate in meta.info
+    if(length(unique(meta.info[,group])) > 2){
+        if(ncol(meta.info) != 1){
+            stop("Multi-group analysis with more than one covariate is not supported currently. 
+            Please use a single covariate for multi-group analysis.") 
+            }
+            }
+}
+
+
+.check_dream_model <- function(formula.str, model, correlation_block,
+                              meta.info, group ) {
+
+    ### check if there are random effects are specified in the formula and if the model is set to "dream"
+    .check_random_effects(formula.str = formula.str, model = model, correlation_block = correlation_block)
+
+
+    if (length(unique(meta.info[,group])) > 2) {
+            stop(
+                "DREAM analysis with random effects is only supported for ",
+                "two-group comparisons. For more than 2 groups, use ",
+                "correlation_block analysis without a random term in ",
+                "formula.str. with model == 'limma'"
+            )
+        }
+
+
 }
