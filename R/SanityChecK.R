@@ -62,7 +62,8 @@ SanityChecK <- function(x,
     data <- Check_SExp[["data"]]
     groups <- Check_SExp[["groups"]]
     meta.info <- Check_SExp[["meta.info"]]
-
+    K <- Check_SExp[["K"]]
+    
     .Check_meta_info(
         meta.info = meta.info,
         data = data
