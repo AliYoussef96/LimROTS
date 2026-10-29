@@ -96,14 +96,11 @@ fit_original <- function(x, group, meta.info, formula.str, trend, robust,
 .Limma_fit_original <- function(x, group, meta.info, formula.str, 
             trend, robust, correlation_block = NULL, pairwise_contrasts) {
         ### Check if x is a list of matrices with identical rownames
-        stopifnot(
-            all(vapply(
-                x,
-                function(z) identical(rownames(z), rownames(x[[1L]])),
-                logical(1)
-            ))
-        )
-        combined_data <- do.call(cbind, x)
+        combined_data <- x
+
+        if(!identical(colnames(combined_data), row.names(meta.info))){
+            stop("Column names of the data matrix must match row names of meta.info.")
+        }
 
         ### Create the design matrix based on the provided formula and covariates
         design.matrix <- model.matrix(formula(formula.str), data = meta.info)
@@ -163,15 +160,11 @@ fit_original <- function(x, group, meta.info, formula.str, trend, robust,
 .Dream_fit_original <- function(x, group, meta.info, formula.str, trend, robust,
             correlation_block = NULL, pairwise_contrasts) {
 
-        ### Check if x is a list of matrices with identical rownames
-        stopifnot(
-            all(vapply(
-                x,
-                function(z) identical(rownames(z), rownames(x[[1L]])),
-                logical(1)
-            ))
-        )
-        combined_data <- do.call(cbind, x)
+        combined_data <- x
+
+        if(!identical(colnames(combined_data), row.names(meta.info))){
+            stop("Column names of the data matrix must match row names of meta.info.")
+        }
 
         ### Create the design matrix based on the provided formula and covariates
         L <- variancePartition::makeContrastsDream(

@@ -74,8 +74,11 @@ fit_permutation <- function(x, group, meta.info, formula.str,
     ### Generate combined data and covariates for model fitting
     combined_data <- x
     covariates.p <- meta.info
+    if(!identical(colnames(combined_data), row.names(covariates.p))){
+            stop("Column names of the data matrix must match row names of meta.info.")
+        }
     row.names(covariates.p) <- NULL
-
+    
     ### Create the design matrix based on the provided formula and covariates
     design.matrix <-
         model.matrix(formula(formula.str), data = covariates.p)
