@@ -169,7 +169,6 @@ SanityChecK <- function(x,
         }
         message(sprintf("Assay: %s will be used", assay.type))
         data <- assay(x, assay.type)
-        groups <- NULL
     } else {
         stop("Input 'x' must be a SummarizedExperiment object.")
     }
