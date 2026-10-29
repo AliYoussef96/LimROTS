@@ -6,10 +6,6 @@
 #' @param data A \code{SummarizedExperiment} object or a matrix where rows
 #' represent features (e.g., genes, proteins) and columns represent samples.
 #' The values should be log-transformed.
-#' @param a1 Optional numeric value used in the optimization process.
-#' If defined by the user, no optimization occurs.
-#' @param a2 Optional numeric value used in the optimization process.
-#' If defined by the user, no optimization occurs.
 #' @param meta.info A data frame containing sample-level metadata, where each
 #' row corresponds to a sample. It should include the grouping variable
 #' specified in \code{group}. If \code{x} is a \code{SummarizedExperiment}
@@ -50,8 +46,6 @@ Boot_parallel <- function(BPPARAM = NULL,
     group,
     groups,
     meta.info,
-    a1,
-    a2,
     pSamples,
     correlation_block = NULL,
     model = "limma",
@@ -77,8 +71,6 @@ Boot_parallel <- function(BPPARAM = NULL,
         group = group,
         groups = groups,
         meta.info = meta.info,
-        a1 = a1,
-        a2 = a2,
         pSamples = pSamples,
         correlation_block = correlation_block,
         model = model,
