@@ -167,7 +167,8 @@ LimROTS <- function(x,
         group = group,
         model = model,
         formula.str = formula.str,
-        pairwise_contrasts = pairwise_contrasts
+        pairwise_contrasts = pairwise_contrasts,
+        correlation_block = correlation_block
     )
 
     meta.info <- SanityChecK.list[["meta.info"]]

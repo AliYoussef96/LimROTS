@@ -47,7 +47,8 @@ SanityChecK <- function(x,
         assay.type = NULL,
         niter = 1000, K = NULL,
         meta.info, group, model = "limma",
-        formula.str, survival = FALSE, pairwise_contrasts) {
+        formula.str, survival = FALSE, pairwise_contrasts,
+        correlation_block = NULL) {
 
     ### Check if x is a SummarizedExperiment and extract data and metadata
     ### and extract the assay if specified
