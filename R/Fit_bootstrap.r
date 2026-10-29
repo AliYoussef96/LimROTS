@@ -60,7 +60,7 @@
 
 
 fit_bootstrap <- function(x, group, meta.info, formula.str, 
-                            correlation_block= NULL, model="limma",
+                            correlation_block, model,
                             pairwise_contrasts) {
     if(model == "limma"){
         return(.Limma_bootstrap(x, group, meta.info, formula.str, 
@@ -75,11 +75,11 @@ fit_bootstrap <- function(x, group, meta.info, formula.str,
 
 .Limma_bootstrap <-
     function(x, group, meta.info, formula.str,
-             correlation_block = NULL , pairwise_contrasts) {
+             correlation_block , pairwise_contrasts) {
 
         
         ### Generate combined data and covariates for model fitting
-        data_for_fit <- .generate_data_for_fit(x, meta.info, correlation_block)
+        data_for_fit <- .generate_data_for_fit(x = x, meta.info = meta.info, correlation_block = correlation_block)
         combined_data <- data_for_fit$combined_data
         covariates.p <- data_for_fit$covariates.p
 
@@ -131,10 +131,10 @@ fit_bootstrap <- function(x, group, meta.info, formula.str,
         
 
 .Dream_bootstrap <- function(x, group, meta.info, formula.str,
-             correlation_block = NULL) {
+             correlation_block) {
 
         ### Generate combined data and covariates for model fitting
-        data_for_fit <- .generate_data_for_fit(x, meta.info, correlation_block)
+        data_for_fit <- .generate_data_for_fit(x = x, meta.info = meta.info, correlation_block = correlation_block)
         combined_data <- data_for_fit$combined_data
         covariates.p <- data_for_fit$covariates.p
 
@@ -167,7 +167,7 @@ fit_bootstrap <- function(x, group, meta.info, formula.str,
             }
 
 
-.generate_data_for_fit <- function(x, meta.info, correlation_block = NULL) {
+.generate_data_for_fit <- function(x, meta.info, correlation_block) {
     ### Check if x is a list of matrices with identical rownames
     stopifnot(
         all(vapply(

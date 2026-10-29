@@ -55,7 +55,7 @@
 
 
 fit_permutation <- function(x, group, meta.info, formula.str,
-                             correlation_block = NULL, model = "limma",
+                             correlation_block, model,
                              pairwise_contrasts) {
     if(model == "limma"){
         return(.Limma_permutating(x, group, meta.info, formula.str, 
@@ -69,7 +69,7 @@ fit_permutation <- function(x, group, meta.info, formula.str,
 }
 
 .Limma_permutating <- function(x, group, meta.info, formula.str,
-                             correlation_block = NULL, pairwise_contrasts) {
+                             correlation_block, pairwise_contrasts) {
 
     ### Generate combined data and covariates for model fitting
     combined_data <- x
@@ -125,7 +125,7 @@ fit_permutation <- function(x, group, meta.info, formula.str,
 
 
 .Dream_permutating <- function(x, group, meta.info, formula.str,
-            correlation_block = NULL, pairwise_contrasts) {
+            correlation_block, pairwise_contrasts) {
 
     ### Generate combined data and covariates for model fitting
     combined_data <- x
