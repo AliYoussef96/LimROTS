@@ -83,11 +83,11 @@ fit_original <- function(x, group, meta.info, formula.str, trend, robust,
                           correlation_block = NULL, model = "limma",
                           pairwise_contrasts) {
     if(model == "limma"){
-        return(.Limma_fit_original(x, group, meta.info, formula.str, 
-        correlation_block, pairwise_contrasts))
+        return(.Limma_fit_original(x = x, group = group, meta.info = meta.info, formula.str = formula.str, 
+        correlation_block = correlation_block, pairwise_contrasts = pairwise_contrasts))
     }else if (model == "dream") {
-        return(.Dream_fit_original(x, group, meta.info, formula.str, 
-        correlation_block, pairwise_contrasts))
+        return(.Dream_fit_original(x = x, group = group, meta.info = meta.info, formula.str = formula.str, 
+        correlation_block = correlation_block, pairwise_contrasts = pairwise_contrasts))
     }else{
         stop("Invalid model specified. Choose either 'limma' or 'dream'.")
     }
