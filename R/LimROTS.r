@@ -170,11 +170,11 @@ LimROTS <- function(x,
         pairwise_contrasts = pairwise_contrasts
     )
 
-    meta.info <- SanityChecK.list$meta.info
-    data <- SanityChecK.list$data
-    groups <- SanityChecK.list$groups
-    event <- SanityChecK.list$event
-    K <- SanityChecK.list$K
+    meta.info <- SanityChecK.list[["meta.info"]]
+    data <- SanityChecK.list[["data"]]
+    groups <- SanityChecK.list[["groups"]]
+    event <- SanityChecK.list[["event"]]
+    K <- SanityChecK.list[["K"]]
 
     ### bootstrap and permutation samples
     list_boot_perm <- .generate_bootstrap_permutations(
