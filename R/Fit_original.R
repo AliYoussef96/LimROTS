@@ -80,21 +80,23 @@
 
 
 fit_original <- function(x, group, meta.info, formula.str, trend, robust,
-                          correlation_block = NULL, model = "limma",
+                          correlation_block, model,
                           pairwise_contrasts) {
     if(model == "limma"){
         return(.Limma_fit_original(x = x, group = group, meta.info = meta.info, formula.str = formula.str, 
-        correlation_block = correlation_block, pairwise_contrasts = pairwise_contrasts))
+        correlation_block = correlation_block, pairwise_contrasts = pairwise_contrasts,
+        trend = trend, robust = robust ))
     }else if (model == "dream") {
         return(.Dream_fit_original(x = x, group = group, meta.info = meta.info, formula.str = formula.str, 
-        correlation_block = correlation_block, pairwise_contrasts = pairwise_contrasts))
+        correlation_block = correlation_block, pairwise_contrasts = pairwise_contrasts,
+        trend = trend, robust = robust ))
     }else{
         stop("Invalid model specified. Choose either 'limma' or 'dream'.")
     }
 }
 
 .Limma_fit_original <- function(x, group, meta.info, formula.str, 
-            trend, robust, correlation_block = NULL, pairwise_contrasts) {
+            trend, robust, correlation_block, pairwise_contrasts) {
         ### Check if x is a list of matrices with identical rownames
         combined_data <- x
 

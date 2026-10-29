@@ -269,7 +269,7 @@ LimROTS <- function(x,
 
 
 .generate_bootstrap_permutations <- function(niter, meta.info, group, 
-correlation_block = NULL, permutating.group = FALSE) {
+correlation_block, permutating.group) {
     # Generate bootstrap and permutation samples based on the provided metadata.
     if (ncol(meta.info) > 1) {
         samples <- bootstrapSamples_limRots_block(
@@ -324,7 +324,7 @@ correlation_block = NULL, permutating.group = FALSE) {
 }
 
 .final_fit <- function(data, meta.info, group, formula.str, trend, robust,
-    correlation_block, a1, a2, pairwise_contrasts, model = "limma") {
+    correlation_block, a1, a2, pairwise_contrasts, model) {
         # Fit the limma model on the original data and compute statistics, p-values, and FDR.
         fit <- fit_original(
             x = data,
