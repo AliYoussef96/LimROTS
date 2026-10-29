@@ -130,6 +130,14 @@ fit_permutation <- function(x, group, meta.info, formula.str,
 .Dream_permutating <- function(x, group, meta.info, formula.str,
             correlation_block = NULL, pairwise_contrasts) {
 
+    ### Generate combined data and covariates for model fitting
+    combined_data <- x
+    covariates.p <- meta.info
+    if(!identical(colnames(combined_data), row.names(covariates.p))){
+            stop("Column names of the data matrix must match row names of meta.info.")
+        }
+    row.names(covariates.p) <- NULL
+    
     L <- variancePartition::makeContrastsDream(
         formula(formula.str), covariates.p,
         contrasts = pairwise_contrasts
