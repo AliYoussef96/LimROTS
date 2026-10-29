@@ -87,7 +87,7 @@ SanityChecK <- function(x,
     .check_random_effects(formula.str = formula.str, model = model, correlation_block = correlation_block)
 
     ### Final checks and sorting of meta.info and data based on the group column
-    meta.info <- meta.info[order(meta.info[,group]),]
+    meta.info <- meta.info[order(meta.info[,group]), , drop = FALSE]
     data <- data[, row.names(meta.info)]
     if(!identical(colnames(data) , row.names(meta.info)) ){
         stop("After sorting, column names of data do not match row names of
