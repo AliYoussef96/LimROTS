@@ -81,7 +81,7 @@ SanityChecK <- function(x,
 
     ### Checks for the model type and random effects in the formula
     .check_random_effects(formula.str = formula.str, model = model, correlation_block = correlation_block)
-    
+
     ### Final checks and sorting of meta.info and data based on the group column
     meta.info <- meta.info[order(meta.info[,group]),]
     data <- data[, row.names(meta.info)]
@@ -222,7 +222,7 @@ SanityChecK <- function(x,
     if (anyNA(meta.info[[, group]])) {
         stop("The group column contains missing values.")
     }
-    if(k < 1 || k > nrow(data)){
+    if(K < 1 || K > nrow(data)){
         stop("K must be between 1 and the number of rows in the data matrix.")
     }
     return(TRUE)
