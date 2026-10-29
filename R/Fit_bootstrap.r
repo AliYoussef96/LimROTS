@@ -131,7 +131,7 @@ fit_bootstrap <- function(x, group, meta.info, formula.str,
         
 
 .Dream_bootstrap <- function(x, group, meta.info, formula.str,
-             correlation_block) {
+             correlation_block, pairwise_contrasts) {
 
         ### Generate combined data and covariates for model fitting
         data_for_fit <- .generate_data_for_fit(x = x, meta.info = meta.info, correlation_block = correlation_block)
