@@ -67,7 +67,8 @@ SanityChecK <- function(x,
     .Check_meta_info(
         meta.info = meta.info,
         data = data,
-        group = group
+        group = group,
+        K = K
     )
 
     ### Check if survival analysis is requested and perform additional checks
@@ -200,7 +201,7 @@ SanityChecK <- function(x,
 #'
 #'
 
-.Check_meta_info <- function(meta.info, data , group) {
+.Check_meta_info <- function(meta.info, data , group, K) {
     if (any(!row.names(meta.info) %in% colnames(data))) {
         stop("rownames
             for colData should match the data colnames (samples names)")
