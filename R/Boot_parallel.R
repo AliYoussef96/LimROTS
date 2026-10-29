@@ -40,16 +40,15 @@
 
 
 Boot_parallel <- function(BPPARAM = NULL,
-    samples,
-    data,
-    formula.str,
-    group,
-    groups,
-    meta.info,
-    pSamples,
-    correlation_block = NULL,
-    model = "limma",
-    pairwise_contrasts) {
+                          samples,
+                          data,
+                          formula.str,
+                          group,
+                          meta.info,
+                          pSamples,
+                          correlation_block = NULL,
+                          model = "limma",
+                          pairwise_contrasts) {
     if (is.null(BPPARAM)) {
         if (.Platform$OS.type == "windows") {
             BPPARAM <- SnowParam(workers = 2)
@@ -69,7 +68,6 @@ Boot_parallel <- function(BPPARAM = NULL,
         data = data,
         formula.str = formula.str,
         group = group,
-        groups = groups,
         meta.info = meta.info,
         pSamples = pSamples,
         correlation_block = correlation_block,
@@ -85,8 +83,10 @@ Boot_parallel <- function(BPPARAM = NULL,
         assign(name, export_funcs[[name]])
     }
     
+   
     results_list <- bplapply(seq_len(nrow(samples)), function(i) {
-        samples.R <- split(samples[i, ], groups)
+        
+        samples.R <- split(samples[i, ], meta.info[samples[i, ], group])
         pSamples_i <- pSamples[[i]]
         d_result <- NULL
         s_result <- NULL
@@ -114,15 +114,15 @@ Boot_parallel <- function(BPPARAM = NULL,
             correlation_block = correlation_block,
             model = model,
             pairwise_contrasts = pairwise_contrasts
-            )
+        )
         pd_result <- pFit$d
         ps_result <- pFit$s
         df2 <- data.frame(pd_result = pd_result, ps_result = ps_result)
         list(ds = df1, pdps = df2)
     }, BPPARAM = BPPARAM, 
-                BPOPTIONS = bpoptions(packages = c("utils", 
-                                                            "stringr", "stats", 
-                                                                    "limma")))
+    BPOPTIONS = bpoptions(packages = c("utils", 
+                                       "stringr", "stats", 
+                                       "limma")))
     return(results_list)
 }
 

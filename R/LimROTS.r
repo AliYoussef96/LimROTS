@@ -174,7 +174,7 @@ LimROTS <- function(x,
 
     meta.info <- SanityChecK.list[["meta.info"]]
     data <- SanityChecK.list[["data"]]
-    groups <- SanityChecK.list[["groups"]]
+    group <- SanityChecK.list[["group"]]
     event <- SanityChecK.list[["event"]]
     K <- SanityChecK.list[["K"]]
 
@@ -194,7 +194,6 @@ LimROTS <- function(x,
         data = data,
         formula.str = formula.str,
         group = group,
-        groups = groups,
         meta.info = meta.info,
         pSamples = list_boot_perm[["perm_Samples"]],
         correlation_block = correlation_block,
