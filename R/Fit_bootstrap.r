@@ -210,5 +210,6 @@ fit_bootstrap <- function(x, group, meta.info, formula.str,
             covariates.p[, correlation_block], draw, sep = "_")
     }
 
+    stopifnot(identical(colnames(combined_data), row.names(covariates.p)))
     return(list(combined_data = combined_data, covariates.p = covariates.p))
 }
