@@ -129,7 +129,7 @@ SanityChecK <- function(x,
 
 .Check_SummarizedExperiment <- function(x,
                                        assay.type = NULL, meta.info,
-                                       group, survival = FALSE) {
+                                       group, survival = FALSE, K = NULL) {
 
     
     if(!inherits(x, "SummarizedExperiment")){
