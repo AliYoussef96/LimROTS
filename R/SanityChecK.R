@@ -94,7 +94,7 @@ SanityChecK <- function(x,
              meta info in colData")
     }
 
-    if(!inherits(meta.info[, group ,  drop = FALSE], "character")) {
+    if(!inherits(meta.info[, group], "character")) {
         stop("The group column in meta info from colData must be of type character.")
     }
 
@@ -226,10 +226,10 @@ SanityChecK <- function(x,
         anyDuplicated(row.names(meta.info))) {
         stop("meta.info must have unique sample names as row names.")
     }
-    if(length(unique(meta.info[, group,  drop = FALSE])) != 2){
+    if(length(unique(meta.info[, group])) != 2){
         stop("LimROTS only supports two-group comparisons.")
     }
-    if (anyNA(meta.info[, group,  drop = FALSE])) {
+    if (anyNA(meta.info[, group])) {
         stop("The group column contains missing values.")
     }
     if(K < 1 || K > nrow(data)){
