@@ -239,7 +239,8 @@ LimROTS <- function(x,
         correlation_block = correlation_block,
         a1 = a1, a2 = a2,
         pairwise_contrasts = pairwise_contrasts,
-        model = model
+        model = model,
+        pD = pD, pS = pS
     )
     d = fit_limma[["d"]]
     pD = fit_limma[["pD"]]
@@ -324,7 +325,8 @@ correlation_block, permutating.group) {
 }
 
 .final_fit <- function(data, meta.info, group, formula.str, trend, robust,
-    correlation_block, a1, a2, pairwise_contrasts, model) {
+    correlation_block, a1, a2, pairwise_contrasts, model,
+    pD , pS) {
         # Fit the limma model on the original data and compute statistics, p-values, and FDR.
         fit <- fit_original(
             x = data,
