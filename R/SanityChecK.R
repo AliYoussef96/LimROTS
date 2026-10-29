@@ -94,7 +94,7 @@ SanityChecK <- function(x,
              meta info in colData")
     }
 
-    if(!inherits(meta.info[, group], "character")) {
+    if(!inherits(meta.info[, group ,  drop = FALSE], "character")) {
         stop("The group column in meta info from colData must be of type character.")
     }
 
@@ -220,10 +220,10 @@ SanityChecK <- function(x,
         anyDuplicated(row.names(meta.info))) {
         stop("meta.info must have unique sample names as row names.")
     }
-    if(length(unique(meta.info[, group])) != 2){
+    if(length(unique(meta.info[, group,  drop = FALSE])) != 2){
         stop("LimROTS only supports two-group comparisons.")
     }
-    if (anyNA(meta.info[, group])) {
+    if (anyNA(meta.info[, group,  drop = FALSE])) {
         stop("The group column contains missing values.")
     }
     if(K < 1 || K > nrow(data)){
@@ -284,7 +284,7 @@ SanityChecK <- function(x,
         formula.str <- paste0(surv_part, "~y+", rhs_covariates)
       }
       
-    meta.info <- meta.info[order(meta.info[,event]),]
+    meta.info <- meta.info[order(meta.info[,event,  drop = FALSE]), ]
     data <- data[, row.names(meta.info)]
     if(!identical(colnames(data) , row.names(meta.info)) ){
         stop("After sorting, column names of data do not match row names of
