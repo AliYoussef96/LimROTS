@@ -127,7 +127,7 @@ Boot_parallel <- function(BPPARAM = NULL,
     }, BPPARAM = BPPARAM, 
     BPOPTIONS = bpoptions(packages = c("utils", 
                                        "stringr", "stats", 
-                                       "limma" , "dream")))
+                                       "limma" , "variancePartition")))
     return(results_list)
 }
 

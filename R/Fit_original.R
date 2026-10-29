@@ -160,7 +160,7 @@ fit_original <- function(x, group, meta.info, formula.str, trend, robust,
 
 
 .Dream_fit_original <- function(x, group, meta.info, formula.str, trend, robust,
-            correlation_block = NULL, pairwise_contrasts) {
+            correlation_block, pairwise_contrasts) {
 
         combined_data <- x
 
