@@ -19,7 +19,7 @@
 #' (columns of `x`). If `x` is a `SummarizedExperiment`,
 #' `meta.info` can be a vector of `colData` column names to use.
 #' @param group Character. Column name in `meta.info` that defines the
-#' groups or conditions for comparison.
+#' group or conditions for comparison.
 #' @param formula.str Optional character string representing the formula for
 #' the model.
 #' @param survival Logical, indicating whether the analysis is survival 
@@ -38,7 +38,7 @@
 #' \itemize{
 #'   \item \code{meta.info}: Processed metadata.
 #'   \item \code{data}: Processed data matrix.
-#'   \item \code{groups}: Numeric or factor vector indicating group assignments.
+#'   \item \code{group}: Character vector indicating group assignments.
 #'   \item \code{K}: Top list size to be used in the analysis.
 #' }
 #'
@@ -61,7 +61,7 @@ SanityChecK <- function(x,
         K = K
     )
     data <- Check_SExp[["data"]]
-    groups <- Check_SExp[["groups"]]
+    group <- Check_SExp[["group"]]
     meta.info <- Check_SExp[["meta.info"]]
     K <- Check_SExp[["K"]]
     
@@ -101,7 +101,7 @@ SanityChecK <- function(x,
     return(list(
         meta.info = meta.info,
         data = data,
-        groups = groups,
+        group = group,
         K = K
     ))
 }
@@ -119,13 +119,13 @@ SanityChecK <- function(x,
 #' @param meta.info Data frame. Metadata associated with the samples
 #' (columns of `x`). If `x` is a `SummarizedExperiment`,
 #' @param group Character. Column name in `meta.info` that defines the
-#' groups or conditions for comparison.
+#' group or conditions for comparison.
 #' @param survival Logical, indicating whether the analysis is survival
 #' analysis. Default is \code{FALSE}.
 #'
 #' @import SummarizedExperiment
 #'
-#' @return a list of `data` , `groups` and `meta.info`
+#' @return a list of `data` , `group` and `meta.info`
 #'
 #'
 #'
@@ -159,7 +159,7 @@ SanityChecK <- function(x,
                 stop(
                     "group should be a string specifying",
                     " the column in `meta.info` that",
-                    " represents the groups or conditions",
+                    " represents the group or conditions",
                     " for comparison."
                 )
             }
@@ -181,7 +181,7 @@ SanityChecK <- function(x,
     }
 
     return(list(
-        data = data, groups = groups,
+        data = data, group = group,
         meta.info = meta.info,
         K = K
     ))
@@ -210,7 +210,7 @@ SanityChecK <- function(x,
         stop("Sample names should contains no '.', please remove it if any")
     }
     if (nrow(meta.info) != ncol(data)) {
-        stop("Number of samples in the data does not match the groups")
+        stop("Number of samples in the data does not match the group")
     }
     if(!identical(sort(rownames(meta.info)), sort(colnames(data)))){
         stop("Sample names in the data and meta info in colData do not match")
