@@ -361,7 +361,7 @@ correlation_block, permutating.group) {
                 NULL
             }
         )
-        BH.pvalue <- p.adjust(p, method = "BH")
+        BH.pvalue <- p.adjust(p_value, method = "BH")
     return(list(
         d = d,
         pD = pD,
