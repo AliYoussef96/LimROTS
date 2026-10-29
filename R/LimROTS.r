@@ -243,8 +243,8 @@ LimROTS <- function(x,
         pD = pD, pS = pS
     )
     d = fit_limma[["d"]]
-    pD = fit_limma[["pD"]]
-    p = fit_limma[["p"]]
+    #pD = fit_limma[["pD"]]
+    p_value = fit_limma[["p_value"]]
     FDR = fit_limma[["FDR"]]
     corrected.logfc = fit_limma[["corrected.logfc"]]
     q_values = fit_limma[["q_values"]]
@@ -256,7 +256,7 @@ LimROTS <- function(x,
         x = x,
         data = data,
         d = d,
-        p = p,
+        p_value = p_value,
         FDR = FDR,
         corrected.logfc = corrected.logfc,
         q_values = q_values,
@@ -342,7 +342,7 @@ correlation_block, permutating.group) {
         d <- fit$d / (a1 + a2 * fit$s)
         pD <- pD / (a1 + a2 * pS)
 
-        p <- empPvals(
+        p_value <- empPvals(
             stat = d,
             stat0 = pD,
             pool = TRUE
@@ -352,7 +352,7 @@ correlation_block, permutating.group) {
         q_values <- tryCatch(
             {
                     qvalue(
-                        p,
+                        p_value,
                         pi0.method = "bootstrap",
                         lambda = seq(0.01, 0.95, 0.01))
             },
@@ -365,7 +365,7 @@ correlation_block, permutating.group) {
     return(list(
         d = d,
         pD = pD,
-        p = p,
+        p_value = p_value,
         FDR = FDR,
         corrected.logfc = corrected.logfc,
         q_values = q_values,
@@ -375,12 +375,12 @@ correlation_block, permutating.group) {
     }
 
 
-.generate_output <- function(x, data, d, p, FDR, corrected.logfc,
+.generate_output <- function(x, data, d, p_value, FDR, corrected.logfc,
     q_values, BH.pvalue, a1, a2, k, Z, R, ztable, pD) {
         # Generate the output SummarizedExperiment object with the LimROTS results.
     new_rowData <- DataFrame(
         statistics = d,
-        pvalue = p,
+        pvalue = p_value,
         qvalue = if (is.null(q_values)) rep(NA_real_, length(d))
                     else q_values$qvalues,
         FDR = FDR,
