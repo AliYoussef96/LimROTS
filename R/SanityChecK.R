@@ -222,7 +222,7 @@ SanityChecK <- function(x,
     if(length(unique(meta.info[, group])) != 2){
         stop("LimROTS only supports two-group comparisons.")
     }
-    if (anyNA(meta.info[[, group]])) {
+    if (anyNA(meta.info[, group])) {
         stop("The group column contains missing values.")
     }
     if(K < 1 || K > nrow(data)){
