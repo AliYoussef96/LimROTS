@@ -143,7 +143,7 @@ SanityChecK <- function(x,
         } else {
             meta.info.colnames <- meta.info
             meta.info <- data.frame(
-                colData(x)[, meta.info],
+                colData(x)[, meta.info ,  drop = FALSE],
                 check.names = FALSE,
                 row.names = row.names(colData(x))
             )
