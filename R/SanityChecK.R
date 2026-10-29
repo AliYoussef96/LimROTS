@@ -56,7 +56,8 @@ SanityChecK <- function(x,
         assay.type = assay.type,
         meta.info = meta.info,
         group = group,
-        survival = survival
+        survival = survival,
+        K = K
     )
     data <- Check_SExp[["data"]]
     groups <- Check_SExp[["groups"]]
@@ -66,7 +67,7 @@ SanityChecK <- function(x,
         meta.info = meta.info,
         data = data
     )
-  
+
     ### Check if survival analysis is requested and perform additional checks
     if(survival){
         message("Survival analysis mode activated. Performing additional checks.")
@@ -80,8 +81,7 @@ SanityChecK <- function(x,
 
     ### Checks for the model type and random effects in the formula
     .check_random_effects(formula.str = formula.str, model = model, correlation_block = correlation_block)
-
-
+    
     ### Final checks and sorting of meta.info and data based on the group column
     meta.info <- meta.info[order(meta.info[,group]),]
     data <- data[, row.names(meta.info)]
@@ -94,11 +94,6 @@ SanityChecK <- function(x,
         stop("The group column in meta info from colData must be of type character.")
     }
 
-    ### Check if K is NULL and set it to a quarter of the number of rows in the data
-    if (is.null(K)) {
-        K <- floor(nrow(data) / 4)
-        message("Top list size (K) not provided. Setting K to a quarter of the number of rows in the data: ", K)
-    }
     return(list(
         meta.info = meta.info,
         data = data,
@@ -175,9 +170,17 @@ SanityChecK <- function(x,
         stop("Input 'x' must be a SummarizedExperiment object.")
     }
 
+    ### Check if K is NULL and set it to a quarter of the number of rows in the data
+    if (is.null(K)) {
+        K <- floor(nrow(data) / 4)
+        message("Top list size (K) not provided. 
+        Setting K to a quarter of the number of rows in the data: ", K)
+    }
+
     return(list(
         data = data, groups = groups,
-        meta.info = meta.info
+        meta.info = meta.info,
+        K = K
     ))
 }
 
@@ -219,7 +222,9 @@ SanityChecK <- function(x,
     if (anyNA(meta.info[[, group]])) {
         stop("The group column contains missing values.")
     }
-
+    if(k < 1 || k > nrow(data)){
+        stop("K must be between 1 and the number of rows in the data matrix.")
+    }
     return(TRUE)
 }
 

@@ -44,7 +44,7 @@
 #'
 #'
 #'
-Optimizing <- function(niter, k, N, D, S, pD, pS) {
+Optimizing <- function(niter, K, N, D, S, pD, pS) {
     ssq <- c(
         seq(0, 20) / 100, 
         seq(11, 50) / 50, 
