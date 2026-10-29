@@ -46,8 +46,8 @@ Boot_parallel <- function(BPPARAM = NULL,
                           group,
                           meta.info,
                           pSamples,
-                          correlation_block = NULL,
-                          model = "limma",
+                          correlation_block,
+                          model,
                           pairwise_contrasts) {
     if (is.null(BPPARAM)) {
         if (.Platform$OS.type == "windows") {
@@ -127,7 +127,7 @@ Boot_parallel <- function(BPPARAM = NULL,
     }, BPPARAM = BPPARAM, 
     BPOPTIONS = bpoptions(packages = c("utils", 
                                        "stringr", "stats", 
-                                       "limma")))
+                                       "limma" , "dream")))
     return(results_list)
 }
 
