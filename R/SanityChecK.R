@@ -98,6 +98,13 @@ SanityChecK <- function(x,
         stop("The group column in meta info from colData must be of type character.")
     }
 
+    .Check_meta_info(
+        meta.info = meta.info,
+        data = data,
+        group = group,
+        K = K
+    )
+
     return(list(
         meta.info = meta.info,
         data = data,
