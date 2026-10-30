@@ -186,7 +186,8 @@ LimROTS <- function(x,
         meta.info = meta.info,
         group = group,
         correlation_block = correlation_block,
-        permutating.group = permutating.group
+        permutating.group = permutating.group,
+        strata = strata
     )
 
     ### parallelized bootstrapping and permutation fit
@@ -272,58 +273,60 @@ LimROTS <- function(x,
 
 
 .generate_bootstrap_permutations <- function(niter, meta.info, group, 
-correlation_block, permutating.group) {
-    # Generate bootstrap and permutation samples based on the provided metadata.
-    if (ncol(meta.info) > 1) {
+                                             correlation_block, strata) {
+    
+    if(!is.null(correlation_block)){
+        
+        message("..........")
+        
         samples <- bootstrapSamples_limRots_block(
             niter = 2 * niter,
             meta.info = meta.info,
             group = group,
             correlation_block = correlation_block
+        )
+        
+        pSamples <- permutationSamples_limRots(niter = niter, meta.info = meta.info, 
+                                   group = group, strata = correlation_block)
+    
+        return(list(boot_Samples = samples, perm_Samples = pSamples))
+        
+    }else if(is.null(correlation_block)){
+        message("..........")
+        
+        if(!is.null(strata)){
+            message("..........")
+            
+            samples <- bootstrapSamples_limRots(
+                niter = 2 * niter,
+                meta.info = meta.info,
+                group = group, strata = strata
             )
-        if (!is.null(correlation_block)) {
-            # Permute the group labels within each block, leaving block IDs
-            # attached to their samples; shuffling whole rows would detach them.
-            pSamples <- list()
-            block_rows <- split(seq_len(nrow(meta.info)),
-                                as.character(meta.info[, correlation_block]))
-            for (i in seq_len(nrow(samples)) ) {
-                shuffle_df <- meta.info
-                for (ix in block_rows) {
-                    shuffle_df[ix, group] <-
-                        meta.info[ix[sample.int(length(ix))], group]
-                }
-                pSamples[[i]] <-  shuffle_df
-            }
-        } else if(permutating.group == TRUE){
+            
+            pSamples <- permutationSamples_limRots(niter = niter, meta.info = meta.info, 
+                                                   group = group, strata = strata)
+            
+            return(list(boot_Samples = samples, perm_Samples = pSamples))
+            
+        }else if(ncol(meta.info) == 1){
+            message("..........")
+            
+            samples <- bootstrapS(2 * niter, meta.info, group)
             pSamples <- list()
             for (i in seq_len(nrow(samples)) ) {
                 shuffle_df <- meta.info
-                shuffle_df[, group] <- sample(shuffle_df[, group])
+                shuffle_df <- data.frame(meta.info[sample(nrow(meta.info)), ], 
+                                         row.names = NULL)
                 colnames(shuffle_df) <- colnames(meta.info)
                 pSamples[[i]] <-  shuffle_df
             }
-        }else{
-            pSamples <- list()
-            for (i in seq_len(nrow(samples)) ) {
-                shuffle_df <- meta.info
-                shuffle_df <- data.frame(meta.info[sample(nrow(meta.info)), ])
-                colnames(shuffle_df) <- colnames(meta.info)
-                pSamples[[i]] <-  shuffle_df
-            }   
-        }
-    } else {
-        samples <- bootstrapS(2 * niter, meta.info, group)
-        pSamples <- list()
-        for (i in seq_len(nrow(samples)) ) {
-            shuffle_df <- meta.info
-            shuffle_df <- data.frame(meta.info[sample(nrow(meta.info)), ])
-            colnames(shuffle_df) <- colnames(meta.info)
-            pSamples[[i]] <-  shuffle_df
+            
+            return(list(boot_Samples = samples, perm_Samples = pSamples))
+            
         }
         
     }
-    return(list(boot_Samples = samples, perm_Samples = pSamples))
+    
 }
 
 .final_fit <- function(data, meta.info, group, formula.str, trend, robust,
