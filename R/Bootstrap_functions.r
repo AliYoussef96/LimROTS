@@ -73,21 +73,17 @@ bootstrapS <- function(niter, meta.info, group) {
 #'
 #'
 bootstrapSamples_limRots <- function(niter, meta.info, group) {
-    labels <- as.numeric(meta.info[, group])
+    labels <- meta.info[, group]
     samples <- matrix(nrow = niter, ncol = length(labels))
     for (i in seq_len(niter)) {
-        for (label in unique(labels)) {
-            pos <- which(labels == label)
-            meta.info.pos <- meta.info[meta.info[, group] == label, ]
-            meta.info.factors <- c()
-            for (j in seq_len(ncol(meta.info))) {
-                if (is.factor(meta.info.pos[, j])) {
-                    meta.info.factors <-
-                        c(meta.info.factors, colnames(meta.info.pos)[j])
-                }
-            }
+        for (label_i in unique(labels)) {
+            pos <- which(labels == label_i)
+            meta.info.pos <- meta.info[meta.info[, group] == label_i, ]
+            
+            meta.info.factors <- names(meta.info)[sapply(meta.info, 
+                                                         function(x) is.character(x) || is.factor(x))]
             meta.info.factors <-
-                    meta.info.factors[meta.info.factors != group]
+                meta.info.factors[meta.info.factors != group]
             if (is.null(meta.info.factors) | 
                 length(meta.info.factors) == 0) {
                 samples <- bootstrapS(
@@ -105,16 +101,16 @@ bootstrapSamples_limRots <- function(niter, meta.info, group) {
                 unlist(lapply(names(stratum_samples), function(stratum) {
                     stratum_indices <-
                         row.names(meta.info.pos)[which(meta.info.pos$stratum ==
-                            stratum)]
+                                                           stratum)]
                     sample(stratum_indices, stratum_samples[stratum],
-                        replace = TRUE
+                           replace = TRUE
                     )
                 }))
             samples[i, pos] <- sampled_indices
         }
     }
     return(samples)
-}
+    }
 
 #' Generate Stratified Bootstrap Samples with Correlation Blocks
 #'
