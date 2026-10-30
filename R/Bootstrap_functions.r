@@ -85,7 +85,7 @@ bootstrapSamples_limRots <- function(niter, meta.info, group, strata) {
             meta.info.factors <-
                 meta.info.factors[meta.info.factors != group]
             meta.info.factors <- meta.info.factors[meta.info.factors %in% strata]
-            
+            message("strata that are used: ????")
             meta.info.pos$stratum <-
                 interaction(meta.info.pos[, meta.info.factors])
             stratum_sizes <- table(meta.info.pos$stratum)

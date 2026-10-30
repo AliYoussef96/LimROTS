@@ -72,11 +72,17 @@ SanityChecK <- function(x,
         K = K
     )
 
+    ### Check if strata in meta.info and it is character or factor
     if(!is.null(strata)){
         if(!all(strata %in% colnames(meta.info))){
             stop("'strata' must be NULL or names of a column in meta.info.")
         }
+        if(!all(sapply(meta.info[strata], 
+        function(x) is.character(x) || is.factor(x)))){
+            stop("strata' must be character or factor")
+        }
     }
+
 
     ### Check if survival analysis is requested and perform additional checks
     if(survival){
