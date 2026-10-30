@@ -154,7 +154,8 @@ LimROTS <- function(x,
     permutating.group = FALSE,
     correlation_block = NULL,
     pairwise_contrasts,
-    model = "limma"
+    model = "limma",
+    strata
     ) {
 
     ### Perform sanity checks on the input parameters and data.
@@ -168,7 +169,8 @@ LimROTS <- function(x,
         model = model,
         formula.str = formula.str,
         pairwise_contrasts = pairwise_contrasts,
-        correlation_block = correlation_block,
+        correlation_block = correlation_block,,
+        strata = strata,
         survival = FALSE
     )
 

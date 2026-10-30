@@ -48,7 +48,7 @@ SanityChecK <- function(x,
         niter, K,
         meta.info, group, model,
         formula.str, survival, pairwise_contrasts,
-        correlation_block) {
+        correlation_block, strata) {
 
     ### Check if x is a SummarizedExperiment and extract data and metadata
     ### and extract the assay if specified
@@ -71,6 +71,12 @@ SanityChecK <- function(x,
         group = group,
         K = K
     )
+
+    if(!is.null(strata)){
+        if(!all(strata %in% colnames(meta.info))){
+            stop("'strata' must be NULL or names of a column in meta.info.")
+        }
+    }
 
     ### Check if survival analysis is requested and perform additional checks
     if(survival){
