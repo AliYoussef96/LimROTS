@@ -75,19 +75,22 @@ bootstrapS <- function(niter, meta.info, group) {
 bootstrapSamples_limRots <- function(niter, meta.info, group, strata) {
     labels <- meta.info[, group]
     samples <- matrix(nrow = niter, ncol = length(labels))
+
+    meta.info.factors <- names(meta.info)[sapply(meta.info, 
+                                                function(x) is.character(x) || is.factor(x))]
+    meta.info.factors <-
+        meta.info.factors[meta.info.factors != group]
+
+    meta.info.factors <- meta.info.factors[meta.info.factors %in% strata]
+
+    message("Strata used: ", paste(meta.info.factors, collapse = ", "))
+
     for (i in seq_len(niter)) {
         for (label_i in unique(labels)) {
             pos <- which(labels == label_i)
             meta.info.pos <- meta.info[meta.info[, group] == label_i, ]
             
-            meta.info.factors <- names(meta.info)[sapply(meta.info, 
-                                                         function(x) is.character(x) || is.factor(x))]
-            meta.info.factors <-
-                meta.info.factors[meta.info.factors != group]
 
-            meta.info.factors <- meta.info.factors[meta.info.factors %in% strata]
-
-            message("strata that are used: ????")
             meta.info.pos$stratum <-
                 interaction(meta.info.pos[, meta.info.factors])
             stratum_sizes <- table(meta.info.pos$stratum)
@@ -443,10 +446,21 @@ bootstrapSamples_limRots_cox <- function(niter, meta.info,
 
 
 permutationSamples_limRots <- function(niter, meta.info, group, strata) {
-    message("Strata used: ", paste(strata, collapse = ", "))
+
+    meta.info.factors <- names(meta.info)[sapply(meta.info, 
+                                                function(x) is.character(x) || is.factor(x))]
+    meta.info.factors <-
+        meta.info.factors[meta.info.factors != group]
+
+    meta.info.factors <- meta.info.factors[meta.info.factors %in% strata]
+
+    message("Strata used: ", paste(meta.info.factors, collapse = ", "))
+
+
+    message("Strata used: ", paste(meta.info.factors, collapse = ", "))
     ## Create one combined stratum when multiple variables are supplied
     stratum <- interaction(
-        meta.info[, strata, drop = FALSE],
+        meta.info[, meta.info.factors, drop = FALSE],
         drop = TRUE,
         lex.order = TRUE
     )
