@@ -84,7 +84,9 @@ bootstrapSamples_limRots <- function(niter, meta.info, group, strata) {
                                                          function(x) is.character(x) || is.factor(x))]
             meta.info.factors <-
                 meta.info.factors[meta.info.factors != group]
+
             meta.info.factors <- meta.info.factors[meta.info.factors %in% strata]
+
             message("strata that are used: ????")
             meta.info.pos$stratum <-
                 interaction(meta.info.pos[, meta.info.factors])
@@ -436,4 +438,34 @@ bootstrapSamples_limRots_cox <- function(niter, meta.info,
     samples[i, ] <- sampled_indices
   }
   return(samples)
+}
+
+
+
+permutationSamples_limRots <- function(niter, meta.info, group, strata) {
+    message("Strata used: ", paste(strata, collapse = ", "))
+    ## Create one combined stratum when multiple variables are supplied
+    stratum <- interaction(
+        meta.info[, strata, drop = FALSE],
+        drop = TRUE,
+        lex.order = TRUE
+    )
+    ## Row positions belonging to each stratum
+    stratum_indices <- split(seq_len(nrow(meta.info)), stratum)
+    pSamples <- vector("list", niter)
+    for (i in seq_len(niter)) {
+        shuffle_df <- meta.info
+        permuted_group <- meta.info[[group]]
+        ## Shuffle group labels independently inside every stratum
+        for (indices in stratum_indices) {
+            permuted_group[indices] <- sample(
+                meta.info[[group]][indices],
+                size = length(indices),
+                replace = FALSE
+            )
+        }
+        shuffle_df[[group]] <- permuted_group
+        pSamples[[i]] <- shuffle_df
+    }
+    return(pSamples)
 }
