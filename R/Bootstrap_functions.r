@@ -178,18 +178,6 @@ bootstrapSamples_limRots_block <- function(
     correlation_block = NULL
 ) {
     
-    # If no correlation block is provided, use the original
-    # limRots bootstrap procedure.
-    if (is.null(correlation_block)) {
-        return(
-            bootstrapSamples_limRots(
-                niter = niter,
-                meta.info = meta.info,
-                group = group
-            )
-        )
-    }
-
     message(
         "Using correlation blocks for bootstrap sampling. ",
         "All samples sharing the same block ID will be sampled together. ",
