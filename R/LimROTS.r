@@ -31,11 +31,6 @@
 #' Default is TRUE, see \link[limma]{eBayes}.
 #' @param trend indicating whether to include trend fitting in the
 #' differential expression analysis. Default is TRUE. see \link[limma]{eBayes}.
-#' @param permutating.group Logical, If \code{TRUE}, the permutation for
-#' calculating the null distribution is performed by permuting the target group
-#' only specified in \code{group} Preserving all the other sample
-#' information. If `FALSE`, the entire sample information retrieved from
-#' \code{meta.info} will be permuted (recommended to be set to FALSE).
 #' @param correlation_block Character or NULL. The name of a column in
 #' \code{meta.info} that defines correlation blocks. Samples sharing the same
 #' value in this column are always resampled together as a unit, and
@@ -151,7 +146,6 @@ LimROTS <- function(x,
     formula.str,
     robust = TRUE,
     trend = TRUE,
-    permutating.group = FALSE,
     correlation_block = NULL,
     pairwise_contrasts,
     model = "limma",
@@ -169,10 +163,11 @@ LimROTS <- function(x,
         model = model,
         formula.str = formula.str,
         pairwise_contrasts = pairwise_contrasts,
-        correlation_block = correlation_block,,
+        correlation_block = correlation_block,
         strata = strata,
         survival = FALSE
     )
+
 
     meta.info <- SanityChecK.list[["meta.info"]]
     data <- SanityChecK.list[["data"]]
@@ -186,7 +181,6 @@ LimROTS <- function(x,
         meta.info = meta.info,
         group = group,
         correlation_block = correlation_block,
-        permutating.group = permutating.group,
         strata = strata
     )
 
