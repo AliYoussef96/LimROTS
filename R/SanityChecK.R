@@ -331,6 +331,12 @@ meta.info) {
         }
         }
 
+        ### check the formula terms and meta.info agree
+        vars <- unique(all.vars(formula(formula.str)))
+        if(!all(vars %in% colnames(meta.info))){
+            stop("All variables in the formula must be present in meta.info.")
+        }
+
         ### Check for random effects in the formula
         random_terms <- lme4::findbars(formula(formula.str))
         if(model == "limma"){
