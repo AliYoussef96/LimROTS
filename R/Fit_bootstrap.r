@@ -114,13 +114,15 @@ fit_bootstrap <- function(x, group, meta.info, formula.str,
             abs(as.numeric(fit.ebayes[["coefficients"]])),
             rownames(fit.ebayes[["coefficients"]]))
     
+        if (is.null(correlation_block)) {
         stopifnot(identical(names(fit.ebayes[["s2.post"]]) ,  
                         row.names(fit.ebayes[["stdev.unscaled"]])))
+        }
 
         s_values <- setNames(
             as.numeric(sqrt(fit.ebayes[["s2.post"]]) *
                             fit.ebayes[["stdev.unscaled"]]),
-            names(fit.ebayes[["s2.post"]]))
+            names(row.names(fit.ebayes[["stdev.unscaled"]])))
     
         stopifnot(identical(names(s_values), names(d_values) ) )
 
