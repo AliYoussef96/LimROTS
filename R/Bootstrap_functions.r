@@ -455,9 +455,6 @@ permutationSamples_limRots <- function(niter, meta.info, group, strata) {
     meta.info.factors <- meta.info.factors[meta.info.factors %in% strata]
 
     message("Strata used: ", paste(meta.info.factors, collapse = ", "))
-
-
-    message("Strata used: ", paste(meta.info.factors, collapse = ", "))
     ## Create one combined stratum when multiple variables are supplied
     stratum <- interaction(
         meta.info[, meta.info.factors, drop = FALSE],

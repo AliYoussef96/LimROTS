@@ -177,7 +177,7 @@ LimROTS <- function(x,
 
     ### bootstrap and permutation samples
     list_boot_perm <- .generate_bootstrap_permutations(
-        niter = niter,
+        niter_2 = 2 * niter,
         meta.info = meta.info,
         group = group,
         correlation_block = correlation_block,
@@ -266,21 +266,22 @@ LimROTS <- function(x,
 
 
 
-.generate_bootstrap_permutations <- function(niter, meta.info, group, 
+.generate_bootstrap_permutations <- function(niter_2, meta.info, group, 
                                              correlation_block, strata) {
     
+
     if(!is.null(correlation_block)){
         
         message("..........")
         
         samples <- bootstrapSamples_limRots_block(
-            niter = 2 * niter,
+            niter = niter_2,
             meta.info = meta.info,
             group = group,
             correlation_block = correlation_block
         )
         
-        pSamples <- permutationSamples_limRots(niter = niter, meta.info = meta.info, 
+        pSamples <- permutationSamples_limRots(niter = niter_2, meta.info = meta.info, 
                                    group = group, strata = correlation_block)
     
         return(list(boot_Samples = samples, perm_Samples = pSamples))
@@ -292,12 +293,12 @@ LimROTS <- function(x,
             message("..........")
             
             samples <- bootstrapSamples_limRots(
-                niter = 2 * niter,
+                niter = niter_2,
                 meta.info = meta.info,
                 group = group, strata = strata
             )
             
-            pSamples <- permutationSamples_limRots(niter = niter, meta.info = meta.info, 
+            pSamples <- permutationSamples_limRots(niter = niter_2, meta.info = meta.info, 
                                                    group = group, strata = strata)
             
             return(list(boot_Samples = samples, perm_Samples = pSamples))
@@ -305,14 +306,18 @@ LimROTS <- function(x,
         }else if(ncol(meta.info) == 1){
             message("..........")
             
-            samples <- bootstrapS(2 * niter, meta.info, group)
-            pSamples <- list()
-            for (i in seq_len(nrow(samples)) ) {
+            samples <- bootstrapS(niter = niter_2, meta.info = meta.info, group = group)
+
+            pSamples <- vector("list", niter_2)
+            for (i in seq_len(niter_2)) {
                 shuffle_df <- meta.info
-                shuffle_df <- data.frame(meta.info[sample(nrow(meta.info)), ], 
-                                         row.names = NULL)
-                colnames(shuffle_df) <- colnames(meta.info)
-                pSamples[[i]] <-  shuffle_df
+                ## Shuffle only the target group labels across all samples
+                shuffle_df[[group]] <- sample(
+                    meta.info[[group]],
+                    size = nrow(meta.info),
+                    replace = FALSE
+                )
+                pSamples[[i]] <- shuffle_df
             }
             
             return(list(boot_Samples = samples, perm_Samples = pSamples))
