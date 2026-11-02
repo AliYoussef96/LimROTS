@@ -173,7 +173,7 @@ bootstrapSamples_limRots_block <- function(
     niter,
     meta.info,
     group,
-    correlation_block = NULL
+    correlation_block
 ) {
     
     message(
