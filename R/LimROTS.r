@@ -303,7 +303,7 @@ LimROTS <- function(x,
             
             return(list(boot_Samples = samples, perm_Samples = pSamples))
             
-        }else if(ncol(meta.info) == 1){
+        }else if(is.null(strata)){
             message("..........")
             
             samples <- bootstrapS(niter = niter_2, meta.info = meta.info, group = group)
