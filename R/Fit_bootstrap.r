@@ -122,7 +122,7 @@ fit_bootstrap <- function(x, group, meta.info, formula.str,
         s_values <- setNames(
             as.numeric(sqrt(fit.ebayes[["s2.post"]]) *
                             fit.ebayes[["stdev.unscaled"]]),
-            names(row.names(fit.ebayes[["stdev.unscaled"]])))
+            row.names(fit.ebayes[["stdev.unscaled"]]))
     
         stopifnot(identical(names(s_values), names(d_values) ) )
 
