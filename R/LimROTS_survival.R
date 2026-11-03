@@ -155,54 +155,53 @@ LimROTS_survival <- function(x,
     meta.info,
     BPPARAM  = NULL,
     formula.str,
-    competing_risks = FALSE,
-    correlation_block = NULL) {
+    competing_risks = FALSE) {
 
+    ### Perform sanity checks on the input parameters and data.
     SanityChecK.list <- SanityChecK(
-        x,
+        x = x,
         assay.type = assay.type,
         niter = niter,
         K = K,
         meta.info = meta.info,
-        verbose = verbose,
-        log = TRUE,
+        group = NULL,
+        model = NULL,
+        pairwise_contrasts = NULL,
+        correlation_block = NULL,
+        strata = "event",
         survival = TRUE,
         formula.str = formula.str
     )
-    meta.info <- SanityChecK.list$meta.info
-    data <- SanityChecK.list$data
-    K <- SanityChecK.list$K
-    formula.str <- SanityChecK.list$formula.str
+    meta.info <- SanityChecK.list[["meta.info"]]
+    data <- SanityChecK.list[["data"]]
+    K <- SanityChecK.list[["K"]]
+    formula.str <- SanityChecK.list[["formula.str"]]
 
-    samples <- bootstrapSamples_limRots_cox(
-        niter = 2 * niter,
-        meta.info = meta.info,
-        correlation_block = correlation_block)
-    
+    ### Generate bootstrap and permutation samples.
+    list_boot_perm <- .generate_bootstrap_permutations_survival(
+        niter_2 = 2 * niter,
+        meta.info = meta.info
+    )
 
-    pSamples <- list()
-    for (i in seq_len(nrow(samples)) ) {
-        shuffle_df <- meta.info
-        shuffle_df <- data.frame(meta.info[sample(nrow(meta.info)), ])
-        colnames(shuffle_df) <- colnames(meta.info)
-        pSamples[[i]] <-  shuffle_df
-    }  
-     
-    
-    D <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
-    S <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
-    pD <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
-    pS <- matrix(nrow = nrow(as.matrix(data)), ncol = nrow(samples))
-    
+    ### Run the bootstrap and permutation fits in parallel.
     results_list <- Boot_parallel_survival(
-        BPPARAM  = BPPARAM ,
-        samples = samples, data = data,
+        BPPARAM = BPPARAM,
+        samples = list_boot_perm[["boot_Samples"]],
+        data = data,
         formula.str = formula.str,
         meta.info = meta.info,
-        a1 = a1, a2 = a2,
-        pSamples = pSamples,
+        a1 = a1,
+        a2 = a2,
+        pSamples = list_boot_perm[["perm_Samples"]],
         competing_risks = competing_risks
     )
+
+    row_length <- nrow(as.matrix(data))
+    col_length <- nrow(list_boot_perm[["boot_Samples"]])
+    D <- matrix(nrow = row_length, ncol = col_length)
+    S <- matrix(nrow = row_length, ncol = col_length)
+    pD <- matrix(nrow = row_length, ncol = col_length)
+    pS <- matrix(nrow = row_length, ncol = col_length)
 
     for (i in seq_along(results_list)) {
         D[, i] <- results_list[[i]][["ds"]][["d_result"]]
@@ -210,211 +209,174 @@ LimROTS_survival <- function(x,
         pD[, i] <- results_list[[i]][["pdps"]][["pd_result"]]
         pS[, i] <- results_list[[i]][["pdps"]][["ps_result"]]
     }
-    
+
     D <- abs(D)
     pD <- abs(pD)
-    
-    if (is.null(a1) | is.null(a2)) {
-        ssq <- c(seq(0, 20) / 100, seq(11, 50) / 50, seq(6, 25) / 5)
-        N <- c(
-            seq(1, 20) * 5,
-            seq(11, 50) * 10,
-            seq(21, 40) * 25,
-            seq(11, 1000) * 100
-        )
-        K <- min(K, nrow(data))
-        N <- N[N < K]
-        optimized.parameters <-
-            Optimizing(niter, ssq, N, D, S, pD, pS, verbose)
-        a1 <- optimized.parameters$a1
-        a2 <- optimized.parameters$a2
-        k <- optimized.parameters$k
-        R <- optimized.parameters$R
-        Z <- optimized.parameters$Z
-        ztable <- optimized.parameters$ztable
-        fit <- fit_survival(
-            x = data,
-            meta.info = meta.info,
-            formula.str = formula.str,
-            competing_risks = competing_risks
-        )
-        d <- fit$d / (a1 + a2 * fit$s)
-        pD <- pD / (a1 + a2 * pS)
 
-        if (verbose) {
-            message("Computing p-values and FDR")
-        }
-        p <- empPvals(
-            stat = d,
-            stat0 = pD,
-            pool = TRUE
+    ### Optimize parameters unless both values were supplied.
+    if (is.null(a1) || is.null(a2)) {
+        optimized.parameters <- Optimizing(
+            niter = niter,
+            K = K,
+            N = NULL,
+            D = D,
+            S = S,
+            pD = pD,
+            pS = pS
         )
-        FDR <- calculateFalseDiscoveryRate(d, pD)
-        exp_coef <- fit$exp_coef
-        q_values <- tryCatch(
-            {
-                    qvalue(
-                        p,
-                        pi0.method = "bootstrap",
-                        lambda = seq(0.01, 0.95, 0.01))
-            },
-            error = function(e) {
-                message("qvalue() failed (return NULL): ", e$message)
-                NULL
-            }
-        )
-        BH.pvalue <- p.adjust(p, method = "BH")
-
-        if (inherits(x, "SummarizedExperiment")) {
-            feat_names <- rownames(x)
-            new_rowData <- DataFrame(
-                statistics = setNames(d, row.names(data))[feat_names],
-                pvalue     = setNames(p, row.names(data))[feat_names],
-                qvalue     = if (is.null(q_values))
-                                 rep(NA_real_, length(feat_names))
-                             else setNames(q_values$qvalues,
-                                          row.names(data))[feat_names],
-                FDR        = setNames(FDR, row.names(data))[feat_names],
-                exp_coef   = setNames(
-                                 as.numeric(exp_coef),
-                                 row.names(data))[feat_names],
-                BH.pvalue  = setNames(BH.pvalue, row.names(data))[feat_names],
-                row.names  = feat_names
-            )
-            correct.order <- rownames(x)
-            if (ncol(rowData(x)) == 0L) {
-                rowData(x) <- new_rowData
-            } else {
-                rowData(x) <- cbind(rowData(x), new_rowData)
-            }
-            if (!identical(correct.order, rownames(x))) {
-                stop("Can not add the LimROTS results to the 
-                                                        SummarizedExperiment")
-            }
-            metadata(x) <- c(metadata(x), list(
-                a1 = a1,
-                a2 = a2,
-                k = k,
-                Z = Z,
-                R = R,
-                ztable = ztable,
-                q_values = q_values,
-                null.statistics = pD
-            ))
-
-            LimROTS.output <- x
-            remove(x)
-            gc()
-        } else {
-            LimROTS.output <- list(
-                data = data,
-                niter = niter,
-                statistics = d,
-                pvalue = p,
-                FDR = FDR,
-                a1 = a1,
-                a2 = a2,
-                k = k,
-                R = R,
-                Z = Z,
-                ztable = ztable,
-                exp_coef = exp_coef,
-                q_values = q_values,
-                BH.pvalue = BH.pvalue,
-                null.statistics = pD
-            )
-        }
+        a1 <- optimized.parameters[["a1"]]
+        a2 <- optimized.parameters[["a2"]]
+        k <- optimized.parameters[["k"]]
+        R <- optimized.parameters[["R"]]
+        Z <- optimized.parameters[["Z"]]
+        ztable <- optimized.parameters[["ztable"]]
     } else {
-        fit <- fit_survival(
-            x = data,
-            meta.info = meta.info,
-            formula.str = formula.str,
-            competing_risks = competing_risks
-        )
-        d <- fit$d / (a1 + a2 * fit$s)
-        pD <- pD / (a1 + a2 * pS)
-        if (verbose) {
-            message("Calculating p-values and FDR")
-        }
-        p <- empPvals(
-            stat = d,
-            stat0 = pD,
-            pool = TRUE
-        )
-        FDR <- calculateFalseDiscoveryRate(d, pD)
-        exp_coef <- fit$exp_coef
-        q_values <- tryCatch(
-            {
-                qvalue(
-                    p,
-                    pi0.method = "bootstrap",
-                    lambda = seq(0.01, 0.95, 0.01)
-                )
-            },
-            error = function(e) {
-                message("qvalue() failed (return NULL): ", e$message)
-                NULL
-            }
-        )
-        BH.pvalue <- p.adjust(p, method = "BH")
-
-        if (inherits(x, "SummarizedExperiment")) {
-            feat_names <- rownames(x)
-            new_rowData <- DataFrame(
-                statistics = setNames(d, row.names(data))[feat_names],
-                pvalue     = setNames(p, row.names(data))[feat_names],
-                qvalue     = if (is.null(q_values))
-                                 rep(NA_real_, length(feat_names))
-                             else setNames(q_values$qvalues,
-                                          row.names(data))[feat_names],
-                FDR        = setNames(FDR, row.names(data))[feat_names],
-                exp_coef   = setNames(
-                                 as.numeric(exp_coef),
-                                 row.names(data))[feat_names],
-                BH.pvalue  = setNames(BH.pvalue, row.names(data))[feat_names],
-                row.names  = feat_names
-            )
-            correct.order <- rownames(x)
-            if (ncol(rowData(x)) == 0L) {
-                rowData(x) <- new_rowData
-            } else {
-                rowData(x) <- cbind(rowData(x), new_rowData)
-            }
-            if (!identical(correct.order, rownames(x))) {
-                stop("Can not add the LimROTS results to the 
-                                                        SummarizedExperiment")
-            }
-            metadata(x) <- c(metadata(x), list(
-                a1 = a1,
-                a2 = a2,
-                k = NULL,
-                Z = NULL,
-                R = NULL,
-                ztable = NULL,
-                q_values = q_values,
-                null.statistics = pD
-            ))
-            LimROTS.output <- x
-            remove(x)
-            gc()
-        } else {
-            LimROTS.output <- list(
-                data = data,
-                niter = niter,
-                statistics = d,
-                pvalue = p,
-                FDR = FDR,
-                a1 = a1,
-                a2 = a2,
-                k = NULL,
-                R = NULL,
-                Z = NULL,
-                exp_coef = exp_coef,
-                q_values = q_values,
-                BH.pvalue = BH.pvalue,
-                null.statistics = pD
-            )
-        }
+        k <- R <- Z <- ztable <- NULL
     }
-    return(LimROTS.output)
+
+    ### Fit the survival model on the original data.
+    fit_survival_result <- .final_fit_survival(
+        data = data,
+        meta.info = meta.info,
+        formula.str = formula.str,
+        competing_risks = competing_risks,
+        a1 = a1,
+        a2 = a2,
+        pD = pD,
+        pS = pS,
+        verbose = verbose
+    )
+
+    ### Generate output.
+    .generate_output_survival(
+        x = x,
+        data = data,
+        fit = fit_survival_result,
+        niter = niter,
+        a1 = a1,
+        a2 = a2,
+        k = k,
+        Z = Z,
+        R = R,
+        ztable = ztable
+    )
+}
+
+.generate_bootstrap_permutations_survival <- function(niter_2, meta.info) {
+
+    boot_samples <- bootstrapSamples_limRots_cox(
+        niter = niter_2,
+        meta.info = meta.info
+    )
+
+    perm_samples <- lapply(seq_len(niter_2), function(i) {
+        meta.info[sample(nrow(meta.info)), , drop = FALSE]
+    })
+
+    list(boot_Samples = boot_samples, perm_Samples = perm_samples)
+}
+
+.final_fit_survival <- function(data, meta.info, formula.str,
+    competing_risks, a1, a2, pD, pS, verbose) {
+    fit <- fit_survival(
+        x = data,
+        meta.info = meta.info,
+        formula.str = formula.str,
+        competing_risks = competing_risks
+    )
+    d <- fit[["d"]] / (a1 + a2 * fit[["s"]])
+    pD <- pD / (a1 + a2 * pS)
+
+    if (verbose) {
+        message("Computing p-values and FDR")
+    }
+    p_value <- empPvals(stat = d, stat0 = pD, pool = TRUE)
+    FDR <- calculateFalseDiscoveryRate(d, pD)
+    q_values <- tryCatch(
+        qvalue(
+            p_value,
+            pi0.method = "bootstrap",
+            lambda = seq(0.01, 0.95, 0.01)
+        ),
+        error = function(e) {
+            message("qvalue() failed (return NULL): ", e$message)
+            NULL
+        }
+    )
+    BH.pvalue <- p.adjust(p_value, method = "BH")
+
+    list(
+        d = d,
+        pD = pD,
+        p_value = p_value,
+        FDR = FDR,
+        exp_coef = fit[["exp_coef"]],
+        q_values = q_values,
+        BH.pvalue = BH.pvalue
+    )
+}
+
+.generate_output_survival <- function(x, data, fit, niter, a1, a2, k, Z,
+    R, ztable) {
+    if (inherits(x, "SummarizedExperiment")) {
+        feat_names <- rownames(x)
+        new_rowData <- DataFrame(
+            statistics = setNames(fit[["d"]], rownames(data))[feat_names],
+            pvalue = setNames(fit[["p_value"]], rownames(data))[feat_names],
+            qvalue = if (is.null(fit[["q_values"]])) {
+                rep(NA_real_, length(feat_names))
+            } else {
+                setNames(fit[["q_values"]]$qvalues, rownames(data))[feat_names]
+            },
+            FDR = setNames(fit[["FDR"]], rownames(data))[feat_names],
+            exp_coef = setNames(
+                as.numeric(fit[["exp_coef"]]),
+                rownames(data)
+            )[feat_names],
+            BH.pvalue = setNames(fit[["BH.pvalue"]], rownames(data))[feat_names],
+            row.names = feat_names
+        )
+        if (!identical(rownames(new_rowData), feat_names)) {
+            stop("Can not add the LimROTS results to the SummarizedExperiment")
+        }
+
+        correct.order <- rownames(x)
+        if (ncol(rowData(x)) == 0L) {
+            rowData(x) <- new_rowData
+        } else {
+            rowData(x) <- cbind(rowData(x), new_rowData)
+        }
+        if (!identical(correct.order, rownames(x))) {
+            stop("Can not add the LimROTS results to the SummarizedExperiment")
+        }
+        metadata(x) <- c(metadata(x), list(
+            a1 = a1,
+            a2 = a2,
+            k = k,
+            Z = Z,
+            R = R,
+            ztable = ztable,
+            q_values = fit[["q_values"]],
+            null.statistics = fit[["pD"]]
+        ))
+        return(x)
+    }
+
+    list(
+        data = data,
+        niter = niter,
+        statistics = fit[["d"]],
+        pvalue = fit[["p_value"]],
+        FDR = fit[["FDR"]],
+        a1 = a1,
+        a2 = a2,
+        k = k,
+        R = R,
+        Z = Z,
+        ztable = ztable,
+        exp_coef = fit[["exp_coef"]],
+        q_values = fit[["q_values"]],
+        BH.pvalue = fit[["BH.pvalue"]],
+        null.statistics = fit[["pD"]]
+    )
 }
