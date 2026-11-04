@@ -191,7 +191,7 @@ competing_risks
             d[j] <- beta
             s[j]   <- sqrt(var)
             exp_coef[j] <- exp(fit$coef[1])
-            taxon_names[j] <- row.names(combined_data[j,])
+            taxon_names[j] <- row.names(combined_data)[j]
             
         }
         
@@ -225,7 +225,7 @@ competing_risks
             d[j] <- beta
             s[j]   <- sqrt(var)
             exp_coef[j] <- exp(beta)
-            taxon_names[j] <- row.names(combined_data[j,])
+            taxon_names[j] <- row.names(combined_data)[j]
 
         }
 
@@ -315,7 +315,7 @@ bootstrap_survival <-
         
         d[j] <- beta
         s[j]   <- sqrt(var)
-        taxon_names[j] <- row.names(combined_data[j,])
+        taxon_names[j] <- row.names(combined_data)[j]
       }
       
       names(d) <- taxon_names
@@ -345,7 +345,7 @@ bootstrap_survival <-
         
         d[j] <- beta
         s[j]   <- sqrt(var)
-        taxon_names[j] <- row.names(combined_data[j,])
+        taxon_names[j] <- row.names(combined_data)[j]
       }
       
       names(d) <- taxon_names
@@ -467,7 +467,7 @@ permutating_survival <- function(x, meta.info, formula.str,
       
       d[j] <- beta
       s[j]   <- sqrt(var)
-      taxon_names[j] <- row.names(combined_data[j,])
+      taxon_names[j] <- row.names(combined_data)[j]
     }
     
     names(d) <- taxon_names
@@ -498,7 +498,7 @@ permutating_survival <- function(x, meta.info, formula.str,
       d[j] <- beta
       s[j]   <- sqrt(var)
       
-      taxon_names[j] <- row.names(combined_data[j,])
+      taxon_names[j] <- row.names(combined_data)[j]
       
     }
     
