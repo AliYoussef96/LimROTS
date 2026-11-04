@@ -92,7 +92,9 @@ SanityChecK <- function(x,
         survival_check <- .check_survival(meta.info = meta.info, 
         data = data, 
         K = K, 
-        formula.str = formula.str)
+        formula.str = formula.str,
+        competing_risks = competing_risks,
+        group  = group )
         return(survival_check)
       }
 
@@ -178,16 +180,7 @@ SanityChecK <- function(x,
                 stop("meta.info should be a vector of colData names to be used")
             }
         }
-        if(!survival){
-            if (!group %in% colnames(meta.info)) {
-                stop(
-                    "group should be a string specifying",
-                    " the column in `meta.info` that",
-                    " represents the group or conditions",
-                    " for comparison."
-                )
-            }
-        }
+        
         if (is.null(assay.type)) {
             assay.type <- assayNames(x)[1]
         }
@@ -244,6 +237,15 @@ SanityChecK <- function(x,
         stop("meta.info must have unique sample names as row names.")
     }
 
+    if (!group %in% colnames(meta.info)) {
+        stop(
+            "group should be a string specifying",
+            " the column in `meta.info` that",
+            " represents the group or conditions",
+            " for comparison."
+        )
+    }
+
     if(!survival){
         if(length(unique(meta.info[, group])) != 2){
         stop("LimROTS only supports two-group comparisons.")
@@ -295,7 +297,7 @@ SanityChecK <- function(x,
 #' 
 
 
-.check_survival <- function(meta.info, data, K, formula.str, competing_risks) {
+.check_survival <- function(meta.info, data, K, formula.str, competing_risks, group ) {
   
   if(!all(c("time", "event") %in% colnames(meta.info))){
     stop("For survival analysis, 'meta.info' must contain 'time' and 
@@ -319,8 +321,6 @@ SanityChecK <- function(x,
              meta info in colData")
   }
 
-  message("Sanity check completed successfully!")
-  
   .Check_meta_info(
     meta.info = meta.info,
     data = data,
@@ -330,6 +330,8 @@ SanityChecK <- function(x,
     survival = TRUE
   )
   
+    message("Sanity check completed successfully!")
+
   return(list(
     meta.info = meta.info,
     data = data,
