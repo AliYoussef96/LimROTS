@@ -1,65 +1,37 @@
 # Copyright (C) 2025 Ali Youssef.
 # This program is licensed under GPL (>= 2).
 #
-#' `LimROTS_survival`: A Hybrid Method Integrating Empirical Bayes and 
-#' Reproducibility-Optimized Statistics for Robust 
-#' survival analysis in Omics Data
+#' Reproducibility-Optimized Survival Analysis
 #'
-#' @param x A \code{SummarizedExperiment} object, where rows
-#' represent features (e.g., proteins, metabolites) and columns
-#' represent samples.
-#' The values should be log-transformed.
-#' @param assay.type A character string or numeric index specifying the assay
-#' to use if \code{x} is a \code{SummarizedExperiment}. Default is \code{NULL}
-#' (uses the first assay).
-#' @param niter An integer representing the amount of bootstrap iterations.
-#' Default is 1000.
-#' @param K An optional integer representing the top list size for ranking.
-#' If not specified, it is set to one-fourth of the number of features.
-#' @param a1 Optional numeric value used in the optimization process.
-#' If defined by the user, no optimization occurs.
-#' @param a2 Optional numeric value used in the optimization process.
-#' If defined by the user, no optimization occurs.
-#' @param verbose Logical, indicating whether to display messages during the
-#' function's execution. Default is \code{TRUE}.
-#' @param meta.info a character vector of the metadata needed for the
-#' model to run and can be retrieved using \code{colData()}.
-#' @param BPPARAM   A \code{BiocParallelParam} object specifying the
-#' parallelization backend (e.g., \code{MulticoreParam}, \code{SnowParam}).
-#' The default depends on the operating system: if the user is on Windows,
-#' \code{SnowParam(workers = 2)} is used; otherwise,
-#' \code{MulticoreParam(workers = 2)}.
-#' @param formula.str A formula string for modeling.
-#' It should include "~ 0 + ..." to exclude the intercept from the model.
-#' All the model parameters must be present in \code{meta.info}.
-#' @param competing_risks Logical. If \code{TRUE}, the function will fit a
-#' competing risks model using the \code{crr} function from the
-#' \code{cmprsk} package instead of the standard Cox proportional hazards
-#' model. Default is \code{FALSE}.
-#' @param correlation_block Character or NULL. The name of a column in
-#' `meta.info` that defines correlation blocks. Samples sharing the same
-#' value in this column are always resampled together as a unit. If NULL,
-#' the function behaves identically to \code{bootstrapSamples_limRots}.
+#' Analyze feature-by-sample data using a Cox proportional hazards or
+#' competing-risks model and reproducibility-optimized bootstrap statistics.
 #'
-#' @return A \code{SummarizedExperiment} when \code{x} is a
-#' \code{SummarizedExperiment} (results added to \code{rowData} and
-#' \code{metadata}), or a list with the following elements:
-#' \item{data}{The original data matrix.}
-#' \item{niter}{The number of bootstrap samples used.}
-#' \item{statistics}{The optimized statistics for each feature.}
-#' \item{pvalue}{P-values computed based on the permutation samples.}
-#' \item{FDR}{False discovery rate estimates.}
-#' \item{a1}{Optimized parameter used in survival ranking.}
-#' \item{a2}{Optimized parameter used in survival ranking.}
-#' \item{k}{Top list size used for ranking.}
-#' \item{R}{Reproducibility score for the optimized parameters.}
-#' \item{Z}{Z-score corresponding to the optimized parameters.}
-#' \item{ztable}{Table of z-scores across the parameter grid.}
-#' \item{exp_coef}{Exponentiated coefficient (hazard ratio estimate) from
-#' the Cox proportional hazards model for each feature.}
-#' \item{q_values}{Estimated q-values using the \code{qvalue} package.}
-#' \item{BH.pvalue}{Benjamini-Hochberg adjusted p-values.}
-#' \item{null.statistics}{The optimized null statistics for each feature.}
+#' @param x A `SummarizedExperiment` containing features in rows and samples in
+#' columns.
+#' @param assay.type Character string or numeric index selecting the assay in
+#' `x` to analyze. If `NULL`, the first assay is used.
+#' @param niter Integer. Number of bootstrap or permutation replicates to
+#' generate.
+#' @param K Integer. Number of top-ranked features to use. If `NULL`, defaults
+#' to one quarter of the number of features.
+#' @param verbose Logical. If `TRUE`, report progress messages.
+#' @param meta.info Character vector naming the sample-level metadata columns
+#' in `colData(x)` required for the survival model. Must include `time`,
+#' `event`, and the formula covariates.
+#' @param BPPARAM A `BiocParallelParam` object specifying the parallel backend.
+#' If `NULL`, the parallel helper selects a two-worker backend appropriate to
+#' the operating system.
+#' @param formula.str Character string containing the survival model formula.
+#' It must include `Surv(time,event)~y`; additional covariates must be columns
+#' in `meta.info`.
+#' @param competing_risks Logical. If `TRUE`, fit a Fine-Gray competing-risks
+#' model with `cmprsk::crr()`; otherwise fit a Cox proportional hazards model
+#' with `survival::coxph()`.
+#'
+#' @return The input `SummarizedExperiment` with feature-level statistics,
+#' empirical p-values, q-values, FDR estimates, exponentiated coefficients,
+#' and BH-adjusted p-values added to `rowData()`. Optimization results and
+#' null statistics are added to `metadata()`.
 #'
 #' @importFrom stats model.matrix formula p.adjust
 #' @importFrom dplyr bind_cols
@@ -69,13 +41,12 @@
 #' bpRNGseed
 #' @importFrom S4Vectors DataFrame metadata
 #'
-#' @details **LimROTS_survival** applies the reproducibility-optimized
-#' statistic framework to survival analysis. For each bootstrap resample,
-#' a Cox proportional hazards model (or a competing risks model
-#' via \code{crr} from \pkg{cmprsk} when \code{competing_risks = TRUE})
-#' is fitted per feature using the supplied \code{formula.str}. The
-#' coefficient \eqn{\beta_{(p)}} and its standard error \eqn{SE_{(p)}} are
-#' extracted for each feature across bootstrap datasets.
+#' @details The function applies the reproducibility-optimized statistic
+#' framework to survival analysis. For each bootstrap resample, a Cox
+#' proportional hazards model or Fine-Gray competing-risks model is fitted
+#' per feature using `formula.str`. The feature coefficient
+#' \eqn{\beta_{(p)}} and its standard error \eqn{SE_{(p)}} are extracted across
+#' bootstrap datasets.
 #'
 #' Reproducibility-optimized parameters \eqn{\alpha_1} and \eqn{\alpha_2}
 #' are then selected by maximizing the overlap of top-ranked features across
@@ -86,7 +57,7 @@
 #'          {\alpha_1 + \alpha_2 \times SE_{(p)}}}
 #'
 #' where \eqn{t_{\alpha_{(p)}}} is the final statistic, \eqn{\beta_{(p)}}
-#' is the Cox model coefficient, and \eqn{SE_{(p)}} is its standard error.
+#' is the feature coefficient, and \eqn{SE_{(p)}} is its standard error.
 #'
 #' P-values are computed from permutation-based null distributions using
 #' \link[qvalue]{empPvals} from the \pkg{qvalue} package, alongside an
@@ -141,10 +112,7 @@
 #'     competing_risks = FALSE
 #' )
 #'
-#'
-#' @export
-
-
+#' @export 
 LimROTS_survival <- function(x,
     assay.type = NULL,
     niter = 1000,
@@ -258,6 +226,18 @@ LimROTS_survival <- function(x,
     )
 }
 
+#' Generate Survival Bootstrap and Permutation Samples
+#'
+#' Generate bootstrap sample names grouped by event status and permutation
+#' replicates by jointly shuffling survival times and event labels.
+#'
+#' @param niter_2 Integer. Number of bootstrap and permutation replicates to
+#' generate.
+#' @param meta.info Data frame of sample-level metadata, with sample names as
+#' row names and an `event` column.
+#'
+#' @return A list containing `boot_Samples`, a matrix of bootstrap sample names,
+#' and `perm_Samples`, a list of permuted metadata data frames.
 .generate_bootstrap_permutations_survival <- function(niter_2, meta.info) {
 
     samples <- bootstrapS(niter = niter_2, meta.info = meta.info, group = "event")
@@ -275,6 +255,28 @@ LimROTS_survival <- function(x,
     list(boot_Samples = samples, perm_Samples = pSamples)
 }
 
+#' Fit Survival Models and Calculate Inference
+#'
+#' Fit per-feature survival models on the original data, scale observed and
+#' null statistics with the supplied parameters, and calculate empirical
+#' p-values and false-discovery measures.
+#'
+#' @param data Feature-by-sample matrix with sample names as column names.
+#' @param meta.info Data frame of sample-level metadata, with sample names as
+#' row names.
+#' @param formula.str Character string containing the survival model formula.
+#' @param competing_risks Logical. If `TRUE`, use a Fine-Gray competing-risks
+#' model; otherwise use a Cox proportional hazards model.
+#' @param a1 Numeric first statistic-scaling parameter.
+#' @param a2 Numeric second statistic-scaling parameter.
+#' @param pD Matrix of null-model coefficients from the permutation fits.
+#' @param pS Matrix of null-model standard errors from the permutation fits.
+#' @param verbose Logical. If `TRUE`, report progress messages.
+#'
+#' @return A list containing observed statistics `d`, scaled null statistics
+#' `pD`, empirical p-values `p_value`, FDR estimates `FDR`, exponentiated
+#' coefficients `exp_coef`, q-values `q_values`, and BH-adjusted p-values
+#' `BH.pvalue`.
 .final_fit_survival <- function(data, meta.info, formula.str,
     competing_risks, a1, a2, pD, pS, verbose) {
     fit <- fit_survival(
@@ -315,6 +317,25 @@ LimROTS_survival <- function(x,
     )
 }
 
+#' Add Survival Results to a SummarizedExperiment
+#'
+#' Add feature-level statistics to `rowData()` and optimization details and
+#' null statistics to `metadata()`.
+#'
+#' @param x A `SummarizedExperiment` whose rows correspond to analyzed features.
+#' @param data Feature-by-sample matrix used for fitting, with feature names as
+#' row names.
+#' @param fit Result list returned by `.final_fit_survival()`.
+#' @param niter Integer. Number of bootstrap or permutation replicates used.
+#' @param a1 Numeric first statistic-scaling parameter.
+#' @param a2 Numeric second statistic-scaling parameter.
+#' @param k Integer. Number of top-ranked features selected during optimization.
+#' @param Z Numeric optimization z-score.
+#' @param R Numeric reproducibility score from optimization.
+#' @param ztable Matrix of z-scores across the optimization parameter grid.
+#'
+#' @return The `SummarizedExperiment` `x` with survival-analysis results added
+#' to its row data and metadata.
 .generate_output_survival <- function(x, data, fit, niter, a1, a2, k, Z,
     R, ztable) {
     feat_names <- rownames(x)
