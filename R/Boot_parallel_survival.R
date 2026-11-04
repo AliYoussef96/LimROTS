@@ -39,8 +39,6 @@ Boot_parallel_survival <- function(BPPARAM = NULL,
         data,
         formula.str,
         meta.info,
-        a1,
-        a2,
         pSamples,
         competing_risks) {
     if (is.null(BPPARAM)) {
@@ -62,8 +60,6 @@ Boot_parallel_survival <- function(BPPARAM = NULL,
         data = data,
         formula.str = formula.str,
         meta.info = meta.info,
-        a1 = a1,
-        a2 = a2,
         pSamples = pSamples,
         competing_risks = competing_risks
     )
