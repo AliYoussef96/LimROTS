@@ -157,7 +157,6 @@ LimROTS_survival <- function(x,
     formula.str,
     competing_risks = FALSE) {
         
-    group = "event"
     ### Perform sanity checks on the input parameters and data.
     SanityChecK.list <- SanityChecK(
         x = x,
@@ -165,7 +164,7 @@ LimROTS_survival <- function(x,
         niter = niter,
         K = K,
         meta.info = meta.info,
-        group = group,
+        group = "event",
         model = NULL,
         pairwise_contrasts = NULL,
         correlation_block = NULL,
@@ -183,8 +182,7 @@ LimROTS_survival <- function(x,
     ### Generate bootstrap and permutation samples.
     list_boot_perm <- .generate_bootstrap_permutations_survival(
         niter_2 = 2 * niter,
-        meta.info = meta.info,
-        group = group
+        meta.info = meta.info
     )
 
     ### Run the bootstrap and permutation fits in parallel.
@@ -266,19 +264,17 @@ LimROTS_survival <- function(x,
     )
 }
 
-.generate_bootstrap_permutations_survival <- function(niter_2, meta.info, group) {
+.generate_bootstrap_permutations_survival <- function(niter_2, meta.info) {
 
-    samples <- bootstrapS(niter = niter_2, meta.info = meta.info, group = group)
+    samples <- bootstrapS(niter = niter_2, meta.info = meta.info, group = "event")
 
     pSamples <- vector("list", niter_2)
+
     for (i in seq_len(niter_2)) {
         shuffle_df <- meta.info
-        ## Shuffle only the target group labels across all samples
-        shuffle_df[[group]] <- sample(
-            meta.info[[group]],
-            size = nrow(meta.info),
-            replace = FALSE
-        )
+        idx <- sample(seq_len(nrow(meta.info)))
+        shuffle_df[["time"]] <-  meta.info[["time"]][idx]
+        shuffle_df[["event"]] <- meta.info[["event"]][idx]
         pSamples[[i]] <- shuffle_df
     }
 
