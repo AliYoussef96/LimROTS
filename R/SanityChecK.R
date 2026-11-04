@@ -3,46 +3,46 @@
 #
 #' Sanity Check for Input Data and Parameters
 #'
-#' This function performs a series of checks and initial setups for input data,
-#' metadata, and parameters, ensuring everything is correctly formatted for
-#' downstream analysis.
+#' Validate analysis inputs and prepare data and metadata for downstream
+#' LimROTS analysis.
 #'
-#' @param x A matrix-like object or a `SummarizedExperiment` containing the
-#' data to be analyzed.
-#' @param assay.type A character string or numeric index specifying the assay
-#' to use if `x` is a `SummarizedExperiment`. Default is `NULL`.
-#' @param niter Integer. Number of bootstrap samples or resampling iterations.
-#' Default is 1000.
-#' @param K Integer. Top list size. If NULL, it will be set to a quarter of
-#' the number of rows in the data matrix. Default is NULL.
-#' @param meta.info Data frame. Metadata associated with the samples
-#' (columns of `x`). If `x` is a `SummarizedExperiment`,
-#' `meta.info` can be a vector of `colData` column names to use.
-#' @param group Character. Column name in `meta.info` that defines the
-#' group or conditions for comparison.
-#' @param formula.str Optional character string representing the formula for
-#' the model.
-#' @param survival Logical, indicating whether the analysis is survival 
-#' analysis.
-#' Default is \code{FALSE}. If \code{TRUE}, \code{meta.info} must contain
-#' \code{time} and \code{event} columns.
+#' @param x A `SummarizedExperiment` containing the feature-by-sample data.
+#' @param assay.type Character string or numeric index selecting the assay in
+#' `x` to analyze. If `NULL`, the first assay is used.
+#' @param niter Integer. Number of bootstrap or permutation replicates to
+#' generate.
+#' @param K Integer. Number of top-ranked features to use. If `NULL`, defaults
+#' to one quarter of the number of features.
+#' @param meta.info Data frame of sample-level metadata, or for a
+#' `SummarizedExperiment`, a character vector naming the columns of `colData(x)`
+#' to use.
+#' @param group Character string naming the column in `meta.info` that
+#' identifies each sample's group.
+#' @param model Character string specifying the fitting method, such as
+#' `"limma"` or `"dream"`.
+#' @param formula.str Character string containing the model formula.
+#' @param survival Logical. If `TRUE`, apply survival-analysis validation,
+#' requiring `time` and `event` metadata and a survival formula. Defaults to
+#' `FALSE`.
+#' @param pairwise_contrasts Optional pairwise contrast specification retained
+#' in the function interface; it is not evaluated by this validation function.
+#' @param correlation_block Character string or `NULL`. Name of the metadata
+#' column identifying correlated samples or blocks.
+#' @param strata Character vector or `NULL`. Names of character or factor
+#' metadata columns used to define sampling strata.
+#' @param competing_risks Logical. If `TRUE`, validate metadata for competing
+#' risks analysis; otherwise validate the standard survival-analysis event
+#' groups.
 #'
 #' @details
-#' This function checks whether the input data and metadata are in the correct
-#' format, processes metadata from a `SummarizedExperiment` object if provided,
-#' and ensures that group information is correctly specified. If no top list
-#' size (`K`) is provided, it defaults to a quarter of the number of rows in
-#' the data.
+#' Extracts the selected assay and metadata, checks their sample alignment and
+#' requested analysis parameters, and returns the prepared objects. For
+#' survival analysis, it delegates formula and event validation to
+#' `.check_survival()`.
 #'
-#' @return A list containing:
-#' \itemize{
-#'   \item \code{meta.info}: Processed metadata.
-#'   \item \code{data}: Processed data matrix.
-#'   \item \code{group}: Character vector indicating group assignments.
-#'   \item \code{K}: Top list size to be used in the analysis.
-#' }
-#'
-#'
+#' @return A list containing the prepared `meta.info`, feature-by-sample
+#' `data`, grouping column name `group`, and top-list size `K`. In survival
+#' mode, the returned list also contains the processed `formula.str`.
 SanityChecK <- function(x,
         assay.type,
         niter, K,
@@ -83,7 +83,11 @@ SanityChecK <- function(x,
         function(x) is.character(x) || is.factor(x)))){
             stop("strata' must be character or factor")
         }
-    }
+        if(group %in% strata){
+            stop("group column should not be included in strata")
+            }    
+        }
+
 
 
     ### Check if survival analysis is requested and perform additional checks
@@ -133,28 +137,28 @@ SanityChecK <- function(x,
 }
 
 
-# Copyright (C) 2025 Ali Youssef.
-# This program is licensed under GPL (>= 2).
-#
-#' Check if SummarizedExperiment or data is correct
+#' Extract and validate data and metadata from a SummarizedExperiment
 #'
-#' @param x A matrix-like object or a `SummarizedExperiment` containing
-#' the data to be analyzed.
-#' @param assay.type A character string or numeric index specifying the assay
-#' to use if `x` is a `SummarizedExperiment`. Default is `NULL`
-#' @param meta.info Data frame. Metadata associated with the samples
-#' (columns of `x`). If `x` is a `SummarizedExperiment`,
-#' @param group Character. Column name in `meta.info` that defines the
-#' group or conditions for comparison.
-#' @param survival Logical, indicating whether the analysis is survival
-#' analysis. Default is \code{FALSE}.
+#' Select the requested assay and metadata columns and supply a default top-list
+#' size when one was not provided.
+#'
+#' @param x A `SummarizedExperiment` containing the feature-by-sample data.
+#' @param assay.type Character string or numeric index selecting the assay in
+#' `x` to analyze. If `NULL`, the first assay is used.
+#' @param meta.info Data frame of sample-level metadata, or for a
+#' `SummarizedExperiment`, a character vector naming the columns of `colData(x)`
+#' to use.
+#' @param group Character string naming the column in `meta.info` that
+#' identifies each sample's group. Not required for survival analysis.
+#' @param survival Logical. If `TRUE`, skip group-column validation specific to
+#' non-survival comparisons. Defaults to `FALSE`.
+#' @param K Integer. Number of top-ranked features to use. If `NULL`, defaults
+#' to one quarter of the number of features.
 #'
 #' @import SummarizedExperiment
 #'
-#' @return a list of `data` , `group` and `meta.info`
-#'
-#'
-#'
+#' @return A list containing the selected assay as `data`, processed
+#' `meta.info`, `group`, and `K`.
 
 .Check_SummarizedExperiment <- function(x,
                                        assay.type, meta.info,
@@ -204,19 +208,25 @@ SanityChecK <- function(x,
     ))
 }
 
-# Copyright (C) 2025 Ali Youssef.
-# This program is licensed under GPL (>= 2).
-#
-#' Check if meta info is correct
+
+#' Validate sample metadata and analysis groups
 #'
-#' @param meta.info Data frame. Metadata associated with the samples
-#' (columns of `x`). If `x` is a `SummarizedExperiment`,
-#' @param data A matrix-like object or a `SummarizedExperiment` containing the
-#' data to be analyzed.
+#' Check that metadata rows correspond uniquely to data columns and that the
+#' requested group and top-list size are valid.
 #'
-#' @return Logical
+#' @param meta.info Data frame of sample-level metadata, with sample names as
+#' row names.
+#' @param data Feature-by-sample matrix with sample names as column names.
+#' @param group Character string naming the column in `meta.info` that
+#' identifies each sample's group.
+#' @param K Integer. Number of top-ranked features to use.
+#' @param survival Logical. If `TRUE`, validate event groups for survival
+#' analysis; otherwise require two groups for a standard comparison.
+#' @param competing_risks Logical. If `TRUE` during survival analysis, require
+#' three unique event groups; otherwise require two.
 #'
-#'
+#' @return `TRUE` indicating that the checks passed; errors are raised for
+#' invalid metadata or parameters.
 
 .Check_meta_info <- function(meta.info, data , group, K, survival, competing_risks) {
     if (any(!row.names(meta.info) %in% colnames(data))) {
@@ -275,28 +285,27 @@ SanityChecK <- function(x,
     return(TRUE)
 }
 
-# Copyright (C) 2025 Ali Youssef.
-# This program is licensed under GPL (>= 2).
-#' Check if survival analysis is correct
-#' 
-#' @param meta.info Data frame. Metadata associated with the samples
-#' (columns of `x`). If `x` is a `SummarizedExperiment
-#' @param data A matrix-like object or a `SummarizedExperiment` containing the
-#' data to be analyzed.
-#' @param K Integer. Top list size. If NULL, it will be set to a quarter of
-#' the number of rows in the data matrix. Default is NULL.
-#' @param formula.str Optional character string representing the formula for
-#' the model.
-#' 
-#' @return A list containing:
-#' \itemize{meta.info: Processed metadata.
-#' \itemize{data: Processed data matrix.
-#' \itemize{K: Top list size to be used in the analysis.
-#' \itemize{formula.str: Processed formula string for the model.
-#' 
-#' 
 
-
+#' Validate survival-analysis metadata and formula
+#'
+#' Verify that required survival columns and formula covariates are present,
+#' align metadata with the data columns, and validate the event groups.
+#'
+#' @param meta.info Data frame of sample-level metadata, with sample names as
+#' row names.
+#' @param data Feature-by-sample matrix with sample names as column names.
+#' @param K Integer. Number of top-ranked features to use. If `NULL`, defaults
+#' to one quarter of the number of features.
+#' @param formula.str Character string containing the survival model formula.
+#' It must include `Surv(time,event)~y`; additional covariates must be columns
+#' in `meta.info`.
+#' @param competing_risks Logical. If `TRUE`, validate three unique event
+#' groups; otherwise validate two.
+#' @param group Character string naming the column in `meta.info` that
+#' identifies the event groups.
+#'
+#' @return A list containing the ordered `meta.info`, aligned `data`, top-list
+#' size `K`, and `formula.str`.
 .check_survival <- function(meta.info, data, K, formula.str, competing_risks, group ) {
   
   if(grepl("[*:]", formula.str)){
@@ -353,6 +362,20 @@ SanityChecK <- function(x,
   
 }
 
+#' Validate a model formula and correlation-block specification
+#'
+#' Check that formula variables are present in the metadata, that the selected
+#' model supports the formula's random-effects terms, and that any requested
+#' correlation-block column exists.
+#'
+#' @param formula.str Character string containing the model formula.
+#' @param model Character string specifying `"limma"` or `"dream"`.
+#' @param correlation_block Character string or `NULL`. Name of the metadata
+#' column identifying correlated samples or blocks.
+#' @param meta.info Data frame of sample-level metadata.
+#'
+#' @return `NULL` if all checks pass; errors are raised for invalid formulas or
+#' correlation-block specifications.
 .check_formula <- function(formula.str, model, correlation_block,
 meta.info) {
 
