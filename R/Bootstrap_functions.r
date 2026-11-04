@@ -380,68 +380,68 @@ bootstrapSamples_limRots_block <- function(
 #'
 #'
 #'
-bootstrapSamples_limRots_cox <- function(niter, meta.info,
-                                         correlation_block = NULL) {
-  samples <- matrix(nrow = niter, ncol = nrow(meta.info))
+# bootstrapSamples_limRots_cox <- function(niter, meta.info,
+#                                          correlation_block = NULL) {
+#   samples <- matrix(nrow = niter, ncol = nrow(meta.info))
   
-  meta.info.factors <- c()
-  for (j in seq_len(ncol(meta.info))) {
-    if (is.factor(meta.info[, j])) {
-      meta.info.factors <-
-        c(meta.info.factors, colnames(meta.info)[j])
-    }
-  }
+#   meta.info.factors <- c()
+#   for (j in seq_len(ncol(meta.info))) {
+#     if (is.factor(meta.info[, j])) {
+#       meta.info.factors <-
+#         c(meta.info.factors, colnames(meta.info)[j])
+#     }
+#   }
   
-  # Always add "event" to stratification factors
-  meta.info.factors <- c(meta.info.factors, "event")
-  meta.info[,"event"] <- as.factor(meta.info[,"event"])
+#   # Always add "event" to stratification factors
+#   meta.info.factors <- c(meta.info.factors, "event")
+#   meta.info[,"event"] <- as.factor(meta.info[,"event"])
   
-  # Stratified bootstrap
-  meta.info$stratum <-
-    interaction(meta.info[, meta.info.factors])
-  stratum_sizes <- table(meta.info$stratum)
-  stratum_samples <-
-    round(nrow(meta.info) * prop.table(stratum_sizes))
+#   # Stratified bootstrap
+#   meta.info$stratum <-
+#     interaction(meta.info[, meta.info.factors])
+#   stratum_sizes <- table(meta.info$stratum)
+#   stratum_samples <-
+#     round(nrow(meta.info) * prop.table(stratum_sizes))
   
-  for (i in seq_len(niter)) {
+#   for (i in seq_len(niter)) {
     
     
-    if (is.null(correlation_block)) {
-      # Sample individuals directly
-      sampled_indices <-
-        unlist(lapply(names(stratum_samples), function(stratum) {
-          stratum_indices <-
-            row.names(meta.info)[which(meta.info$stratum == stratum)]
-          sample(stratum_indices, stratum_samples[stratum],
-                 replace = TRUE
-          )
-        }))
-    } else {
-      # Sample correlation blocks
-      sampled_indices <-
-        unlist(lapply(names(stratum_samples), function(stratum) {
-          stratum_mask <-
-            which(meta.info$stratum == stratum)
-          stratum_meta <- meta.info[stratum_mask, ]
-          block_ids <- stratum_meta[, correlation_block]
-          unique_blocks <- unique(block_ids)
-          # Resample blocks until we reach the target count
-          collected <- c()
-          while (length(collected) <
-                 stratum_samples[stratum]) {
-            b <- sample(unique_blocks, 1)
-            members <-
-              row.names(stratum_meta)[which(block_ids == b)]
-            collected <- c(collected, members)
-          }
-          # Trim to exact target size
-          collected[seq_len(stratum_samples[stratum])]
-        }))
-    }
-    samples[i, ] <- sampled_indices
-  }
-  return(samples)
-}
+#     if (is.null(correlation_block)) {
+#       # Sample individuals directly
+#       sampled_indices <-
+#         unlist(lapply(names(stratum_samples), function(stratum) {
+#           stratum_indices <-
+#             row.names(meta.info)[which(meta.info$stratum == stratum)]
+#           sample(stratum_indices, stratum_samples[stratum],
+#                  replace = TRUE
+#           )
+#         }))
+#     } else {
+#       # Sample correlation blocks
+#       sampled_indices <-
+#         unlist(lapply(names(stratum_samples), function(stratum) {
+#           stratum_mask <-
+#             which(meta.info$stratum == stratum)
+#           stratum_meta <- meta.info[stratum_mask, ]
+#           block_ids <- stratum_meta[, correlation_block]
+#           unique_blocks <- unique(block_ids)
+#           # Resample blocks until we reach the target count
+#           collected <- c()
+#           while (length(collected) <
+#                  stratum_samples[stratum]) {
+#             b <- sample(unique_blocks, 1)
+#             members <-
+#               row.names(stratum_meta)[which(block_ids == b)]
+#             collected <- c(collected, members)
+#           }
+#           # Trim to exact target size
+#           collected[seq_len(stratum_samples[stratum])]
+#         }))
+#     }
+#     samples[i, ] <- sampled_indices
+#   }
+#   return(samples)
+# }
 
 
 
