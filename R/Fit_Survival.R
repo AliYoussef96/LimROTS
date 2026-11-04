@@ -176,12 +176,12 @@ competing_risks
             )
             
             # Extract taxon coefficient only
-            beta <- fit$coef[1]
-            var  <- fit$var[1, 1]
-            
-            d[j] <- beta
-            s[j]   <- sqrt(var)
-            exp_coef[j] <- exp(fit$coef[1])
+            d[j] <- summary(fit)$coefficients["y", "coef"]
+
+            s[j]   <- summary(fit)$coefficients["y", "se(coef)"]
+
+            exp_coef[j] <- summary(fit)$coefficients["y", "exp(coef)"]
+
             taxon_names[j] <- row.names(combined_data)[j]
             
         }
@@ -210,12 +210,13 @@ competing_risks
                 variance = TRUE
             )
 
-            beta <- fit$coef["y"]
-            var  <- fit$var[1, 1]
 
-            d[j] <- beta
-            s[j]   <- sqrt(var)
-            exp_coef[j] <- exp(beta)
+            d[j] <- summary(fit)$coef["y", "coef"]
+
+            s[j]   <- summary(fit)$coef["y", "se(coef)"]
+
+            exp_coef[j] <- summary(fit)$coef["y", "exp(coef)"]
+
             taxon_names[j] <- row.names(combined_data)[j]
 
         }
@@ -309,11 +310,10 @@ bootstrap_survival <-
         )
         
         # Extract taxon coefficient only
-        beta <- fit$coef[1]
-        var  <- fit$var[1, 1]
-        
-        d[j] <- beta
-        s[j]   <- sqrt(var)
+        d[j] <- summary(fit)$coefficients["y", "coef"]
+
+        s[j]   <- summary(fit)$coefficients["y", "se(coef)"]
+
         taxon_names[j] <- row.names(combined_data)[j]
       }
       
@@ -339,11 +339,10 @@ bootstrap_survival <-
           variance = TRUE
         )
         
-        beta <- fit$coef["y"]
-        var  <- fit$var[1, 1]
-        
-        d[j] <- beta
-        s[j]   <- sqrt(var)
+        d[j] <- summary(fit)$coef["y", "coef"]
+
+        s[j]   <- summary(fit)$coef["y", "se(coef)"]
+
         taxon_names[j] <- row.names(combined_data)[j]
       }
       
@@ -454,11 +453,10 @@ permutating_survival <- function(x, meta.info, formula.str,
       )
       
       # Extract taxon coefficient only
-      beta <- fit$coef[1]
-      var  <- fit$var[1, 1]
-      
-      d[j] <- beta
-      s[j]   <- sqrt(var)
+      d[j] <- summary(fit)$coefficients["y", "coef"]
+
+      s[j]   <- summary(fit)$coefficients["y", "se(coef)"]
+
       taxon_names[j] <- row.names(combined_data)[j]
     }
     
@@ -484,11 +482,9 @@ permutating_survival <- function(x, meta.info, formula.str,
         variance = TRUE
       )
       
-      beta <- fit$coef["y"]
-      var  <- fit$var[1, 1]
-      
-      d[j] <- beta
-      s[j]   <- sqrt(var)
+      d[j] <- summary(fit)$coef["y", "coef"]
+
+      s[j]   <- summary(fit)$coef["y", "se(coef)"]
       
       taxon_names[j] <- row.names(combined_data)[j]
       
