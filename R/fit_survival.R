@@ -91,24 +91,15 @@ competing_risks
         
         
         return(list(d = abs(d), s = s , exp_coef = as.numeric(exp_coef)))
-    } else {
+    }else if(competing_risks == TRUE){
         for (j in seq_len(nrow(combined_data))) {
 
             df.temp <- covariates.p
             df.temp$y <- as.numeric(combined_data[j,])
-
-            cov_matrix <- as.matrix(df.temp[, "y", drop = FALSE])
-            extra_terms <- setdiff(
-                colnames(df.temp),
-                c("time", "event", "y")
-            )
-            if (length(extra_terms) > 0) {
-                cov_matrix <- cbind(
-                    cov_matrix,
-                    as.matrix(df.temp[, extra_terms, drop = FALSE])
-                )
-            }
-
+            
+            formula.str.temp <- str_remove(formula.str , fixed("Surv(time,event)~"))
+            cov_matrix <- model.matrix(as.formula(paste0("~0+",formula.str.temp)), data = df.temp)
+            
             fit <- crr(
                 ftime   = df.temp$time,
                 fstatus = df.temp$event,

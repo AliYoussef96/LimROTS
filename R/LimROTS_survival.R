@@ -190,7 +190,7 @@ LimROTS_survival <- function(x,
         samples = list_boot_perm[["boot_Samples"]],
         data = data,
         formula.str = formula.str,
-        meta.info = meta.info
+        meta.info = meta.info,
         pSamples = list_boot_perm[["perm_Samples"]],
         competing_risks = competing_risks
     )
