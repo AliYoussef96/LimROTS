@@ -1,38 +1,34 @@
 # Copyright (C) 2025 Ali Youssef.
 # This program is licensed under GPL (>= 2).
 #
-#' Parallel processing handling function
+#' Fit Bootstrap and Permutation Replicates in Parallel
 #'
-#' @param data A \code{SummarizedExperiment} object or a matrix where rows
-#' represent features (e.g., genes, proteins) and columns represent samples.
-#' The values should be log-transformed.
-#' @param meta.info A data frame containing sample-level metadata, where each
-#' row corresponds to a sample. It should include the grouping variable
-#' specified in \code{group}. If \code{x} is a \code{SummarizedExperiment}
-#' object, \code{meta.info} must be a vector of the metadata needed for the
-#' model to run and can be retrieved using \code{colData()}.
-#' @param group A string specifying the column in \code{meta.info} that
-#' represents the groups or conditions for comparison.
-#' @param BPPARAM A parallel BPPARAM object for distributed computation.
-#' @param formula.str A formula string used when covariates are present in meta.
-#' info for modeling. It should include "~ 0 + ..." to exclude the
-#' intercept from the model.
-#' @param samples bootstrapped samples matrix
-#' @param groups groups information from `meta.info`
-#' @param pSamples a permutated list of samples
-#' @param correlation_block Character or NULL. The name of a column in
-#' \code{meta.info} that defines correlation blocks. Passed to
-#' \code{Limma_bootstrap} and \code{Limma_permutating} to account for
-#' within-block correlation during model fitting via
-#' \code{duplicateCorrelation}. If NULL, standard independent fitting is used.
-#' @param model A character string specifying the modeling approach to be used. 
-#' limma for fixed effects and dream for random effects. Default is "limma".
-#' @param pairwise_contrasts A character vector specifying the pairwise contrasts to be computed. 
-#' Each contrast should be in the format "group1 - group2". for multi-group analysis, 
-#' this will be generated automatically.
-#' 
-#' @return A list containing: \code{D, S, pD, pS} for bootstrapped data and
-#'  for permuted data.
+#' Apply the selected linear-model fitting method to each bootstrap replicate
+#' and its corresponding permuted metadata in parallel.
+#'
+#' @param BPPARAM A `BiocParallelParam` object specifying the parallel backend.
+#' If `NULL`, the function selects a two-worker backend appropriate to the
+#' operating system.
+#' @param samples Matrix of bootstrap replicates, with sample names in rows and
+#' resampled sample names in columns.
+#' @param data Feature-by-sample matrix with sample names as column names.
+#' @param formula.str Character string containing the model formula.
+#' @param group Character string naming the column in `meta.info` that
+#' identifies each sample's group.
+#' @param meta.info Data frame of sample-level metadata, with sample names as
+#' row names.
+#' @param pSamples List of permuted sample-level metadata data frames, one per
+#' bootstrap replicate.
+#' @param correlation_block Character string or `NULL`. Name of the column in
+#' `meta.info` identifying correlated samples or blocks.
+#' @param model Character string specifying the fitting method: `"limma"` for
+#' fixed effects or `"dream"` for random effects.
+#' @param pairwise_contrasts Character vector of contrast expressions, such as
+#' `"group1 - group2"`, to fit for each replicate.
+#'
+#' @return A list with one element per replicate. Each element contains `ds`
+#' (bootstrap statistics and standard errors) and `pdps` (permutation
+#' statistics and standard errors).
 #'
 #' @importFrom BiocParallel SnowParam MulticoreParam bplapply
 #' @importFrom stats model.matrix formula p.adjust
@@ -136,64 +132,38 @@ Boot_parallel <- function(BPPARAM = NULL,
 # Copyright (C) 2025 Ali Youssef.
 # This program is licensed under GPL (>= 2).
 #
-#' Perform Linear Modeling with Covariates using Limma
+#' Fit the Original Data with Limma or DREAM
 #'
-#' This function performs linear modeling using the Limma package, incorporating
-#'  covariates in the model fitting process. It is designed to handle both
-#'  two-group comparisons and multi-group settings with covariates.
+#' Fit the selected linear model to the original feature-by-sample matrix and
+#' return feature statistics and standard errors.
 #'
-#' @param x A list containing two or more data matrices where rows represent
-#' features (e.g., genes, proteins) and columns represent samples. The list
-#' should contain at least two matrices for pairwise group comparison.
-#' @param group A character string indicating the name of the group
-#' variable in`meta.info` to be used in the analysis.
-#' @param meta.info A data frame containing the metadata for the samples.
-#' This includes sample grouping and any covariates to be included in the model.
-#' @param formula.str A string specifying the formula to be used in model
-#' fitting. It should follow the standard R formula syntax
-#' (e.g., `~ covariate1 + covariate2`). If the formula contains a random
-#' effects term (i.e., includes `|`, e.g., `~ 0 + group + (1|subject)`),
-#' the function automatically routes to DREAM analysis via
-#' \code{\link[variancePartition]{dream}}. The DREAM path is restricted to
-#' two-group comparisons; passing more than two groups with a random term
-#' raises an error.
-#' @param trend A logical value indicating whether to allow for an
-#' intensity-dependent trend in the prior variance.
-#' @param robust A logical value indicating whether to use a robust fitting
-#' procedure to protect against outliers.
-#' @param correlation_block Character or NULL. The name of a column in
-#' \code{meta.info} that defines correlation blocks. When not NULL,
-#' within-block correlation is estimated via \code{duplicateCorrelation} and
-#' accounted for in \code{lmFit}. If NULL, standard independent fitting is used.
-#' @param pairwise_contrasts A character vector specifying the pairwise contrasts to be computed. 
-#' Each contrast should be in the format "group1 - group2". for multi-group analysis, 
-#' this will be generated automatically.
-#' @param model A character string specifying the modeling approach to be used. 
-#' limma for fixed effects and dream for random effects. Default is "limma".
+#' @param x Feature-by-sample matrix with sample names as column names.
+#' @param group Character string naming the column in `meta.info` that
+#' identifies each sample's group.
+#' @param meta.info Data frame of sample-level metadata, with sample names as
+#' row names.
+#' @param formula.str Character string containing the model formula.
+#' @param trend Logical indicating whether to fit an intensity-dependent trend
+#' in the prior variance.
+#' @param robust Logical indicating whether to use robust empirical Bayes
+#' moderation.
+#' @param correlation_block Character string or `NULL`. Name of the column in
+#' `meta.info` identifying correlated samples or blocks.
+#' @param model Character string specifying the fitting method: `"limma"` for
+#' fixed effects or `"dream"` for random effects.
+#' @param pairwise_contrasts Character vector of contrast expressions, such as
+#' `"group1 - group2"`, to fit.
 #'
 #' @details
-#' This function combines the data matrices from different groups and fits a
-#' linear model using covariates provided in the `meta.info`. For two-group
-#' comparisons, the function computes contrasts between the two groups and
-#' applies empirical Bayes moderation. For multi-group analysis with a single
-#' covariate, pairwise contrasts are computed, and the moderated F-statistic is
-#' calculated for each feature.
-#'
-#' When `formula.str` contains a `|` character (random effects term), the
-#' function bypasses the standard limma workflow and instead uses
-#' \code{\link[variancePartition]{dream}} to fit a linear mixed model. This
-#' path is only supported for two-group comparisons. Passing more than two
-#' groups with a random-effects formula raises an informative error directing
-#' the user to use the \code{correlation_block} argument with a fixed-effects
-#' formula instead.
+#' For `"limma"`, fits a linear model and applies empirical Bayes moderation.
+#' For `"dream"`, fits a linear mixed model and applies empirical Bayes moderation. 
+#' The specified contrasts areapplied to the original data.
 #'
 #' @return A list containing the following elements:
-#' \item{d}{A vector of the test statistics (log-fold changes or F-statistics)
-#' for each feature.}
-#' \item{s}{A vector of the standard deviations for each feature, adjusted by t
-#' he empirical Bayes procedure.}
-#' \item{corrected.logfc}{The log-fold changes for each feature after fitting
-#' the model.}
+#' \item{d}{Absolute model statistics for each feature.}
+#' \item{s}{Model standard errors for each feature after empirical Bayes
+#' moderation.}
+#' \item{corrected.logfc}{Signed model coefficients for each feature.}
 #'
 #' @seealso \code{\link[limma]{lmFit}},
 #' \code{\link[limma]{eBayes}},
@@ -201,9 +171,6 @@ Boot_parallel <- function(BPPARAM = NULL,
 #' \code{\link[limma]{makeContrasts}},
 #' \code{\link[variancePartition]{dream}},
 #' \code{\link[variancePartition]{makeContrastsDream}}
-#'
-#'
-#'
 #' @importFrom stats model.matrix formula
 #' @importFrom dplyr bind_cols
 #' @importFrom utils combn
@@ -230,6 +197,29 @@ fit_original <- function(x, group, meta.info, formula.str, trend, robust,
     }
 }
 
+#' Fit Original Data with Limma
+#'
+#' Construct the design matrix, fit the original data with Limma, apply the
+#' requested contrasts and empirical Bayes moderation, and return feature-level
+#' statistics.
+#'
+#' @param x Feature-by-sample matrix with sample names as column names.
+#' @param group Character string naming the column in `meta.info` that
+#' identifies each sample's group.
+#' @param meta.info Data frame of sample-level metadata, with sample names as
+#' row names.
+#' @param formula.str Character string containing the model formula.
+#' @param trend Logical indicating whether to fit an intensity-dependent trend
+#' in the prior variance.
+#' @param robust Logical indicating whether to use robust empirical Bayes
+#' moderation.
+#' @param correlation_block Character string or `NULL`. Name of the column in
+#' `meta.info` identifying correlated samples or blocks.
+#' @param pairwise_contrasts Character vector of contrast expressions, such as
+#' `"group1 - group2"`, to fit.
+#'
+#' @return A list containing absolute feature statistics `d`, standard errors
+#' `s`, and signed model coefficients `corrected.logfc`.
 .Limma_fit_original <- function(x, group, meta.info, formula.str, 
             trend, robust, correlation_block, pairwise_contrasts) {
         ### Check if x is a list of matrices with identical rownames
@@ -296,6 +286,28 @@ fit_original <- function(x, group, meta.info, formula.str, trend, robust,
     }
 
 
+#' Fit Original Data with DREAM
+#'
+#' Fit a linear mixed model to the original data with DREAM, apply the requested
+#' contrasts and empirical Bayes moderation, and return feature-level statistics.
+#'
+#' @param x Feature-by-sample matrix with sample names as column names.
+#' @param group Character string naming the column in `meta.info` that
+#' identifies each sample's group.
+#' @param meta.info Data frame of sample-level metadata, with sample names as
+#' row names.
+#' @param formula.str Character string containing the model formula.
+#' @param trend Logical indicating whether to fit an intensity-dependent trend
+#' in the prior variance.
+#' @param robust Logical indicating whether to use robust empirical Bayes
+#' moderation.
+#' @param correlation_block Character string or `NULL`. Name of the column in
+#' `meta.info` identifying correlated samples or blocks.
+#' @param pairwise_contrasts Character vector of contrast expressions, such as
+#' `"group1 - group2"`, to fit.
+#'
+#' @return A list containing absolute feature statistics `d`, standard errors
+#' `s`, and signed model coefficients `corrected.logfc`.
 .Dream_fit_original <- function(x, group, meta.info, formula.str, trend, robust,
             correlation_block, pairwise_contrasts) {
 
@@ -342,48 +354,33 @@ fit_original <- function(x, group, meta.info, formula.str, trend, robust,
 # Copyright (C) 2025 Ali Youssef.
 # This program is licensed under GPL (>= 2).
 #
-#' Perform Linear Modeling with Covariates using Limma
+#' Fit Bootstrap Samples with Limma or DREAM
 #'
-#' This function performs linear modeling using the Limma package while
-#' accounting for covariates specified
-#' in the `meta.info`. It supports two-group comparisons and multi-group
-#' analysis, incorporating covariates
-#' through a design matrix.
+#' Fit the selected linear model to a bootstrap replicate assembled from
+#' group-specific feature-by-sample matrices.
 #'
-#' @param x A list containing two or more data matrices where rows represent
-#' features (e.g., genes, proteins) and columns represent samples. The list
-#' should contain at least two matrices for pairwise group comparison.
-#' @param group A character string indicating the name of the group
-#' variable in `meta.info` to be used in the analysis.
-#' @param meta.info A data frame containing the metadata for the samples.
-#' This includes sample grouping and any covariates to be included in the model.
-#' @param formula.str A string specifying the formula to be used in model
-#' fitting. It should follow the standard R formula syntax
-#' (e.g., `~ covariate1 + covariate2`).
-#' @param correlation_block Character or NULL. The name of a column in
-#' \code{meta.info} that defines correlation blocks. When not NULL,
-#' within-block correlation is estimated via \code{duplicateCorrelation} and
-#' accounted for in \code{lmFit}. If NULL, standard independent fitting is used.
-#' @param pairwise_contrasts A character vector specifying the pairwise contrasts to be computed. 
-#' Each contrast should be in the format "group1 - group2". for multi-group analysis, 
-#' this will be generated automatically.
-#' @param model A character string specifying the modeling approach to be used. 
-#' limma for fixed effects and dream for random effects. Default is "limma".
+#' @param x List of feature-by-sample matrices, one per group in the bootstrap
+#' replicate. Matrices must have matching feature names.
+#' @param group Character string naming the column in `meta.info` that
+#' identifies each sample's group.
+#' @param meta.info Data frame of sample-level metadata, with sample names as
+#' row names.
+#' @param formula.str Character string containing the model formula.
+#' @param correlation_block Character string or `NULL`. Name of the column in
+#' `meta.info` identifying correlated samples or blocks.
+#' @param model Character string specifying the fitting method: `"limma"` for
+#' fixed effects or `"dream"` for random effects.
+#' @param pairwise_contrasts Character vector of contrast expressions, such as
+#' `"group1 - group2"`, to fit.
 #'
 #' @details
-#' This function first combines the data matrices from different groups and
-#' prepares a design matrix based on the covariates specified in `meta.info`
-#' using the provided formula. It fits a linear model using Limma,
-#' computes contrasts between groups, and applies empirical Bayes moderation.
-#' For two-group comparisons, the function returns log-fold changes and
-#' associated statistics. In multi-group settings with a single covariate,
-#' it calculates pairwise contrasts and moderated F-statistics.
+#' Dispatches to the Limma or DREAM fitting implementation. Both implementations
+#' combine the group matrices and use the specified formula and contrasts.
 #'
 #' @return A list containing the following elements:
-#' \item{d}{A vector of the test statistics (log-fold changes or F-statistics)
-#' for each feature.}
-#' \item{s}{A vector of the standard deviations for each feature, adjusted by
-#' the empirical Bayes procedure.}
+#' \item{d}{Absolute model statistics for each feature.}
+#' \item{s}{Model standard errors for each feature after empirical Bayes
+#' moderation.}
 #'
 #' @seealso \code{\link[limma]{lmFit}}, \code{\link[limma]{eBayes}},
 #' \code{\link[limma]{topTable}},
@@ -392,7 +389,7 @@ fit_original <- function(x, group, meta.info, formula.str, trend, robust,
 #' @importFrom stats model.matrix formula
 #' @importFrom dplyr bind_cols
 #' @importFrom stringr str_split_fixed fixed
-#' @importFrom limma makeContrasts lmFit contrasts.fit 
+#' @importFrom limma makeContrasts lmFit contrasts.fit
 #' @importFrom limma duplicateCorrelation
 #' @importFrom utils combn
 #' @importFrom variancePartition dream makeContrastsDream
@@ -414,6 +411,25 @@ fit_bootstrap <- function(x, group, meta.info, formula.str,
     }
 }
 
+#' Fit Bootstrap Samples with Limma
+#'
+#' Combine group-specific bootstrap matrices, construct the design matrix,
+#' account for optional correlation blocks, and fit contrasts with Limma.
+#'
+#' @param x List of feature-by-sample matrices, one per group in the bootstrap
+#' replicate. Matrices must have matching feature names.
+#' @param group Character string naming the column in `meta.info` that
+#' identifies each sample's group.
+#' @param meta.info Data frame of sample-level metadata, with sample names as
+#' row names.
+#' @param formula.str Character string containing the model formula.
+#' @param correlation_block Character string or `NULL`. Name of the column in
+#' `meta.info` identifying correlated samples or blocks.
+#' @param pairwise_contrasts Character vector of contrast expressions, such as
+#' `"group1 - group2"`, to fit.
+#'
+#' @return A list containing absolute feature statistics `d` and standard
+#' errors `s`.
 .Limma_bootstrap <-
     function(x, group, meta.info, formula.str,
              correlation_block , pairwise_contrasts) {
@@ -474,6 +490,25 @@ fit_bootstrap <- function(x, group, meta.info, formula.str,
              
         
 
+#' Fit Bootstrap Samples with DREAM
+#'
+#' Combine group-specific bootstrap matrices, fit the specified mixed model
+#' with DREAM, and return feature statistics and standard errors.
+#'
+#' @param x List of feature-by-sample matrices, one per group in the bootstrap
+#' replicate. Matrices must have matching feature names.
+#' @param group Character string naming the column in `meta.info` that
+#' identifies each sample's group.
+#' @param meta.info Data frame of sample-level metadata, with sample names as
+#' row names.
+#' @param formula.str Character string containing the model formula.
+#' @param correlation_block Character string or `NULL`. Name of the column in
+#' `meta.info` identifying correlated samples or blocks.
+#' @param pairwise_contrasts Character vector of contrast expressions, such as
+#' `"group1 - group2"`, to fit.
+#'
+#' @return A list containing absolute feature statistics `d` and standard
+#' errors `s`.
 .Dream_bootstrap <- function(x, group, meta.info, formula.str,
              correlation_block, pairwise_contrasts) {
 
@@ -511,6 +546,21 @@ fit_bootstrap <- function(x, group, meta.info, formula.str,
             }
 
 
+#' Assemble Bootstrap Data and Matching Metadata
+#'
+#' Combine group-specific matrices and construct a metadata row for every
+#' resampled sample, preserving alignment and separating repeated draws of a
+#' correlation block.
+#'
+#' @param x List of feature-by-sample matrices, one per group in the bootstrap
+#' replicate. Matrices must have matching feature names.
+#' @param meta.info Data frame of sample-level metadata, with sample names as
+#' row names.
+#' @param correlation_block Character string or `NULL`. Name of the column in
+#' `meta.info` identifying correlated samples or blocks.
+#'
+#' @return A list containing the combined feature-by-sample matrix
+#' `combined_data` and corresponding sample-level metadata `covariates.p`.
 .generate_data_for_fit <- function(x, meta.info, correlation_block) {
     ### Check if x is a list of matrices with identical rownames
     stopifnot(
@@ -562,42 +612,32 @@ fit_bootstrap <- function(x, group, meta.info, formula.str,
 # Copyright (C) 2025 Ali Youssef.
 # This program is licensed under GPL (>= 2).
 #
-#' Perform Permutation-Based Linear Modeling with Covariates using Limma
+#' Fit Permuted Metadata with Limma or DREAM
 #'
-#' This function performs linear modeling using the Limma package with
-#' permutation of the covariates to evaluate the test statistics under random
-#' assignments. It handles two-group comparisons and multi-group settings.
+#' Fit the selected linear model to the data matrix and permuted sample
+#' metadata to obtain statistics for the permutation null distribution.
 #'
-#' @param x A data matrices where rows represent
-#' features (e.g., genes, proteins) and columns represent samples. The list
-#' should contain at least two matrices for pairwise group comparison.
-#' @param group A character string indicating the name of the group
-#' variable in `meta.info` to be used in the analysis.
-#' @param meta.info A data frame containing the metadata for the samples.
-#' This includes sample grouping and any covariates to be included in the model.
-#' @param formula.str A string specifying the formula to be used in model
-#' fitting. It should follow the standard R formula syntax
-#' (e.g., `~ covariate1 + covariate2`).
-#' @param correlation_block Character or NULL. The name of a column in
-#' \code{meta.info} that defines correlation blocks. When not NULL,
-#' within-block correlation is estimated via \code{duplicateCorrelation} and
-#' accounted for in \code{lmFit}. If NULL, standard independent fitting is used.
+#' @param x Feature-by-sample matrix with sample names as column names.
+#' @param group Character string naming the column in `meta.info` that
+#' identifies each sample's group.
+#' @param meta.info Data frame of sample-level metadata, with sample names as
+#' row names.
+#' @param formula.str Character string containing the model formula.
+#' @param correlation_block Character string or `NULL`. Name of the column in
+#' `meta.info` identifying correlated samples or blocks.
+#' @param model Character string specifying the fitting method: `"limma"` for
+#' fixed effects or `"dream"` for random effects.
+#' @param pairwise_contrasts Character vector of contrast expressions, such as
+#' `"group1 - group2"`, to fit.
 #'
 #' @details
-#' This function combines the data matrices from different groups and permutes
-#' the covariates from `meta.info`before fitting a linear model using Limma.
-#' Permutation helps assess how the covariates behave under random conditions,
-#' providing a null distribution of the test statistics. For two-group
-#' comparisons, the function computes contrasts between the two groups and
-#' applies empirical Bayes moderation. For multi-group analysis with a single
-#' covariate, pairwise contrasts are computed, and the moderated F-statistic is
-#' calculated for each feature.
+#' Dispatches to the Limma or DREAM fitting implementation, using the supplied
+#' permuted metadata and contrast expressions.
 #'
 #' @return A list containing the following elements:
-#' \item{d}{A vector of the test statistics (log-fold changes or F-statistics)
-#' for each feature.}
-#' \item{s}{A vector of the standard deviations for each feature, adjusted by
-#' the empirical Bayes procedure.}
+#' \item{d}{Absolute model statistics for each feature.}
+#' \item{s}{Model standard errors for each feature after empirical Bayes
+#' moderation.}
 #'
 #' @seealso \code{\link[limma]{lmFit}}, \code{\link[limma]{eBayes}},
 #' \code{\link[limma]{topTable}},
@@ -605,7 +645,7 @@ fit_bootstrap <- function(x, group, meta.info, formula.str,
 #'
 #' @importFrom stats model.matrix formula
 #' @importFrom dplyr bind_cols
-#' @importFrom limma makeContrasts lmFit contrasts.fit 
+#' @importFrom limma makeContrasts lmFit contrasts.fit
 #' @importFrom limma duplicateCorrelation
 #' @importFrom stringr str_split_fixed fixed
 #' @importFrom utils combn
@@ -629,6 +669,25 @@ fit_permutation <- function(x, group, meta.info, formula.str,
     }
 }
 
+#' Fit Permuted Metadata with Limma
+#'
+#' Construct the design matrix from the permuted metadata, fit the data with
+#' Limma, account for optional correlation blocks, and apply the requested
+#' contrasts.
+#'
+#' @param x Feature-by-sample matrix with sample names as column names.
+#' @param group Character string naming the column in `meta.info` that
+#' identifies each sample's group.
+#' @param meta.info Data frame of sample-level metadata, with sample names as
+#' row names.
+#' @param formula.str Character string containing the model formula.
+#' @param correlation_block Character string or `NULL`. Name of the column in
+#' `meta.info` identifying correlated samples or blocks.
+#' @param pairwise_contrasts Character vector of contrast expressions, such as
+#' `"group1 - group2"`, to fit.
+#'
+#' @return A list containing absolute feature statistics `d` and standard
+#' errors `s`.
 .Limma_permutating <- function(x, group, meta.info, formula.str,
                              correlation_block, pairwise_contrasts) {
 
@@ -686,7 +745,24 @@ fit_permutation <- function(x, group, meta.info, formula.str,
     
     }
 
-
+#' Fit Permuted Metadata with DREAM
+#'
+#' Fit a linear mixed model to the data and permuted metadata with DREAM, then
+#' return feature statistics and standard errors.
+#'
+#' @param x Feature-by-sample matrix with sample names as column names.
+#' @param group Character string naming the column in `meta.info` that
+#' identifies each sample's group.
+#' @param meta.info Data frame of sample-level metadata, with sample names as
+#' row names.
+#' @param formula.str Character string containing the model formula.
+#' @param correlation_block Character string or `NULL`. Name of the column in
+#' `meta.info` identifying correlated samples or blocks.
+#' @param pairwise_contrasts Character vector of contrast expressions, such as
+#' `"group1 - group2"`, to fit.
+#'
+#' @return A list containing absolute feature statistics `d` and standard
+#' errors `s`.
 .Dream_permutating <- function(x, group, meta.info, formula.str,
             correlation_block, pairwise_contrasts) {
 
@@ -718,4 +794,3 @@ fit_permutation <- function(x, group, meta.info, formula.str,
     return(list(d = d_values, s = s_values))
 
 }
-
