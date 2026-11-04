@@ -2,36 +2,34 @@
 % Please edit documentation in R/Bootstrap_functions.r
 \name{bootstrapSamples_limRots}
 \alias{bootstrapSamples_limRots}
-\title{Generate Stratified Bootstrap Samples for limRots}
+\title{Generate Stratified Group-Wise Bootstrap Samples}
 \usage{
-bootstrapSamples_limRots(niter, meta.info, group)
+bootstrapSamples_limRots(niter, meta.info, group, strata)
 }
 \arguments{
-\item{niter}{Integer. The number of bootstrap samples to generate.}
+\item{niter}{Integer. Number of bootstrap or permutation replicates to
+generate.}
 
-\item{meta.info}{Data frame. Metadata containing sample information,
-where each row corresponds to a sample. Factor columns in \code{meta.info}
-are used to define strata for sampling.}
+\item{meta.info}{Data frame containing sample-level metadata, with one row
+per sample and sample names as row names.}
 
-\item{group}{Character. The name of the column in \code{meta.info} that
-defines the grouping variable for the samples.}
+\item{group}{Character string naming the column in \code{meta.info} that
+identifies each sample's group.}
+
+\item{strata}{Character vector naming columns used to define strata.
+Only character or factor columns in \code{meta.info} are used; the \code{group}
+column is excluded.}
 }
 \value{
-A matrix of dimension \code{niter} x \code{n}, where \code{n} is the
-number of samples. Each row corresponds to a bootstrap sample, and each
-entry is a resampled row name from the metadata, stratified by group and
-additional factors.
+A character matrix with \code{niter} rows and one column per sample.
+Each row is a bootstrap replicate containing resampled sample names.
 }
 \description{
-This function generates stratified bootstrap samples based on the groupings
-and additional factors in the metadata. The function ensures that samples
-are drawn proportionally based on strata defined by the interaction of
-factor columns in the metadata.
+Generate bootstrap replicates by sampling with replacement within groups
+and requested metadata strata.
 }
 \details{
-The function works by first identifying the factors in the \code{meta.info} data
-frame that are used to create strata for sampling. Within each group defined
-by \code{group}, the function samples according to the strata proportions,
-ensuring that samples are drawn from the correct groups and strata in a
-proportional manner.
+Within each group, samples are stratified by the interaction of the
+selected columns. The number sampled from each stratum is proportional
+to its size in that group, rounded to the nearest integer.
 }

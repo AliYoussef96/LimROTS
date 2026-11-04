@@ -2,76 +2,37 @@
 % Please edit documentation in R/Bootstrap_functions.r
 \name{bootstrapSamples_limRots_block}
 \alias{bootstrapSamples_limRots_block}
-\title{Generate Stratified Bootstrap Samples with Correlation Blocks}
+\title{Generate Bootstrap Samples by Correlation Block}
 \usage{
-bootstrapSamples_limRots_block(
-  niter,
-  meta.info,
-  group,
-  stratum = TRUE,
-  correlation_block = NULL
-)
+bootstrapSamples_limRots_block(niter, meta.info, group, correlation_block)
 }
 \arguments{
-\item{niter}{Integer. The number of bootstrap samples to generate.}
+\item{niter}{Integer. Number of bootstrap or permutation replicates to
+generate.}
 
-\item{meta.info}{Data frame. Metadata containing sample information,
-where each row corresponds to one sample. Row names must contain the
-sample names. Factor columns may be used to define strata when
-\code{stratum = TRUE}.}
+\item{meta.info}{Data frame containing sample-level metadata, with one row
+per sample and sample names as row names.}
 
-\item{group}{Character. The name of the column in \code{meta.info} that
-defines the grouping variable. For repeated-measures block resampling,
-the grouping variable is expected to contain two levels.}
+\item{group}{Character string naming the column in \code{meta.info} that
+identifies each sample's group.}
 
-\item{stratum}{Logical. Indicates whether stratified block resampling
-should be performed. If TRUE, factor columns in \code{meta.info} are
-automatically used to define strata, excluding the columns specified by
-\code{group} and \code{correlation_block}. If FALSE, all correlation
-blocks are sampled from a single stratum.}
-
-\item{correlation_block}{Character or NULL. The name of the column in
-\code{meta.info} that identifies correlated samples. Samples sharing the
-same block ID across the two groups are resampled together. Each block
-must contain exactly one sample from each group. If NULL, the function
-delegates entirely to \code{bootstrapSamples_limRots}.}
+\item{correlation_block}{Character string naming the column in \code{meta.info}
+that identifies correlated samples. Every block must contain exactly one
+sample from each group.}
 }
 \value{
-A matrix of dimension \code{niter} x \code{n}, where \code{n} is
-the number of samples in \code{meta.info}. Each row represents one
-bootstrap replicate, and each entry contains a resampled row name from
-the metadata. Samples belonging to the same correlation block are selected
-together across the two groups.
+A character matrix with \code{niter} rows and one column per sample.
+Each row is a bootstrap replicate containing resampled sample names, with
+samples from each selected block kept together across groups.
 }
 \description{
-This function generates bootstrap samples while preserving the grouping
-structure and, when specified, the correlation between paired samples.
-When \code{correlation_block} is provided and block IDs occur in both
-groups, complete blocks are resampled so that the corresponding samples
-from both groups are always selected together.
+Generate bootstrap replicates by resampling complete correlation blocks,
+preserving the group composition of each block.
 }
 \details{
-When \code{correlation_block} is NULL, the function behaves identically
-to \code{bootstrapSamples_limRots}.
-
-When correlation blocks span the levels of \code{group}, the function
-performs block-level bootstrap resampling. A block ID is sampled once,
-and the corresponding sample from each group is included in the same
-bootstrap replicate. This preserves the paired or repeated-measures
-structure of the data.
-
-Each correlation block must have exactly one sample in every group.
-The function stops with an error if a block is missing from one group or
-has more than one sample in the same group.
-
-If \code{stratum = TRUE}, all factor columns in \code{meta.info}, except
-\code{group} and \code{correlation_block}, are used to define the strata.
-Each stratification variable must be constant across all samples belonging
-to the same correlation block. Complete blocks are then sampled with
-replacement separately within each stratum. The original number of blocks
-in every stratum is preserved in each bootstrap replicate.
-
-If no additional factor columns are available, or if
-\code{stratum = FALSE}, all correlation blocks are sampled together
-without additional stratification.
+In each replicate, correlation-block IDs are sampled with replacement.
+For each selected block, the corresponding sample from every group is
+included in that replicate, keeping the within-block pairing intact. The
+function stops if any block does not contain exactly one sample per group
+or a block-group sample cannot be matched.
 }

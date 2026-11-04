@@ -2,143 +2,97 @@
 % Please edit documentation in R/LimROTS.r
 \name{LimROTS}
 \alias{LimROTS}
-\title{\code{LimROTS}: A Hybrid Method Integrating Empirical Bayes and
-Reproducibility-Optimized Statistics for Robust
-Differential Expression Analysis}
+\title{LimROTS: A Hybrid Method Integrating Empirical Bayes and
+Reproducibility-Optimized Statistics for Robust Differential Expression Analysis}
 \usage{
 LimROTS(
   x,
   assay.type = NULL,
   niter = 1000,
   K = NULL,
-  a1 = NULL,
-  a2 = NULL,
-  log = TRUE,
-  verbose = TRUE,
   meta.info,
   BPPARAM = NULL,
   group,
   formula.str,
   robust = TRUE,
   trend = TRUE,
-  permutating.group = FALSE,
-  correlation_block = NULL
+  correlation_block = NULL,
+  pairwise_contrasts,
+  model,
+  strata
 )
 }
 \arguments{
-\item{x}{A \code{SummarizedExperiment} object, where rows
-represent features (e.g., proteins, metabolites) and columns
-represent samples.
-The values should be log-transformed.}
+\item{x}{A \code{SummarizedExperiment} containing features in rows and samples in
+columns.}
 
-\item{assay.type}{A character string or numeric index specifying the assay
-to use if \code{x} is a \code{SummarizedExperiment}. Default is \code{NULL}}
+\item{assay.type}{Character string  selecting the assay in
+\code{x} to analyze. If \code{NULL}, the first assay is used.}
 
-\item{niter}{An integer representing the amount of bootstrap iterations.
-Default is 1000.}
+\item{niter}{Integer. Number of bootstrap or permutation replicates to
+generate.}
 
-\item{K}{An optional integer representing the top list size for ranking.
-If not specified, it is set to one-fourth of the number of features.}
+\item{K}{Integer. Number of top-ranked features to use. If \code{NULL}, defaults
+to one quarter of the number of features.}
 
-\item{a1}{Optional numeric value used in the optimization process.
-If defined by the user, no optimization occurs.}
+\item{meta.info}{Character vector naming the sample-level metadata columns
+in \code{colData(x)} required by the model.}
 
-\item{a2}{Optional numeric value used in the optimization process.
-If defined by the user, no optimization occurs.}
+\item{BPPARAM}{A \code{BiocParallelParam} object specifying the parallel backend.
+If \code{NULL}, the parallel helper selects a two-worker backend appropriate to
+the operating system.}
 
-\item{log}{Logical, indicating whether the data is already log-transformed.
-Default is \code{TRUE}.}
+\item{group}{Character string naming the column in \code{meta.info} that
+identifies each sample's group.}
 
-\item{verbose}{Logical, indicating whether to display messages during the
-function's execution. Default is \code{TRUE}.}
+\item{formula.str}{Character string containing the model formula. It must
+include the group and any covariates to model.}
 
-\item{meta.info}{a character vector of the metadata needed for the
-model to run and can be retrieved using \code{colData()}.}
+\item{robust}{Logical indicating whether to use robust empirical Bayes
+moderation. See \link[limma]{eBayes}.}
 
-\item{BPPARAM}{A \code{BiocParallelParam} object specifying the
-parallelization backend (e.g., \code{MulticoreParam}, \code{SnowParam}).
-The default depends on the operating system: if the user is on Windows,
-\code{SnowParam(workers = 2)} is used; otherwise,
-\code{MulticoreParam(workers = 2)}.}
+\item{trend}{Logical indicating whether to fit an intensity-dependent trend
+in the prior variance. See \link[limma]{eBayes}.}
 
-\item{group}{A string specifying the column in \code{meta.info} that
-represents the groups or conditions for comparison. group should be
-retrieved using \code{colData()} as factor.}
+\item{correlation_block}{Character string or \code{NULL}. Name of the column in
+\code{meta.info} identifying correlated samples or blocks. When supplied, blocks
+are preserved during resampling and within-block correlation is modeled.}
 
-\item{formula.str}{A formula string for modeling.
-It should include "~ 0 + ..." to exclude the intercept from the model.
-All the model parameters must be present in \code{meta.info}.}
+\item{pairwise_contrasts}{Character vector of contrast expressions, such as
+\code{"group1 - group2"}, to fit.}
 
-\item{robust}{indicating whether robust fitting should be used.
-Default is TRUE, see \link[limma]{eBayes}.}
+\item{model}{Character string specifying the fitting method: \code{"limma"} for
+fixed effects or \code{"dream"} for random effects.}
 
-\item{trend}{indicating whether to include trend fitting in the
-differential expression analysis. Default is TRUE. see \link[limma]{eBayes}.}
-
-\item{permutating.group}{Logical, If \code{TRUE}, the permutation for
-calculating the null distribution is performed by permuting the target group
-only specified in \code{group} Preserving all the other sample
-information. If \code{FALSE}, the entire sample information retrieved from
-\code{meta.info} will be permuted (recommended to be set to FALSE).}
-
-\item{correlation_block}{Character or NULL. The name of a column in
-\code{meta.info} that defines correlation blocks. Samples sharing the same
-value in this column are always resampled together as a unit, and
-within-block correlation is accounted for during model fitting via
-\code{duplicateCorrelation}. If NULL, standard independent resampling is
-used.}
+\item{strata}{Character vector or \code{NULL}. Names of character or factor
+metadata columns used to define strata for resampling and permutation.}
 }
 \value{
-An object of class \code{"SummarizedExperiment"} with the
-following elements:
-\item{data}{The original data matrix.}
-\item{niter}{The number of bootstrap samples used.}
-\item{statistics}{The optimized statistics for each feature.}
-\item{pvalue}{P-values computed based on the permutation samples.}
-\item{FDR}{False discovery rate estimates.}
-\item{a1}{Optimized parameter used in differential expression ranking.}
-\item{a2}{Optimized parameter used in differential expression ranking.}
-\item{k}{Top list size used for ranking.}
-\item{corrected.logfc}{estimate of the log2-fold-change
-corresponding to the effect corrected by the s model
-see \link[limma]{topTable}.}
-\item{q_values}{Estimated q-values using the \code{qvalue} package.}
-\item{BH.pvalue}{Benjamini-Hochberg adjusted p-values.}
-\item{null.statistics}{The optimized null statistics for each feature.}
+The input \code{SummarizedExperiment} with feature-level statistics,
+empirical p-values, q-values, FDR estimates, corrected log-fold changes,
+and BH-adjusted p-values added to \code{rowData()}. Optimization parameters and
+null statistics are added to \code{metadata()}.
 }
 \description{
-\code{LimROTS}: A Hybrid Method Integrating Empirical Bayes and
-Reproducibility-Optimized Statistics for Robust
-Differential Expression Analysis
+Analyze feature-by-sample data using linear models, empirical Bayes
+moderation, and reproducibility-optimized bootstrap statistics.
 }
 \details{
-The \strong{LimROTS} approach initially uses
-\pkg{limma} package functionality to simulate the intensity data of
-proteins and
-metabolites. A linear model is subsequently fitted using the design matrix.
-Empirical Bayes variance shrinking is then implemented. To obtain the
-moderated t-statistics, the adjusted standard error
-\eqn{SE_{post} = \sqrt{s^2_{\text{post}} } \times unscaled SD}
-for each feature is computed, along with the regression
-coefficient for each feature (indicating the impact of variations in the
-experimental settings). Then, by adapting a reproducibility-optimized
-technique known as \link[ROTS]{ROTS} to establish an optimality
-based on the largest overlap of top-ranked features within group-preserving
-bootstrap datasets, Finally based on the optimized parameters
-\eqn{\alpha1} and
-\eqn{\alpha2} this equation used to calculates the final statistics:
+LimROTS fits linear models with \pkg{limma} or dream and applies empirical
+Bayes moderation to estimate feature coefficients and standard errors.
+Reproducibility-optimized parameters \eqn{\alpha_1} and \eqn{\alpha_2} are
+selected by maximizing the overlap of top-ranked features across
+group-preserving bootstrap datasets, following the \link[ROTS]{ROTS}
+approach. The final statistic for each feature is:
 
 \deqn{t_{\alpha_{(p)}} = \frac{\beta_{(p)}}
-         {\alpha1 + \alpha2 \times SEpost_{(p)}}}where
-\eqn{t_{\alpha_{(p)}}} is the final statistics for each feature,
-\eqn{\beta_{(p)}} is the coefficient, and \eqn{SEpost_{(p)}}
-is the the adjusted
-standard error. LimROTS generates p-values from permutation samples
-using the implementation available in
-\link[qvalue]{qvalue} package, along with internal implementation
-of FDR adapted from ROTS package. Additionally, the qvalue package
-is used to calculate q-values, were the proportion of true null
-p-values is set to the bootstrap method \link[qvalue]{pi0est}.
+         {\alpha_1 + \alpha_2 \times SE_{post(p)}}}
+
+where \eqn{\beta_{(p)}} is the model coefficient and
+\eqn{SE_{post(p)}} is its empirical Bayes-adjusted standard error.
+Empirical p-values are calculated from permutation-based null statistics.
+The function also estimates FDR, q-values, and Benjamini-Hochberg adjusted
+p-values.
 
 This function processes a dataset using parallel computation. It
 leverages the \pkg{BiocParallel} framework to distribute tasks
@@ -164,7 +118,7 @@ result <- LimROTS(data,
 \references{
 Ritchie, M.E., Phipson, B., Wu, D., Hu, Y., Law, C.W., Shi, W., and Smyth,
 G.K. (2015). limma powers differential expression analyses for
-RNA-sequencing and microarray studies. Nucleic Acids Research 43(7), e47
+RNA-sequencing and microarray studies. Nucleic Acids Research 43(7), e47.
 
 Suomi T, Seyednasrollah F, Jaakkola M, Faux T, Elo L (2017). “ROTS: An
 R package for reproducibility-optimized statistical testing.

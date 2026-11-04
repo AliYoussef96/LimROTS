@@ -2,107 +2,68 @@
 % Please edit documentation in R/LimROTS_survival.R
 \name{LimROTS_survival}
 \alias{LimROTS_survival}
-\title{\code{LimROTS_survival}: A Hybrid Method Integrating Empirical Bayes and
-Reproducibility-Optimized Statistics for Robust
-survival analysis in Omics Data}
+\title{Reproducibility-Optimized Survival Analysis}
 \usage{
 LimROTS_survival(
   x,
   assay.type = NULL,
   niter = 1000,
   K = NULL,
-  a1 = NULL,
-  a2 = NULL,
   verbose = TRUE,
   meta.info,
   BPPARAM = NULL,
   formula.str,
-  competing_risks = FALSE,
-  correlation_block = NULL
+  competing_risks = FALSE
 )
 }
 \arguments{
-\item{x}{A \code{SummarizedExperiment} object, where rows
-represent features (e.g., proteins, metabolites) and columns
-represent samples.
-The values should be log-transformed.}
+\item{x}{A \code{SummarizedExperiment} containing features in rows and samples in
+columns.}
 
-\item{assay.type}{A character string or numeric index specifying the assay
-to use if \code{x} is a \code{SummarizedExperiment}. Default is \code{NULL}
-(uses the first assay).}
+\item{assay.type}{Character string or numeric index selecting the assay in
+\code{x} to analyze. If \code{NULL}, the first assay is used.}
 
-\item{niter}{An integer representing the amount of bootstrap iterations.
-Default is 1000.}
+\item{niter}{Integer. Number of bootstrap or permutation replicates to
+generate.}
 
-\item{K}{An optional integer representing the top list size for ranking.
-If not specified, it is set to one-fourth of the number of features.}
+\item{K}{Integer. Number of top-ranked features to use. If \code{NULL}, defaults
+to one quarter of the number of features.}
 
-\item{a1}{Optional numeric value used in the optimization process.
-If defined by the user, no optimization occurs.}
+\item{verbose}{Logical. If \code{TRUE}, report progress messages.}
 
-\item{a2}{Optional numeric value used in the optimization process.
-If defined by the user, no optimization occurs.}
+\item{meta.info}{Character vector naming the sample-level metadata columns
+in \code{colData(x)} required for the survival model. Must include \code{time},
+\code{event}, and the formula covariates.}
 
-\item{verbose}{Logical, indicating whether to display messages during the
-function's execution. Default is \code{TRUE}.}
+\item{BPPARAM}{A \code{BiocParallelParam} object specifying the parallel backend.
+If \code{NULL}, the parallel helper selects a two-worker backend appropriate to
+the operating system.}
 
-\item{meta.info}{a character vector of the metadata needed for the
-model to run and can be retrieved using \code{colData()}.}
+\item{formula.str}{Character string containing the survival model formula.
+It must include \code{Surv(time,event)~y}; additional covariates must be columns
+in \code{meta.info}.}
 
-\item{BPPARAM}{A \code{BiocParallelParam} object specifying the
-parallelization backend (e.g., \code{MulticoreParam}, \code{SnowParam}).
-The default depends on the operating system: if the user is on Windows,
-\code{SnowParam(workers = 2)} is used; otherwise,
-\code{MulticoreParam(workers = 2)}.}
-
-\item{formula.str}{A formula string for modeling.
-It should include "~ 0 + ..." to exclude the intercept from the model.
-All the model parameters must be present in \code{meta.info}.}
-
-\item{competing_risks}{Logical. If \code{TRUE}, the function will fit a
-competing risks model using the \code{crr} function from the
-\code{cmprsk} package instead of the standard Cox proportional hazards
-model. Default is \code{FALSE}.}
-
-\item{correlation_block}{Character or NULL. The name of a column in
-\code{meta.info} that defines correlation blocks. Samples sharing the same
-value in this column are always resampled together as a unit. If NULL,
-the function behaves identically to \code{bootstrapSamples_limRots}.}
+\item{competing_risks}{Logical. If \code{TRUE}, fit a Fine-Gray competing-risks
+model with \code{cmprsk::crr()}; otherwise fit a Cox proportional hazards model
+with \code{survival::coxph()}.}
 }
 \value{
-A \code{SummarizedExperiment} when \code{x} is a
-\code{SummarizedExperiment} (results added to \code{rowData} and
-\code{metadata}), or a list with the following elements:
-\item{data}{The original data matrix.}
-\item{niter}{The number of bootstrap samples used.}
-\item{statistics}{The optimized statistics for each feature.}
-\item{pvalue}{P-values computed based on the permutation samples.}
-\item{FDR}{False discovery rate estimates.}
-\item{a1}{Optimized parameter used in survival ranking.}
-\item{a2}{Optimized parameter used in survival ranking.}
-\item{k}{Top list size used for ranking.}
-\item{R}{Reproducibility score for the optimized parameters.}
-\item{Z}{Z-score corresponding to the optimized parameters.}
-\item{ztable}{Table of z-scores across the parameter grid.}
-\item{exp_coef}{Exponentiated coefficient (hazard ratio estimate) from
-the Cox proportional hazards model for each feature.}
-\item{q_values}{Estimated q-values using the \code{qvalue} package.}
-\item{BH.pvalue}{Benjamini-Hochberg adjusted p-values.}
-\item{null.statistics}{The optimized null statistics for each feature.}
+The input \code{SummarizedExperiment} with feature-level statistics,
+empirical p-values, q-values, FDR estimates, exponentiated coefficients,
+and BH-adjusted p-values added to \code{rowData()}. Optimization results and
+null statistics are added to \code{metadata()}.
 }
 \description{
-\code{LimROTS_survival}: A Hybrid Method Integrating Empirical Bayes and
-Reproducibility-Optimized Statistics for Robust
-survival analysis in Omics Data
+Analyze feature-by-sample data using a Cox proportional hazards or
+competing-risks model and reproducibility-optimized bootstrap statistics.
 }
 \details{
-\strong{LimROTS_survival} applies the reproducibility-optimized
-statistic framework to survival analysis. For each bootstrap resample,
-a Cox proportional hazards model (or a competing risks model
-via \code{crr} from \pkg{cmprsk} when \code{competing_risks = TRUE})
-is fitted per feature using the supplied \code{formula.str}. The
-coefficient \eqn{\beta_{(p)}} and its standard error \eqn{SE_{(p)}} are
-extracted for each feature across bootstrap datasets.
+The function applies the reproducibility-optimized statistic
+framework to survival analysis. For each bootstrap resample, a Cox
+proportional hazards model or Fine-Gray competing-risks model is fitted
+per feature using \code{formula.str}. The feature coefficient
+\eqn{\beta_{(p)}} and its standard error \eqn{SE_{(p)}} are extracted across
+bootstrap datasets.
 
 Reproducibility-optimized parameters \eqn{\alpha_1} and \eqn{\alpha_2}
 are then selected by maximizing the overlap of top-ranked features across
@@ -113,7 +74,7 @@ group-preserving bootstrap datasets, following the
          {\alpha_1 + \alpha_2 \times SE_{(p)}}}
 
 where \eqn{t_{\alpha_{(p)}}} is the final statistic, \eqn{\beta_{(p)}}
-is the Cox model coefficient, and \eqn{SE_{(p)}} is its standard error.
+is the feature coefficient, and \eqn{SE_{(p)}} is its standard error.
 
 P-values are computed from permutation-based null distributions using
 \link[qvalue]{empPvals} from the \pkg{qvalue} package, alongside an
@@ -150,7 +111,6 @@ result <- LimROTS_survival(
     verbose = FALSE,
     competing_risks = FALSE
 )
-
 
 }
 \references{

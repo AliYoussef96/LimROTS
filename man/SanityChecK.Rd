@@ -6,69 +6,73 @@
 \usage{
 SanityChecK(
   x,
-  assay.type = NULL,
-  niter = 1000,
-  K = NULL,
+  assay.type,
+  niter,
+  K,
   meta.info,
   group,
+  model,
   formula.str,
-  verbose = TRUE,
-  log = TRUE,
-  survival = FALSE
+  survival,
+  pairwise_contrasts,
+  correlation_block,
+  strata,
+  competing_risks
 )
 }
 \arguments{
-\item{x}{A matrix-like object or a \code{SummarizedExperiment} containing the
-data to be analyzed.}
+\item{x}{A \code{SummarizedExperiment} containing the feature-by-sample data.}
 
-\item{assay.type}{A character string or numeric index specifying the assay
-to use if \code{x} is a \code{SummarizedExperiment}. Default is \code{NULL}.}
+\item{assay.type}{Character string or numeric index selecting the assay in
+\code{x} to analyze. If \code{NULL}, the first assay is used.}
 
-\item{niter}{Integer. Number of bootstrap samples or resampling iterations.
-Default is 1000.}
+\item{niter}{Integer. Number of bootstrap or permutation replicates to
+generate.}
 
-\item{K}{Integer. Top list size. If NULL, it will be set to a quarter of
-the number of rows in the data matrix. Default is NULL.}
+\item{K}{Integer. Number of top-ranked features to use. If \code{NULL}, defaults
+to one quarter of the number of features.}
 
-\item{meta.info}{Data frame. Metadata associated with the samples
-(columns of \code{x}). If \code{x} is a \code{SummarizedExperiment},
-\code{meta.info} can be a vector of \code{colData} column names to use.}
+\item{meta.info}{Data frame of sample-level metadata, or for a
+\code{SummarizedExperiment}, a character vector naming the columns of \code{colData(x)}
+to use.}
 
-\item{group}{Character. Column name in \code{meta.info} that defines the
-groups or conditions for comparison.}
+\item{group}{Character string naming the column in \code{meta.info} that
+identifies each sample's group.}
 
-\item{formula.str}{Optional character string representing the formula for
-the model.}
+\item{model}{Character string specifying the fitting method, such as
+\code{"limma"} or \code{"dream"}.}
 
-\item{verbose}{Logical, indicating whether to display messages during the
-function's execution. Default is TRUE.}
+\item{formula.str}{Character string containing the model formula.}
 
-\item{log}{Logical, indicating whether the data is already log-transformed.
-Default is TRUE.}
+\item{survival}{Logical. If \code{TRUE}, apply survival-analysis validation,
+requiring \code{time} and \code{event} metadata and a survival formula. Defaults to
+\code{FALSE}.}
 
-\item{survival}{Logical, indicating whether the analysis is survival
-analysis.
-Default is \code{FALSE}. If \code{TRUE}, \code{meta.info} must contain
-\code{time} and \code{event} columns.}
+\item{pairwise_contrasts}{Optional pairwise contrast specification retained
+in the function interface; it is not evaluated by this validation function.}
+
+\item{correlation_block}{Character string or \code{NULL}. Name of the metadata
+column identifying correlated samples or blocks.}
+
+\item{strata}{Character vector or \code{NULL}. Names of character or factor
+metadata columns used to define sampling strata.}
+
+\item{competing_risks}{Logical. If \code{TRUE}, validate metadata for competing
+risks analysis; otherwise validate the standard survival-analysis event
+groups.}
 }
 \value{
-A list containing:
-\itemize{
-\item \code{meta.info}: Processed metadata.
-\item \code{data}: Processed data matrix.
-\item \code{groups}: Numeric or factor vector indicating group assignments.
-\item \code{K}: Top list size to be used in the analysis.
-}
+A list containing the prepared \code{meta.info}, feature-by-sample
+\code{data}, grouping column name \code{group}, and top-list size \code{K}. In survival
+mode, the returned list also contains the processed \code{formula.str}.
 }
 \description{
-This function performs a series of checks and initial setups for input data,
-metadata, and parameters, ensuring everything is correctly formatted for
-downstream analysis.
+Validate analysis inputs and prepare data and metadata for downstream
+LimROTS analysis.
 }
 \details{
-This function checks whether the input data and metadata are in the correct
-format, processes metadata from a \code{SummarizedExperiment} object if provided,
-and ensures that group information is correctly specified. If no top list
-size (\code{K}) is provided, it defaults to a quarter of the number of rows in
-the data.
+Extracts the selected assay and metadata, checks their sample alignment and
+requested analysis parameters, and returns the prepared objects. For
+survival analysis, it delegates formula and event validation to
+\code{.check_survival()}.
 }

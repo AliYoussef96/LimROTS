@@ -2,30 +2,29 @@
 % Please edit documentation in R/Bootstrap_functions.r
 \name{bootstrapS}
 \alias{bootstrapS}
-\title{Generate Bootstrap Samples}
+\title{Generate Group-Wise Bootstrap Samples}
 \usage{
 bootstrapS(niter, meta.info, group)
 }
 \arguments{
-\item{niter}{Integer. The number of bootstrap samples to generate.}
+\item{niter}{Integer. Number of bootstrap or permutation replicates to
+generate.}
 
-\item{meta.info}{Data frame. Metadata containing sample information, where
-each row corresponds to a sample.}
+\item{meta.info}{Data frame containing sample-level metadata, with one row
+per sample and sample names as row names.}
 
-\item{group}{Character. The name of the column in \code{meta.info} that
-defines the grouping variable for the samples.}
+\item{group}{Character string naming the column in \code{meta.info} that
+identifies each sample's group.}
 }
 \value{
-A matrix of dimension \code{niter} x \code{n}, where \code{n} is the
-number of samples. Each row corresponds to a bootstrap sample, and each
-entry is a resampled row name from the metadata.
+A character matrix with \code{niter} rows and one column per sample.
+Each row is a bootstrap replicate containing resampled sample names.
 }
 \description{
-This function generates bootstrap samples from the input metadata. It samples
-with replacement within each group defined in the metadata, and optionally
-adjusts for paired groups.
+Generate bootstrap replicates by sampling samples with replacement
+independently within each group.
 }
 \details{
-The function works by resampling the row names of the metadata for each group
-separately.
+Within each group, sample names are drawn with replacement. Each replicate
+contains the same number of sample positions from each group as the input.
 }
