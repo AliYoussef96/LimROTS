@@ -299,14 +299,19 @@ SanityChecK <- function(x,
 
 .check_survival <- function(meta.info, data, K, formula.str, competing_risks, group ) {
   
-  if(!all(c("time", "event") %in% colnames(meta.info))){
-    stop("For survival analysis, 'meta.info' must contain 'time' and 
-             'event' columns.")
+  if(grepl("[*:]", formula.str)){
+    stop("For survival analysis, 'formula.str' should not contain interaction terms or 
+             special characters like '*' or ':'.")
   }
   
   if(!str_detect( formula.str , fixed("Surv(time,event)~y"))){
     stop("For survival analysis, 'formula.str' must include a 
              'Surv(time, event)~y'")
+  }
+  
+  if(!all(c("time", "event") %in% colnames(meta.info))){
+    stop("For survival analysis, 'meta.info' must contain 'time' and 
+             'event' columns.")
   }
 
  formula.str.temp <- str_remove(formula.str , fixed("Surv(time,event)~"))
@@ -318,11 +323,6 @@ SanityChecK <- function(x,
 
   if (is.null(K)) {
     K <- floor(nrow(data) / 4)
-  }
-  
- if(grepl("[*:]", formula.str)){
-    stop("For survival analysis, 'formula.str' should not contain interaction terms or 
-             special characters like '*' or ':'.")
   }
 
   meta.info <- meta.info[order(meta.info[,"event"]), , drop = FALSE]
