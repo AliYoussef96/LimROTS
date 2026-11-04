@@ -1,33 +1,31 @@
 # Copyright (C) 2025 Ali Youssef.
 # This program is licensed under GPL (>= 2).
 #
-#' Parallel processing handling function for LimROTS survival
+#' Fit Survival Bootstrap and Permutation Replicates in Parallel
 #'
-#' @param data A \code{SummarizedExperiment} object or a matrix where rows
-#' represent features (e.g., genes, proteins) and columns represent samples.
-#' The values should be log-transformed.
-#' @param a1 Optional numeric value used in the optimization process.
-#' If defined by the user, no optimization occurs.
-#' @param a2 Optional numeric value used in the optimization process.
-#' If defined by the user, no optimization occurs.
-#' @param meta.info A data frame containing sample-level metadata, where each
-#' row corresponds to a sample. It should include the grouping variable
-#' specified in \code{group}. If \code{x} is a \code{SummarizedExperiment}
-#' object, \code{meta.info} must be a vector of the metadata needed for the
-#' model to run and can be retrieved using \code{colData()}.
-#' @param BPPARAM A parallel BPPARAM object for distributed computation.
-#' @param formula.str A formula string used when covariates are present in meta.
-#' info for modeling. It should include "~ 0 + ..." to exclude the
-#' intercept from the model.
-#' @param samples bootstrapped samples matrix
-#' @param pSamples a permutated list of samples
-#' @param competing_risks Logical. If \code{TRUE}, the competing
-#' risks model via \code{crr} from \code{cmprsk} is used instead of the
-#' standard Cox proportional hazards model.
+#' Fit a survival model to each bootstrap replicate and its corresponding
+#' permuted metadata using a `BiocParallel` backend.
 #'
+#' @param BPPARAM A `BiocParallelParam` object specifying the parallel backend.
+#' If `NULL`, the function selects a two-worker backend appropriate to the
+#' operating system.
+#' @param samples Matrix of bootstrap replicates, with one row per replicate
+#' and resampled sample names in its columns.
+#' @param data Feature-by-sample matrix with sample names as column names.
+#' @param formula.str Character string containing the survival model formula.
+#' It must include `Surv(time,event)~y`; additional covariates must be columns
+#' in `meta.info`.
+#' @param meta.info Data frame of sample-level metadata, with sample names as
+#' row names.
+#' @param pSamples List of permuted sample-level metadata data frames, one per
+#' bootstrap replicate.
+#' @param competing_risks Logical. If `TRUE`, fit a Fine-Gray competing-risks
+#' model with `cmprsk::crr()`; otherwise fit a Cox proportional hazards model
+#' with `survival::coxph()`.
 #'
-#' @return A list containing: \code{D, S, pD, pS} for bootstrapped data and
-#'  for permuted data.
+#' @return A list with one element per replicate. Each element contains `ds`
+#' (bootstrap statistics and standard errors) and `pdps` (permutation
+#' statistics and standard errors).
 #'
 #' @importFrom BiocParallel SnowParam MulticoreParam bplapply
 #' @importFrom stats model.matrix formula p.adjust
@@ -108,45 +106,38 @@ Boot_parallel_survival <- function(BPPARAM = NULL,
 }
 
 
-# Copyright (C) 2025 Ali Youssef.
-# This program is licensed under GPL (>= 2).
-#
-#' Final Per-Feature Survival Model Fit on the Full Dataset
+#' Fit Survival Models to the Original Data
 #'
-#' This function fits a per-feature survival model to the full (non-resampled)
-#' data matrix using the observed sample metadata, producing the final
-#' statistics used for ranking features.
+#' Fit a survival model for every feature using the original data and observed
+#' sample metadata.
 #'
-#' @param x A data matrix where rows represent features (e.g., proteins,
-#' metabolites) and columns represent samples.
-#' @param meta.info A data frame containing the metadata for the samples.
-#' Must include \code{time}, \code{event}, and any additional covariates
-#' used in \code{formula.str}.
-#' @param formula.str A string specifying the formula to be used in model
-#' fitting. Must include a \code{Surv(time, event)} term. The per-feature
-#' coefficient term (\code{y}) is prepended automatically.
-#' @param competing_risks Logical. If \code{FALSE} (default), a Cox
-#' proportional hazards model is fitted per feature using \code{coxph}.
-#' If \code{TRUE}, a competing risks model is fitted per
-#' feature using \code{crr} from the \code{cmprsk} package.
+#' @param x Feature-by-sample matrix with sample names as column names.
+#' @param meta.info Data frame of sample-level metadata, with sample names as
+#' row names. It must contain `time`, `event`, and any covariates in
+#' `formula.str`.
+#' @param formula.str Character string containing the survival model formula.
+#' It must include `Surv(time,event)~y`; additional covariates must be columns
+#' in `meta.info`.
+#' @param competing_risks Logical. If `TRUE`, fit a Fine-Gray competing-risks
+#' model with `cmprsk::crr()`; otherwise fit a Cox proportional hazards model
+#' with `survival::coxph()`.
 #'
 #' @details
 #' For each feature (row), the function appends the feature expression values
-#' as \code{y} to the sample metadata and fits either a Cox proportional
-#' hazards model (\code{competing_risks = FALSE}) or a
-#' subdistribution hazard model (\code{competing_risks = TRUE}). The
+#' as `y` to the sample metadata and fits either a Cox proportional
+#' hazards model (`competing_risks = FALSE`) or a Fine-Gray
+#' subdistribution hazard model (`competing_risks = TRUE`). The
 #' coefficient, its standard error, and the exponentiated coefficient
 #' (hazard ratio) for the feature term \code{y} are extracted.
 #'
-#' Unlike \code{permutating_survival} and \code{bootstrap_survival}, this
-#' function operates on the observed (non-permuted, non-resampled) data to
+#' Unlike `permutating_survival` and `bootstrap_survival`, this function
+#' operates on the observed (non-permuted, non-resampled) data to
 #' produce the final statistics used for feature ranking.
 #'
 #' @return A list containing the following elements:
 #' \item{d}{A numeric vector of absolute coefficients
 #' (\eqn{|\beta|}) for each feature.}
-#' \item{s}{A numeric vector of standard errors of the coefficients for
-#' each feature.}
+#' \item{s}{A numeric vector of coefficient standard errors for each feature.}
 #' \item{exp_coef}{A numeric vector of exponentiated coefficients (hazard
 #' ratios, \eqn{e^{\beta}}) for each feature.}
 #'
@@ -241,40 +232,48 @@ competing_risks
 
 
 
-# Copyright (C) 2025 Ali Youssef.
-# This program is licensed under GPL (>= 2).
-#
-#' Perform Per-Feature Survival Modeling on Bootstrap Resamples
+#' Fit Survival Models to Bootstrap Resamples
 #'
+#' Fit a survival model for every feature using bootstrap-resampled expression
+#' values and the matching sample metadata.
 #'
-#' @param x A list of data matrices (bootstrap resample), where each element
-#' corresponds to a resampled group. Rows represent features (e.g., proteins,
-#' metabolites) and columns represent samples.
-#' @param meta.info A data frame containing the metadata for the samples,
-#' including \code{time}, \code{event}, and any additional covariates used
-#' in \code{formula.str}.
-#' @param formula.str A string specifying the formula to be used in model
-#' fitting. Must include a \code{Surv(time, event)} term. The per-feature
-#' coefficient term (\code{y}) is prepended automatically.
-#' @param competing_risks Logical. If \code{FALSE} (default), a Cox
-#' proportional hazards model is fitted per feature using \code{coxph}.
-#' If \code{TRUE}, a competing risks model is fitted per
-#' feature using \code{crr} from the \code{cmprsk} package.
+#' @param x List of feature-by-sample matrices, one per group in the bootstrap
+#' replicate. Matrices must have matching feature names.
+#' @param meta.info Data frame of sample-level metadata, with sample names as
+#' row names. It must contain `time`, `event`, and any covariates in
+#' `formula.str`.
+#' @param formula.str Character string containing the survival model formula.
+#' It must include `Surv(time,event)~y`; additional covariates must be columns
+#' in `meta.info`.
+#' @param competing_risks Logical. If `TRUE`, fit a Fine-Gray competing-risks
+#' model with `cmprsk::crr()`; otherwise fit a Cox proportional hazards model
+#' with `survival::coxph()`.
 #'
 #' @details
 #' For each feature (row), the function constructs a temporary data frame
-#' combining the bootstrap-resampled expression values (\code{y}) with the
+#' combining the bootstrap-resampled expression values (`y`) with the
 #' sample metadata. It then fits either a Cox proportional hazards model
-#' (\code{competing_risks = FALSE}) or a Fine subdistribution
-#' hazard model (\code{competing_risks = TRUE}) per feature, extracting
+#' (`competing_risks = FALSE`) or a Fine-Gray subdistribution
+#' hazard model (`competing_risks = TRUE`) per feature, extracting
 #' the coefficient and its standard error for the feature term \code{y}.
 #'
 #' @return A list containing the following elements:
 #' \item{d}{A numeric vector of absolute coefficients
 #' (\eqn{|\beta|}) for each feature.}
-#' \item{s}{A numeric vector of standard errors of the coefficients for
-#' each feature.}
+#' \item{s}{A numeric vector of coefficient standard errors for each feature.}
+#' Assemble Bootstrap Data and Matching Survival Metadata
 #'
+#' Combine group-specific bootstrap matrices and construct a metadata row for
+#' each resampled sample, preserving the alignment between expression values
+#' and sample-level survival covariates.
+#'
+#' @param x List of feature-by-sample matrices, one per group in the bootstrap
+#' replicate. Matrices must have matching feature names.
+#' @param meta.info Data frame of sample-level metadata, with sample names as
+#' row names. It must contain the survival outcomes and model covariates.
+#'
+#' @return A list containing the combined feature-by-sample matrix
+#' `combined_data` and corresponding sample-level metadata `covariates.p`.
 #' @seealso \code{\link[survival]{coxph}}, \code{\link[cmprsk]{crr}}
 #'
 #' @importFrom stats model.matrix formula
@@ -391,44 +390,37 @@ bootstrap_survival <-
 
 
 
-# Copyright (C) 2025 Ali Youssef.
-# This program is licensed under GPL (>= 2).
-#
-#' Perform Per-Feature Survival Modeling on Permuted Data
+#' Fit Survival Models to Permuted Metadata
 #'
-#' This function fits a per-feature survival model to the original data matrix
-#' using permuted sample metadata, generating a null distribution of test
-#' statistics for downstream FDR and p-value estimation.
+#' Fit a survival model for every feature using the original data and permuted
+#' sample metadata to generate null statistics.
 #'
-#' @param x A data matrix where rows represent features (e.g., proteins,
-#' metabolites) and columns represent samples.
-#' @param meta.info A data frame of permuted sample metadata, where each row
-#' corresponds to a sample. Must include \code{time}, \code{event}, and any
-#' additional covariates used in \code{formula.str}.
-#' @param formula.str A string specifying the formula to be used in model
-#' fitting. Must include a \code{Surv(time, event)} term. The per-feature
-#' coefficient term (\code{y}) is prepended automatically.
-#' @param competing_risks Logical. If \code{FALSE} (default), a Cox
-#' proportional hazards model is fitted per feature using \code{coxph}.
-#' If \code{TRUE}, a competing risks model is fitted per
-#' feature using \code{crr} from the \code{cmprsk} package.
+#' @param x Feature-by-sample matrix with sample names as column names.
+#' @param meta.info Data frame of sample-level metadata, with sample names as
+#' row names. It must contain `time`, `event`, and any covariates in
+#' `formula.str`; the group or event labels are permuted for the null fit.
+#' @param formula.str Character string containing the survival model formula.
+#' It must include `Surv(time,event)~y`; additional covariates must be columns
+#' in `meta.info`.
+#' @param competing_risks Logical. If `TRUE`, fit a Fine-Gray competing-risks
+#' model with `cmprsk::crr()`; otherwise fit a Cox proportional hazards model
+#' with `survival::coxph()`.
 #'
 #' @details
 #' For each feature (row), the function appends the feature expression values
-#' as \code{y} to the permuted metadata and fits either a Cox proportional
-#' hazards model (\code{competing_risks = FALSE}) or a
-#' subdistribution hazard model (\code{competing_risks = TRUE}). Because
+#' as `y` to the permuted metadata and fits either a Cox proportional
+#' hazards model (`competing_risks = FALSE`) or a Fine-Gray
+#' subdistribution hazard model (`competing_risks = TRUE`). Because
 #' the metadata is permuted, the resulting statistics form the null distribution
 #' used to compute empirical p-values and FDR.
 #'
-#' Unlike \code{bootstrap_survival}, this function operates directly on the
+#' Unlike `bootstrap_survival`, this function operates directly on the
 #' full data matrix without group splitting or resampling.
 #'
 #' @return A list containing the following elements:
-#' \item{d}{A numeric vector of absolute Cox coefficients
+#' \item{d}{A numeric vector of absolute model coefficients
 #' (\eqn{|\beta|}) for each feature.}
-#' \item{s}{A numeric vector of standard errors of the coefficients for
-#' each feature.}
+#' \item{s}{A numeric vector of coefficient standard errors for each feature.}
 #'
 #' @seealso \code{\link[survival]{coxph}}, \code{\link[cmprsk]{crr}}
 #'
