@@ -80,7 +80,7 @@ bootstrap_survival <-
       
       return(list(d = abs(d), s = s))
       
-    }else{
+    }else if(competing_risks == TRUE){
       for (j in seq_len(nrow(combined_data))) {
         df.temp <- covariates.p
         df.temp$y <- as.numeric(combined_data[j,])
