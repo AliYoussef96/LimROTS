@@ -128,10 +128,6 @@ Boot_parallel <- function(BPPARAM = NULL,
 }
 
 
-
-# Copyright (C) 2025 Ali Youssef.
-# This program is licensed under GPL (>= 2).
-#
 #' Fit the Original Data with Limma or DREAM
 #'
 #' Fit the selected linear model to the original feature-by-sample matrix and
@@ -351,9 +347,6 @@ fit_original <- function(x, group, meta.info, formula.str, trend, robust,
 }
 
 
-# Copyright (C) 2025 Ali Youssef.
-# This program is licensed under GPL (>= 2).
-#
 #' Fit Bootstrap Samples with Limma or DREAM
 #'
 #' Fit the selected linear model to a bootstrap replicate assembled from
@@ -609,9 +602,6 @@ fit_bootstrap <- function(x, group, meta.info, formula.str,
 }
 
 
-# Copyright (C) 2025 Ali Youssef.
-# This program is licensed under GPL (>= 2).
-#
 #' Fit Permuted Metadata with Limma or DREAM
 #'
 #' Fit the selected linear model to the data matrix and permuted sample
