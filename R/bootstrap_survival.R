@@ -44,35 +44,11 @@
 
 bootstrap_survival <-
     function(x, meta.info, formula.str, competing_risks) {
-        data <- x
-        combined_data <- data.frame(
-            check.rows = FALSE,
-            check.names = FALSE,
-            none = rep("none", nrow(data[[1]]))
-        )
-        for (k.list in names(data)) {
-            combined_data <- cbind(
-                combined_data,
-                data.frame(data[[k.list]], check.rows = FALSE, 
-                        check.names = FALSE)
-            )
-        }
-        combined_data <- combined_data[, -1]
-        colnames(combined_data) <-
-            paste0(colnames(combined_data), ".", seq(1, ncol(combined_data)))
-        covariates.p <- data.frame()
-        meta.info.temp <- meta.info
-        meta.info.temp$sample.id <- row.names(meta.info.temp)
-        for (i in colnames(combined_data)) {
-            real_SampleNames <- str_split_fixed(i, fixed("."), 2)[, 1]
-            df.temp <-
-                meta.info.temp[row.names(meta.info.temp) %in% real_SampleNames
-                            , ]
-            df.temp$sample.id <- i
-            covariates.p <- rbind(covariates.p, df.temp)
-        }
-        covariates.p$sample.id <- NULL
-        row.names(covariates.p) <- NULL
+        
+        ### Generate combined data and covariates for model fitting
+        data_for_fit <- .generate_data_for_fit(x = x, meta.info = meta.info)
+        combined_data <- data_for_fit$combined_data
+        covariates.p <- data_for_fit$covariates.p
         
         d  <- numeric(nrow(combined_data))
         s    <- numeric(nrow(combined_data))
@@ -143,3 +119,38 @@ bootstrap_survival <-
         }
 }
 
+
+
+
+.generate_data_for_fit <- function(x, meta.info) {
+    ### Check if x is a list of matrices with identical rownames
+    stopifnot(
+        all(vapply(
+            x,
+            function(z) identical(rownames(z), rownames(x[[1L]])),
+            logical(1)
+        ))
+    )
+    combined_data <- do.call(cbind, x)
+    
+    ### create a unique colnames for the combined data to avoid duplicates
+    colnames(combined_data) <-
+        paste0(colnames(combined_data), ".", seq(1, ncol(combined_data)))
+
+    ### create a covariates data frame for the combined data
+    covariates.p <- data.frame()
+    meta.info.temp <- meta.info
+    meta.info.temp$sample.id <- row.names(meta.info.temp)
+    for (i in colnames(combined_data)) {
+        real_SampleNames <- str_split_fixed(i, fixed("."), 2)[, 1]
+        df.temp <- meta.info.temp[real_SampleNames, , drop = FALSE]
+        df.temp[,"sample.id"] <- i
+        covariates.p <- rbind(covariates.p, df.temp)
+    }
+    stopifnot(identical(colnames(combined_data), covariates.p[,"sample.id"]))
+    row.names(covariates.p) <- covariates.p[,"sample.id"]
+    covariates.p[,"sample.id"] <- NULL
+
+    stopifnot(identical(colnames(combined_data), row.names(covariates.p)))
+    return(list(combined_data = combined_data, covariates.p = covariates.p))
+}

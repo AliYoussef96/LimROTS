@@ -154,7 +154,8 @@ LimROTS_survival <- function(x,
     BPPARAM  = NULL,
     formula.str,
     competing_risks = FALSE) {
-        
+    
+    formula.str <- gsub(" ", "", formula.str)
     ### Perform sanity checks on the input parameters and data.
     SanityChecK.list <- SanityChecK(
         x = x,

@@ -314,6 +314,11 @@ SanityChecK <- function(x,
     K <- floor(nrow(data) / 4)
   }
   
+ if(grepl("[*:]", formula.str)){
+    stop("For survival analysis, 'formula.str' should not contain interaction terms or 
+             special characters like '*' or ':'.")
+  }
+
   meta.info <- meta.info[order(meta.info[,"event"]), , drop = FALSE]
   data <- data[, row.names(meta.info)]
   if(!identical(colnames(data) , row.names(meta.info)) ){

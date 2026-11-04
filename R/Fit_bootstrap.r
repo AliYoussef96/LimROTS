@@ -79,7 +79,8 @@ fit_bootstrap <- function(x, group, meta.info, formula.str,
 
         
         ### Generate combined data and covariates for model fitting
-        data_for_fit <- .generate_data_for_fit(x = x, meta.info = meta.info, correlation_block = correlation_block)
+        data_for_fit <- .generate_data_for_fit(x = x, meta.info = meta.info, 
+        correlation_block = correlation_block)
         combined_data <- data_for_fit$combined_data
         covariates.p <- data_for_fit$covariates.p
 
