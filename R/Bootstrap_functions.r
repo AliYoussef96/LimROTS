@@ -39,7 +39,9 @@ bootstrapS <- function(niter, meta.info, group) {
     return(bootsamples)
 }
 
-
+# Copyright (C) 2025 Ali Youssef.
+# This program is licensed under GPL (>= 2).
+#
 #' Generate Stratified Group-Wise Bootstrap Samples
 #'
 #' Generate bootstrap replicates by sampling with replacement within groups
