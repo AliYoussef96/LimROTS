@@ -308,8 +308,14 @@ SanityChecK <- function(x,
     stop("For survival analysis, 'formula.str' must include a 
              'Surv(time, event)~y'")
   }
- 
-  
+
+ formula.str.temp <- str_remove(formula.str , fixed("Surv(time,event)~"))
+ formula.str.temp <- unlist(str_split(formula.str.temp , fixed("+") ))
+
+  if(!all(formula.str.temp %in% colnames(meta.info))){
+    stop("All covariates specified in 'formula.str' must be present in 'meta.info'.")
+  }
+
   if (is.null(K)) {
     K <- floor(nrow(data) / 4)
   }
