@@ -156,7 +156,8 @@ LimROTS_survival <- function(x,
     BPPARAM  = NULL,
     formula.str,
     competing_risks = FALSE) {
-
+        
+    group = "event"
     ### Perform sanity checks on the input parameters and data.
     SanityChecK.list <- SanityChecK(
         x = x,
@@ -164,19 +165,20 @@ LimROTS_survival <- function(x,
         niter = niter,
         K = K,
         meta.info = meta.info,
-        group = NULL,
+        group = group,
         model = NULL,
         pairwise_contrasts = NULL,
         correlation_block = NULL,
         strata = NULL,
         survival = TRUE,
-        formula.str = formula.str
+        formula.str = formula.str,
+        competing_risks = competing_risks
     )
     meta.info <- SanityChecK.list[["meta.info"]]
     data <- SanityChecK.list[["data"]]
     K <- SanityChecK.list[["K"]]
     formula.str <- SanityChecK.list[["formula.str"]]
-    group = "event"
+    
 
     ### Generate bootstrap and permutation samples.
     list_boot_perm <- .generate_bootstrap_permutations_survival(

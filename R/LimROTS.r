@@ -148,10 +148,9 @@ LimROTS <- function(x,
     trend = TRUE,
     correlation_block = NULL,
     pairwise_contrasts,
-    model = "limma",
+    model,
     strata
     ) {
-
     ### Perform sanity checks on the input parameters and data.
     SanityChecK.list <- SanityChecK(
         x,
@@ -165,7 +164,8 @@ LimROTS <- function(x,
         pairwise_contrasts = pairwise_contrasts,
         correlation_block = correlation_block,
         strata = strata,
-        survival = FALSE
+        survival = FALSE,
+        competing_risks = FALSE
     )
 
 

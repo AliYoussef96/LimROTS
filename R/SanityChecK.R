@@ -48,7 +48,7 @@ SanityChecK <- function(x,
         niter, K,
         meta.info, group, model,
         formula.str, survival, pairwise_contrasts,
-        correlation_block, strata) {
+        correlation_block, strata , competing_risks) {
 
     ### Check if x is a SummarizedExperiment and extract data and metadata
     ### and extract the assay if specified
@@ -69,7 +69,9 @@ SanityChecK <- function(x,
         meta.info = meta.info,
         data = data,
         group = group,
-        K = K
+        K = K,
+        competing_risks = competing_risks,
+        survival = survival
     )
 
     ### Check if strata in meta.info and it is character or factor
@@ -115,7 +117,9 @@ SanityChecK <- function(x,
         meta.info = meta.info,
         data = data,
         group = group,
-        K = K
+        K = K,
+        competing_risks = competing_risks,
+        survival = survival
     )
 
     return(list(
@@ -221,7 +225,7 @@ SanityChecK <- function(x,
 #'
 #'
 
-.Check_meta_info <- function(meta.info, data , group, K) {
+.Check_meta_info <- function(meta.info, data , group, K, survival, competing_risks) {
     if (any(!row.names(meta.info) %in% colnames(data))) {
         stop("rownames
             for colData should match the data colnames (samples names)")
@@ -239,9 +243,27 @@ SanityChecK <- function(x,
         anyDuplicated(row.names(meta.info))) {
         stop("meta.info must have unique sample names as row names.")
     }
-    if(length(unique(meta.info[, group])) != 2){
+
+    if(!survival){
+        if(length(unique(meta.info[, group])) != 2){
         stop("LimROTS only supports two-group comparisons.")
+        }
+    }else if(survival){
+        
+        if(competing_risks == FALSE){ 
+        
+        if(length(unique(meta.info[, group])) != 2 ){
+        stop("Survival analysis requires at two unique groups in the 'event' column.")
+        }
+        }else if(competing_risks == TRUE){
+            
+            if(length(unique(meta.info[, group])) != 3){
+        stop("Competing risks analysis requires three unique groups in the 'event' column.")
+            }
+            
+        }
     }
+
     if (anyNA(meta.info[, group])) {
         stop("The group column contains missing values.")
     }
@@ -273,56 +295,48 @@ SanityChecK <- function(x,
 #' 
 
 
-.check_survival <- function(meta.info, data, K, formula.str) {
-      
-      if(!all(c("time", "event") %in% colnames(meta.info))){
-        stop("For survival analysis, 'meta.info' must contain 'time' and 
+.check_survival <- function(meta.info, data, K, formula.str, competing_risks) {
+  
+  if(!all(c("time", "event") %in% colnames(meta.info))){
+    stop("For survival analysis, 'meta.info' must contain 'time' and 
              'event' columns.")
-      }
-      
-      if(!grepl("Surv\\(time, event\\)", formula.str)){
-        stop("For survival analysis, 'formula.str' must include a 
-             'Surv(time, event)' term.")
-      }
-      
-      if (is.null(K)) {
-        K <- floor(nrow(data) / 4)
-      }
-      
-      formula.str <- gsub("\\s+", "", formula.str)
-      
-      terms <- str_split_fixed(formula.str, fixed("~"), 2)
-      rhs <- terms[, 2]
-      surv_part <- regmatches(rhs, regexpr("Surv\\([^)]+\\)", rhs))
-      rhs_covariates <- gsub("Surv\\([^)]+\\)\\+?|\\+?Surv\\([^)]+\\)",
-                             "", rhs)
-      rhs_covariates <- gsub("^\\+|\\+$", "", rhs_covariates)
-      if (rhs_covariates == "") {
-        formula.str <- paste0(surv_part, "~y")
-      } else {
-        formula.str <- paste0(surv_part, "~y+", rhs_covariates)
-      }
-      
-    meta.info <- meta.info[order(meta.info[,event,  drop = FALSE]), ]
-    data <- data[, row.names(meta.info)]
-    if(!identical(colnames(data) , row.names(meta.info)) ){
-        stop("After sorting, column names of data do not match row names of
+  }
+  
+  if(!str_detect( gsub("\\s+", "",formula.str) , fixed("Surv(time,event)~y"))){
+    stop("For survival analysis, 'formula.str' must include a 
+             'Surv(time, event)~y'")
+  }
+ 
+  
+  if (is.null(K)) {
+    K <- floor(nrow(data) / 4)
+  }
+  
+  meta.info <- meta.info[order(meta.info[,"event"]), , drop = FALSE]
+  data <- data[, row.names(meta.info)]
+  if(!identical(colnames(data) , row.names(meta.info)) ){
+    stop("After sorting, column names of data do not match row names of
              meta info in colData")
-    }
-      
-      if(!identical(colnames(data), row.names(meta.info))){
-        stop("After sorting, column names of data do not match row names of
-             meta.info.")
-      }
-      message("Sanity check completed successfully!")
-      
-      return(list(
-        meta.info = meta.info,
-        data = data,
-        K = K,
-        formula.str = formula.str
-      ))
-    
+  }
+
+  message("Sanity check completed successfully!")
+  
+  .Check_meta_info(
+    meta.info = meta.info,
+    data = data,
+    group = group,
+    K = K,
+    competing_risks = competing_risks,
+    survival = TRUE
+  )
+  
+  return(list(
+    meta.info = meta.info,
+    data = data,
+    K = K,
+    formula.str = formula.str
+  ))
+  
 }
 
 .check_formula <- function(formula.str, model, correlation_block,
