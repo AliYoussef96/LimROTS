@@ -102,6 +102,9 @@ SanityChecK <- function(x,
         return(survival_check)
       }
 
+    if(!(group %in% colnames(meta.info))){
+        stop("The specified group column is not present in meta.info.")
+    }
 
     ### Checks for the model type and random effects in the formula
     .check_formula(formula.str = formula.str, model = model, 
