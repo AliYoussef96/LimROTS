@@ -304,7 +304,7 @@ SanityChecK <- function(x,
              'event' columns.")
   }
   
-  if(!str_detect( gsub("\\s+", "",formula.str) , fixed("Surv(time,event)~y"))){
+  if(!str_detect( formula.str , fixed("Surv(time,event)~y"))){
     stop("For survival analysis, 'formula.str' must include a 
              'Surv(time, event)~y'")
   }

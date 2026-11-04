@@ -43,114 +43,107 @@
 #'
 
 bootstrap_survival <-
-    function(x, meta.info, formula.str, competing_risks) {
+  function(x, meta.info, formula.str, competing_risks) {
+    
+    ### Generate combined data and covariates for model fitting
+    data_for_fit <- .generate_data_for_fit(x = x, meta.info = meta.info)
+    combined_data <- data_for_fit$combined_data
+    covariates.p <- data_for_fit$covariates.p
+    
+    stopifnot(identical(colnames(combined_data), row.names(covariates.p)))
+    
+    d  <- numeric(nrow(combined_data))
+    s    <- numeric(nrow(combined_data))
+    taxon_names <- character(nrow(combined_data))
+    
+    if(competing_risks == FALSE){
+      for (j in seq_len(nrow(combined_data))) {
+        df.temp <- covariates.p
+        df.temp$y <- as.numeric(combined_data[j,])
         
-        ### Generate combined data and covariates for model fitting
-        data_for_fit <- .generate_data_for_fit(x = x, meta.info = meta.info)
-        combined_data <- data_for_fit$combined_data
-        covariates.p <- data_for_fit$covariates.p
+        fit <- coxph(
+          formula = formula(formula.str),
+          ties = "breslow", data = df.temp
+        )
         
-        d  <- numeric(nrow(combined_data))
-        s    <- numeric(nrow(combined_data))
-        taxon_names <- character(nrow(combined_data))
-
-        if(competing_risks == FALSE){
-            for (j in seq_len(nrow(combined_data))) {
-                df.temp <- covariates.p
-                df.temp$y <- as.numeric(combined_data[j,])
-                
-                fit <- coxph(
-                    formula = formula(formula.str),
-                    ties = "breslow", data = df.temp
-                )
-                
-                # Extract taxon coefficient only
-                beta <- fit$coef[1]
-                var  <- fit$var[1, 1]
-                
-                d[j] <- beta
-                s[j]   <- sqrt(var)
-                taxon_names[j] <- row.names(combined_data[j,])
-                }
+        # Extract taxon coefficient only
+        beta <- fit$coef[1]
+        var  <- fit$var[1, 1]
         
-        names(d) <- taxon_names
-        names(s) <- taxon_names
+        d[j] <- beta
+        s[j]   <- sqrt(var)
+        taxon_names[j] <- row.names(combined_data[j,])
+      }
+      
+      names(d) <- taxon_names
+      names(s) <- taxon_names
+      
+      return(list(d = abs(d), s = s))
+      
+    }else{
+      for (j in seq_len(nrow(combined_data))) {
+        df.temp <- covariates.p
+        df.temp$y <- as.numeric(combined_data[j,])
         
-        return(list(d = abs(d), s = s))
-
-        }else{
-            for (j in seq_len(nrow(combined_data))) {
-                df.temp <- covariates.p
-                df.temp$y <- as.numeric(combined_data[j,])
-
-                cov_matrix <- as.matrix(df.temp[, "y", drop = FALSE])
-                extra_terms <- setdiff(
-                    colnames(df.temp),
-                    c("time", "event", "y")
-                )
-                if (length(extra_terms) > 0) {
-                    cov_matrix <- cbind(
-                        cov_matrix,
-                        as.matrix(df.temp[, extra_terms, drop = FALSE])
-                    )
-                }
-
-                fit <- crr(
-                    ftime   = df.temp$time,
-                    fstatus = df.temp$event,
-                    cov1    = cov_matrix,
-                    failcode = 1,
-                    cencode  = 0,
-                    variance = TRUE
-                )
-
-                beta <- fit$coef["y"]
-                var  <- fit$var[1, 1]
-
-                d[j] <- beta
-                s[j]   <- sqrt(var)
-                taxon_names[j] <- row.names(combined_data[j,])
-            }
-
-        names(d) <- taxon_names
-        names(s) <- taxon_names
-
-        return(list(d = abs(d), s = s))
-        }
-}
+        formula.str.temp <- str_remove(formula.str , fixed("Surv(time,event)~"))
+        cov_matrix <- model.matrix(as.formula(paste0("~0+",formula.str.temp)), data = df.temp)
+        
+        fit <- crr(
+          ftime   = df.temp$time,
+          fstatus = df.temp$event,
+          cov1    = cov_matrix,
+          failcode = 1,
+          cencode  = 0,
+          variance = TRUE
+        )
+        
+        beta <- fit$coef["y"]
+        var  <- fit$var[1, 1]
+        
+        d[j] <- beta
+        s[j]   <- sqrt(var)
+        taxon_names[j] <- row.names(combined_data[j,])
+      }
+      
+      names(d) <- taxon_names
+      names(s) <- taxon_names
+      
+      return(list(d = abs(d), s = s))
+    }
+  }
 
 
 
 
 .generate_data_for_fit <- function(x, meta.info) {
-    ### Check if x is a list of matrices with identical rownames
-    stopifnot(
-        all(vapply(
-            x,
-            function(z) identical(rownames(z), rownames(x[[1L]])),
-            logical(1)
-        ))
-    )
-    combined_data <- do.call(cbind, x)
-    
-    ### create a unique colnames for the combined data to avoid duplicates
-    colnames(combined_data) <-
-        paste0(colnames(combined_data), ".", seq(1, ncol(combined_data)))
-
-    ### create a covariates data frame for the combined data
-    covariates.p <- data.frame()
-    meta.info.temp <- meta.info
-    meta.info.temp$sample.id <- row.names(meta.info.temp)
-    for (i in colnames(combined_data)) {
-        real_SampleNames <- str_split_fixed(i, fixed("."), 2)[, 1]
-        df.temp <- meta.info.temp[real_SampleNames, , drop = FALSE]
-        df.temp[,"sample.id"] <- i
-        covariates.p <- rbind(covariates.p, df.temp)
-    }
-    stopifnot(identical(colnames(combined_data), covariates.p[,"sample.id"]))
-    row.names(covariates.p) <- covariates.p[,"sample.id"]
-    covariates.p[,"sample.id"] <- NULL
-
-    stopifnot(identical(colnames(combined_data), row.names(covariates.p)))
-    return(list(combined_data = combined_data, covariates.p = covariates.p))
+  ### Check if x is a list of matrices with identical rownames
+  stopifnot(
+    all(vapply(
+      x,
+      function(z) identical(rownames(z), rownames(x[[1L]])),
+      logical(1)
+    ))
+  )
+  combined_data <- do.call(cbind, x)
+  
+  ### create a unique colnames for the combined data to avoid duplicates
+  colnames(combined_data) <-
+    paste0(colnames(combined_data), ".", seq(1, ncol(combined_data)))
+  
+  ### create a covariates data frame for the combined data
+  covariates.p <- data.frame()
+  meta.info.temp <- meta.info
+  meta.info.temp$sample.id <- row.names(meta.info.temp)
+  for (i in colnames(combined_data)) {
+    real_SampleNames <- str_split_fixed(i, fixed("."), 2)[, 1]
+    df.temp <- meta.info.temp[real_SampleNames, , drop = FALSE]
+    df.temp[,"sample.id"] <- i
+    covariates.p <- rbind(covariates.p, df.temp)
+  }
+  stopifnot(identical(colnames(combined_data), covariates.p[,"sample.id"]))
+  row.names(covariates.p) <- covariates.p[,"sample.id"]
+  covariates.p[,"sample.id"] <- NULL
+  
+  stopifnot(identical(colnames(combined_data), row.names(covariates.p)))
+  return(list(combined_data = combined_data, covariates.p = covariates.p))
 }
