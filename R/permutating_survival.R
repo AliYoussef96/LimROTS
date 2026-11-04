@@ -48,82 +48,71 @@
 #'
 #'
 permutating_survival <- function(x, meta.info, formula.str,
-competing_risks
+                                 competing_risks
 ) {
-    combined_data <- data.frame(x, check.rows = FALSE, check.names = FALSE)
-    covariates.p <- meta.info
-    covariates.p$sample.id <- NULL
-    row.names(covariates.p) <- NULL
-
-    
-    d  <- numeric(nrow(combined_data))
-    s    <- numeric(nrow(combined_data))
-    taxon_names <- character(nrow(combined_data))
-
-    if(competing_risks == FALSE){
-        for (j in seq_len(nrow(combined_data))) {
-            df.temp <- covariates.p
-            df.temp$y <- as.numeric(combined_data[j,])
-            
-            fit <- coxph(
-                formula = formula(formula.str),
-                ties = "breslow", data = df.temp
-            )
-            
-            # Extract taxon coefficient only
-            beta <- fit$coef[1]
-            var  <- fit$var[1, 1]
-            
-            d[j] <- beta
-            s[j]   <- sqrt(var)
-            taxon_names[j] <- row.names(combined_data[j,])
-            }
+  combined_data <- data.frame(x, check.rows = FALSE, check.names = FALSE)
+  covariates.p <- meta.info
+  row.names(covariates.p) <- NULL
+  
+  d  <- numeric(nrow(combined_data))
+  s    <- numeric(nrow(combined_data))
+  taxon_names <- character(nrow(combined_data))
+  
+  if(competing_risks == FALSE){
+    for (j in seq_len(nrow(combined_data))) {
+      df.temp <- covariates.p
+      df.temp$y <- as.numeric(combined_data[j,])
+      
+      fit <- coxph(
+        formula = formula(formula.str),
+        ties = "breslow", data = df.temp
+      )
+      
+      # Extract taxon coefficient only
+      beta <- fit$coef[1]
+      var  <- fit$var[1, 1]
+      
+      d[j] <- beta
+      s[j]   <- sqrt(var)
+      taxon_names[j] <- row.names(combined_data[j,])
+    }
     
     names(d) <- taxon_names
     names(s) <- taxon_names
     
     return(list(d = abs(d), s = s))
-    }else{
-        for (j in seq_len(nrow(combined_data))) {
-
-            df.temp <- covariates.p
-            df.temp$y <- as.numeric(combined_data[j,])
-
-            cov_matrix <- as.matrix(df.temp[, "y", drop = FALSE])
-            extra_terms <- setdiff(
-                colnames(df.temp),
-                c("time", "event", "y")
-            )
-            if (length(extra_terms) > 0) {
-                cov_matrix <- cbind(
-                    cov_matrix,
-                    as.matrix(df.temp[, extra_terms, drop = FALSE])
-                )
-            }
-
-            fit <- crr(
-                ftime   = df.temp$time,
-                fstatus = df.temp$event,
-                cov1    = cov_matrix,
-                failcode = 1,
-                cencode  = 0,
-                variance = TRUE
-            )
-
-            beta <- fit$coef["y"]
-            var  <- fit$var[1, 1]
-
-            d[j] <- beta
-            s[j]   <- sqrt(var)
-
-            taxon_names[j] <- row.names(combined_data[j,])
-
+  }else if(competing_risks == TRUE){
+    for (j in seq_len(nrow(combined_data))) {
+      
+      df.temp <- covariates.p
+      df.temp$y <- as.numeric(combined_data[j,])
+      
+      formula.str.temp <- str_remove(formula.str , fixed("Surv(time,event)~"))
+      cov_matrix <- model.matrix(as.formula(paste0("~0+",formula.str.temp)), data = df.temp)
+      
+      fit <- crr(
+        ftime   = df.temp$time,
+        fstatus = df.temp$event,
+        cov1    = cov_matrix,
+        failcode = 1,
+        cencode  = 0,
+        variance = TRUE
+      )
+      
+      beta <- fit$coef["y"]
+      var  <- fit$var[1, 1]
+      
+      d[j] <- beta
+      s[j]   <- sqrt(var)
+      
+      taxon_names[j] <- row.names(combined_data[j,])
+      
     }
-
+    
     names(d) <- taxon_names
     names(s) <- taxon_names
-
+    
     return(list(d = abs(d), s = s))
-    }
-
+  }
+  
 }
