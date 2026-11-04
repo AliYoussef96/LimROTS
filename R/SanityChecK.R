@@ -316,7 +316,8 @@ SanityChecK <- function(x,
 
  formula.str.temp <- str_remove(formula.str , fixed("Surv(time,event)~"))
  formula.str.temp <- unlist(str_split(formula.str.temp , fixed("+") ))
-
+ formula.str.temp <- formula.str.temp[formula.str.temp != "y"]
+ 
   if(!all(formula.str.temp %in% colnames(meta.info))){
     stop("All covariates specified in 'formula.str' must be present in 'meta.info'.")
   }
