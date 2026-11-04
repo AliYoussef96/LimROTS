@@ -1,62 +1,47 @@
 # Copyright (C) 2025 Ali Youssef.
 # This program is licensed under GPL (>= 2).
 #
-#' `LimROTS`: A Hybrid Method Integrating Empirical Bayes and 
-#' Reproducibility-Optimized Statistics for Robust 
-#' Differential Expression Analysis
+#'LimROTS: A Hybrid Method Integrating Empirical Bayes and 
+#'Reproducibility-Optimized Statistics for Robust Differential Expression Analysis
+#' 
+#' Analyze feature-by-sample data using linear models, empirical Bayes
+#' moderation, and reproducibility-optimized bootstrap statistics.
 #'
-#' @param x A \code{SummarizedExperiment} object, where rows
-#' represent features (e.g., proteins, metabolites) and columns
-#' represent samples.
-#' @param assay.type A character string or numeric index specifying the assay
-#' to use if \code{x} is a \code{SummarizedExperiment}. Default is \code{NULL}
-#' @param niter An integer representing the amount of bootstrap iterations.
-#' Default is 1000.
-#' @param K An optional integer representing the top list size for ranking.
-#' If not specified, it is set to one-fourth of the number of features.
-#' @param meta.info a character vector of the metadata needed for the
-#' model to run and can be retrieved using \code{colData()}.
-#' @param group A string specifying the column in \code{meta.info} that
-#' represents the groups or conditions for comparison. group should be 
-#' retrieved using \code{colData()} as factor.
-#' @param BPPARAM   A \code{BiocParallelParam} object specifying the
-#' parallelization backend (e.g., \code{MulticoreParam}, \code{SnowParam}).
-#' The default depends on the operating system: if the user is on Windows,
-#' \code{SnowParam(workers = 2)} is used; otherwise,
-#' \code{MulticoreParam(workers = 2)}.
-#' @param formula.str A formula string for modeling.
-#' It should include "~ 0 + ..." to exclude the intercept from the model.
-#' All the model parameters must be present in \code{meta.info}.
-#' @param robust indicating whether robust fitting should be used.
-#' Default is TRUE, see \link[limma]{eBayes}.
-#' @param trend indicating whether to include trend fitting in the
-#' differential expression analysis. Default is TRUE. see \link[limma]{eBayes}.
-#' @param correlation_block Character or NULL. The name of a column in
-#' \code{meta.info} that defines correlation blocks. Samples sharing the same
-#' value in this column are always resampled together as a unit, and
-#' within-block correlation is accounted for during model fitting via
-#' \code{duplicateCorrelation}. If NULL, standard independent resampling is 
-#' used.
+#' @param x A `SummarizedExperiment` containing features in rows and samples in
+#' columns.
+#' @param assay.type Character string  selecting the assay in
+#' `x` to analyze. If `NULL`, the first assay is used.
+#' @param niter Integer. Number of bootstrap or permutation replicates to
+#' generate.
+#' @param K Integer. Number of top-ranked features to use. If `NULL`, defaults
+#' to one quarter of the number of features.
+#' @param meta.info Character vector naming the sample-level metadata columns
+#' in `colData(x)` required by the model.
+#' @param group Character string naming the column in `meta.info` that
+#' identifies each sample's group.
+#' @param BPPARAM A `BiocParallelParam` object specifying the parallel backend.
+#' If `NULL`, the parallel helper selects a two-worker backend appropriate to
+#' the operating system.
+#' @param formula.str Character string containing the model formula. It must
+#' include the group and any covariates to model.
+#' @param robust Logical indicating whether to use robust empirical Bayes
+#' moderation. See \link[limma]{eBayes}.
+#' @param trend Logical indicating whether to fit an intensity-dependent trend
+#' in the prior variance. See \link[limma]{eBayes}.
+#' @param correlation_block Character string or `NULL`. Name of the column in
+#' `meta.info` identifying correlated samples or blocks. When supplied, blocks
+#' are preserved during resampling and within-block correlation is modeled.
+#' @param pairwise_contrasts Character vector of contrast expressions, such as
+#' `"group1 - group2"`, to fit.
+#' @param model Character string specifying the fitting method: `"limma"` for
+#' fixed effects or `"dream"` for random effects.
+#' @param strata Character vector or `NULL`. Names of character or factor
+#' metadata columns used to define strata for resampling and permutation.
 #'
-#'
-#' @return An object of class `"SummarizedExperiment"` with the 
-#' following elements:
-#' \item{data}{The original data matrix.}
-#' \item{niter}{The number of bootstrap samples used.}
-#' \item{statistics}{The optimized statistics for each feature.}
-#' \item{pvalue}{P-values computed based on the permutation samples.}
-#' \item{FDR}{False discovery rate estimates.}
-#' \item{a1}{Optimized parameter used in differential expression ranking.}
-#' \item{a2}{Optimized parameter used in differential expression ranking.}
-#' \item{k}{Top list size used for ranking.}
-#' \item{corrected.logfc}{estimate of the log2-fold-change
-#' corresponding to the effect corrected by the s model
-#' see \link[limma]{topTable}.}
-#' \item{q_values}{Estimated q-values using the `qvalue` package.}
-#' \item{BH.pvalue}{Benjamini-Hochberg adjusted p-values.}
-#' \item{null.statistics}{The optimized null statistics for each feature.}
-#'
-#'
+#' @return The input `SummarizedExperiment` with feature-level statistics,
+#' empirical p-values, q-values, FDR estimates, corrected log-fold changes,
+#' and BH-adjusted p-values added to `rowData()`. Optimization parameters and
+#' null statistics are added to `metadata()`.
 #'
 #' @examples
 #' # Example usage:
@@ -81,33 +66,21 @@
 #' bpRNGseed
 #' @importFrom S4Vectors DataFrame metadata
 #'
-#' @details The **LimROTS** approach initially uses
-#' \pkg{limma} package functionality to simulate the intensity data of
-#' proteins and
-#' metabolites. A linear model is subsequently fitted using the design matrix.
-#' Empirical Bayes variance shrinking is then implemented. To obtain the
-#' moderated t-statistics, the adjusted standard error
-#' \eqn{SE_{post} = \sqrt{s^2_{\text{post}} } \times unscaled SD}
-#' for each feature is computed, along with the regression
-#' coefficient for each feature (indicating the impact of variations in the
-#' experimental settings). Then, by adapting a reproducibility-optimized
-#' technique known as \link[ROTS]{ROTS} to establish an optimality
-#' based on the largest overlap of top-ranked features within group-preserving
-#' bootstrap datasets, Finally based on the optimized parameters
-#' \eqn{\alpha1} and
-#' \eqn{\alpha2} this equation used to calculates the final statistics:
+#' @details LimROTS fits linear models with \pkg{limma} or dream and applies empirical
+#' Bayes moderation to estimate feature coefficients and standard errors.
+#' Reproducibility-optimized parameters \eqn{\alpha_1} and \eqn{\alpha_2} are
+#' selected by maximizing the overlap of top-ranked features across
+#' group-preserving bootstrap datasets, following the \link[ROTS]{ROTS}
+#' approach. The final statistic for each feature is:
 #'
 #' \deqn{t_{\alpha_{(p)}} = \frac{\beta_{(p)}}
-#'          {\alpha1 + \alpha2 \times SEpost_{(p)}}}where
-#'          \eqn{t_{\alpha_{(p)}}} is the final statistics for each feature,
-#'          \eqn{\beta_{(p)}} is the coefficient, and \eqn{SEpost_{(p)}}
-#'          is the the adjusted
-#'          standard error. LimROTS generates p-values from permutation samples
-#'          using the implementation available in
-#'          \link[qvalue]{qvalue} package, along with internal implementation 
-#'          of FDR adapted from ROTS package. Additionally, the qvalue package 
-#'          is used to calculate q-values, were the proportion of true null 
-#'          p-values is set to the bootstrap method \link[qvalue]{pi0est}. 
+#'          {\alpha_1 + \alpha_2 \times SE_{post(p)}}}
+#'
+#' where \eqn{\beta_{(p)}} is the model coefficient and
+#' \eqn{SE_{post(p)}} is its empirical Bayes-adjusted standard error.
+#' Empirical p-values are calculated from permutation-based null statistics.
+#' The function also estimates FDR, q-values, and Benjamini-Hochberg adjusted
+#' p-values.
 #'
 #' This function processes a dataset using parallel computation. It
 #' leverages the \pkg{BiocParallel} framework to distribute tasks
@@ -117,7 +90,7 @@
 #' @references
 #'   Ritchie, M.E., Phipson, B., Wu, D., Hu, Y., Law, C.W., Shi, W., and Smyth,
 #'   G.K. (2015). limma powers differential expression analyses for
-#'   RNA-sequencing and microarray studies. Nucleic Acids Research 43(7), e47
+#'   RNA-sequencing and microarray studies. Nucleic Acids Research 43(7), e47.
 #'
 #'   Suomi T, Seyednasrollah F, Jaakkola M, Faux T, Elo L (2017). “ROTS: An
 #'   R package for reproducibility-optimized statistical testing.
@@ -130,8 +103,6 @@
 #'   statistic for ranking genes in microarray studies.
 #'   IEEE/ACM Trans Comput Biol Bioinform. 2008;5(3):423-431.
 #'   \url{doi:10.1109/tcbb.2007.1078}
-#'
-#'
 #'
 #' @export
 
@@ -266,6 +237,24 @@ LimROTS <- function(x,
 
 
 
+#' Generate Bootstrap and Permutation Samples
+#'
+#' Generate group-preserving bootstrap samples and corresponding permuted
+#' metadata, using optional correlation blocks or strata.
+#'
+#' @param niter_2 Integer. Number of bootstrap and permutation replicates to
+#' generate.
+#' @param meta.info Data frame of sample-level metadata, with sample names as
+#' row names.
+#' @param group Character string naming the column in `meta.info` that
+#' identifies each sample's group.
+#' @param correlation_block Character string or `NULL`. Name of the column in
+#' `meta.info` identifying correlated samples or blocks.
+#' @param strata Character vector or `NULL`. Names of character or factor
+#' metadata columns used to define strata for resampling and permutation.
+#'
+#' @return A list containing `boot_Samples`, a matrix of bootstrap sample
+#' names, and `perm_Samples`, a list of permuted metadata data frames.
 .generate_bootstrap_permutations <- function(niter_2, meta.info, group, 
                                              correlation_block, strata) {
     
@@ -328,6 +317,36 @@ LimROTS <- function(x,
     
 }
 
+#' Fit Original Data and Calculate Inference
+#'
+#' Fit the selected linear model to the original data, scale observed and null
+#' statistics, and calculate empirical p-values and false-discovery measures.
+#'
+#' @param data Feature-by-sample matrix with sample names as column names.
+#' @param meta.info Data frame of sample-level metadata, with sample names as
+#' row names.
+#' @param group Character string naming the column in `meta.info` that
+#' identifies each sample's group.
+#' @param formula.str Character string containing the model formula.
+#' @param trend Logical indicating whether to fit an intensity-dependent trend
+#' in the prior variance.
+#' @param robust Logical indicating whether to use robust empirical Bayes
+#' moderation.
+#' @param correlation_block Character string or `NULL`. Name of the column in
+#' `meta.info` identifying correlated samples or blocks.
+#' @param a1 Numeric first statistic-scaling parameter.
+#' @param a2 Numeric second statistic-scaling parameter.
+#' @param pairwise_contrasts Character vector of contrast expressions, such as
+#' `"group1 - group2"`, to fit.
+#' @param model Character string specifying the fitting method: `"limma"` for
+#' fixed effects or `"dream"` for random effects.
+#' @param pD Matrix of null-model statistics from the permutation fits.
+#' @param pS Matrix of null-model standard errors from the permutation fits.
+#'
+#' @return A list containing scaled observed statistics `d`, scaled null
+#' statistics `pD`, empirical p-values `p_value`, FDR estimates `FDR`,
+#' corrected log-fold changes `corrected.logfc`, q-values `q_values`, and
+#' BH-adjusted p-values `BH.pvalue`.
 .final_fit <- function(data, meta.info, group, formula.str, trend, robust,
     correlation_block, a1, a2, pairwise_contrasts, model,
     pD , pS) {
@@ -378,7 +397,31 @@ LimROTS <- function(x,
 
     }
 
-
+#' Add LimROTS Results to a SummarizedExperiment
+#'
+#' Add feature-level statistics to `rowData()` and optimization parameters and
+#' null statistics to `metadata()`.
+#'
+#' @param x A `SummarizedExperiment` whose rows correspond to analyzed features.
+#' @param data Feature-by-sample matrix used for fitting, with feature names as
+#' row names.
+#' @param d Numeric vector of scaled feature statistics.
+#' @param p_value Numeric vector of empirical p-values.
+#' @param FDR Numeric vector of estimated false discovery rates.
+#' @param corrected.logfc Numeric vector of signed model coefficients.
+#' @param q_values Q-value estimation result from `qvalue()`, or `NULL` if
+#' estimation failed.
+#' @param BH.pvalue Numeric vector of Benjamini-Hochberg adjusted p-values.
+#' @param a1 Numeric first statistic-scaling parameter.
+#' @param a2 Numeric second statistic-scaling parameter.
+#' @param k Integer. Number of top-ranked features selected during optimization.
+#' @param Z Numeric optimization z-score.
+#' @param R Numeric reproducibility score from optimization.
+#' @param ztable Matrix of z-scores across the optimization parameter grid.
+#' @param pD Matrix of scaled null statistics from the permutation fits.
+#'
+#' @return The `SummarizedExperiment` `x` with differential-expression results
+#' added to its row data and metadata.
 .generate_output <- function(x, data, d, p_value, FDR, corrected.logfc,
     q_values, BH.pvalue, a1, a2, k, Z, R, ztable, pD) {
         # Generate the output SummarizedExperiment object with the LimROTS results.
