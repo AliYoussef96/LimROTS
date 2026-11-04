@@ -213,25 +213,22 @@ LimROTS_survival <- function(x,
     pD <- abs(pD)
 
     ### Optimize parameters unless both values were supplied.
-    if (is.null(a1) || is.null(a2)) {
-        optimized.parameters <- Optimizing(
-            niter = niter,
-            K = K,
-            N = NULL,
-            D = D,
-            S = S,
-            pD = pD,
-            pS = pS
-        )
-        a1 <- optimized.parameters[["a1"]]
-        a2 <- optimized.parameters[["a2"]]
-        k <- optimized.parameters[["k"]]
-        R <- optimized.parameters[["R"]]
-        Z <- optimized.parameters[["Z"]]
-        ztable <- optimized.parameters[["ztable"]]
-    } else {
-        k <- R <- Z <- ztable <- NULL
-    }
+    optimized.parameters <- Optimizing(
+        niter = niter,
+        K = K,
+        N = NULL,
+        D = D,
+        S = S,
+        pD = pD,
+        pS = pS
+    )
+    a1 <- optimized.parameters[["a1"]]
+    a2 <- optimized.parameters[["a2"]]
+    k <- optimized.parameters[["k"]]
+    R <- optimized.parameters[["R"]]
+    Z <- optimized.parameters[["Z"]]
+    ztable <- optimized.parameters[["ztable"]]
+
 
     ### Fit the survival model on the original data.
     fit_survival_result <- .final_fit_survival(
@@ -320,65 +317,48 @@ LimROTS_survival <- function(x,
 
 .generate_output_survival <- function(x, data, fit, niter, a1, a2, k, Z,
     R, ztable) {
-    if (inherits(x, "SummarizedExperiment")) {
-        feat_names <- rownames(x)
-        new_rowData <- DataFrame(
-            statistics = setNames(fit[["d"]], rownames(data))[feat_names],
-            pvalue = setNames(fit[["p_value"]], rownames(data))[feat_names],
-            qvalue = if (is.null(fit[["q_values"]])) {
-                rep(NA_real_, length(feat_names))
-            } else {
-                setNames(fit[["q_values"]]$qvalues, rownames(data))[feat_names]
-            },
-            FDR = setNames(fit[["FDR"]], rownames(data))[feat_names],
-            exp_coef = setNames(
-                as.numeric(fit[["exp_coef"]]),
-                rownames(data)
-            )[feat_names],
-            BH.pvalue = setNames(fit[["BH.pvalue"]], rownames(data))[feat_names],
-            row.names = feat_names
-        )
-        if (!identical(rownames(new_rowData), feat_names)) {
-            stop("Can not add the LimROTS results to the SummarizedExperiment")
-        }
-
-        correct.order <- rownames(x)
-        if (ncol(rowData(x)) == 0L) {
-            rowData(x) <- new_rowData
+    feat_names <- rownames(x)
+    new_rowData <- DataFrame(
+        statistics = setNames(fit[["d"]], rownames(data))[feat_names],
+        pvalue = setNames(fit[["p_value"]], rownames(data))[feat_names],
+        qvalue = if (is.null(fit[["q_values"]])) {
+            rep(NA_real_, length(feat_names))
         } else {
-            rowData(x) <- cbind(rowData(x), new_rowData)
-        }
-        if (!identical(correct.order, rownames(x))) {
-            stop("Can not add the LimROTS results to the SummarizedExperiment")
-        }
-        metadata(x) <- c(metadata(x), list(
-            a1 = a1,
-            a2 = a2,
-            k = k,
-            Z = Z,
-            R = R,
-            ztable = ztable,
-            q_values = fit[["q_values"]],
-            null.statistics = fit[["pD"]]
-        ))
-        return(x)
+            setNames(fit[["q_values"]]$qvalues, rownames(data))[feat_names]
+        },
+        FDR = setNames(fit[["FDR"]], rownames(data))[feat_names],
+        exp_coef = setNames(
+            as.numeric(fit[["exp_coef"]]),
+            rownames(data)
+        )[feat_names],
+        BH.pvalue = setNames(fit[["BH.pvalue"]], rownames(data))[feat_names],
+        row.names = feat_names
+    )
+    if (!identical(rownames(new_rowData), feat_names)) {
+        stop("Can not add the LimROTS results to the SummarizedExperiment")
     }
 
-    list(
-        data = data,
-        niter = niter,
-        statistics = fit[["d"]],
-        pvalue = fit[["p_value"]],
-        FDR = fit[["FDR"]],
+    correct.order <- rownames(x)
+    if (ncol(rowData(x)) == 0L) {
+        rowData(x) <- new_rowData
+    } else {
+        rowData(x) <- cbind(rowData(x), new_rowData)
+    }
+    if (!identical(correct.order, rownames(x))) {
+        stop("Can not add the LimROTS results to the SummarizedExperiment")
+    }
+    metadata(x) <- c(metadata(x), list(
         a1 = a1,
         a2 = a2,
         k = k,
-        R = R,
         Z = Z,
+        R = R,
         ztable = ztable,
-        exp_coef = fit[["exp_coef"]],
         q_values = fit[["q_values"]],
-        BH.pvalue = fit[["BH.pvalue"]],
         null.statistics = fit[["pD"]]
-    )
+    ))
+
+    LimROTS.output <- x
+    return(LimROTS.output)
+
 }
