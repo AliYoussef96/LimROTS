@@ -80,8 +80,8 @@ SanityChecK <- function(x,
             stop("'strata' must be NULL or names of a column in meta.info.")
         }
         if(!all(sapply(meta.info[strata], 
-        function(x) is.character(x) || is.factor(x)))){
-            stop("strata' must be character or factor")
+        function(x) is.character(x)))){
+            stop("strata' must be character")
         }
         if(group %in% strata){
             stop("group column should not be included in strata")

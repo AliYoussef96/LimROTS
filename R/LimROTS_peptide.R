@@ -163,11 +163,10 @@ LimROTS_peptide <- function(
 
 
     ### bootstrap and permutation samples
-    list_boot_perm <- .generate_bootstrap_permutations(
+    list_boot_perm <- .generate_bootstrap_permutations_peptide(
         niter_2 = 2 * niter,
         meta.info = meta.info,
         group = group,
-        correlation_block = NULL,
         strata = strata
     )
 
@@ -186,3 +185,63 @@ LimROTS_peptide <- function(
 
 
     }
+
+
+#' Generate Bootstrap and Permutation Samples
+#'
+#' Generate group-preserving bootstrap samples and corresponding permuted
+#' metadata, using optional correlation blocks or strata.
+#'
+#' @param niter_2 Integer. Number of bootstrap and permutation replicates to
+#' generate.
+#' @param meta.info Data frame of sample-level metadata, with sample names as
+#' row names.
+#' @param group Character string naming the column in `meta.info` that
+#' identifies each sample's group.
+#' @param correlation_block Character string or `NULL`. Name of the column in
+#' `meta.info` identifying correlated samples or blocks.
+#' @param strata Character vector or `NULL`. Names of character or factor
+#' metadata columns used to define strata for resampling and permutation.
+#'
+#' @return A list containing `boot_Samples`, a matrix of bootstrap sample
+#' names, and `perm_Samples`, a list of permuted metadata data frames.
+.generate_bootstrap_permutations_peptide <- function(niter_2, meta.info, group, strata) {
+    
+
+    if(!is.null(strata)){
+        message("..........")
+        
+        samples <- bootstrapSamples_limRots(
+            niter = niter_2,
+            meta.info = meta.info,
+            group = group, strata = strata
+        )
+        
+        pSamples <- permutationSamples_limRots(niter = niter_2, meta.info = meta.info, 
+                                                group = group, strata = strata)
+        
+        return(list(boot_Samples = samples, perm_Samples = pSamples))
+        
+        }else if(is.null(strata)){
+            message("..........")
+            
+            samples <- bootstrapS(niter = niter_2, meta.info = meta.info, group = group)
+
+            pSamples <- vector("list", niter_2)
+            for (i in seq_len(niter_2)) {
+                shuffle_df <- meta.info
+                ## Shuffle only the target group labels across all samples
+                shuffle_df[[group]] <- sample(
+                    meta.info[[group]],
+                    size = nrow(meta.info),
+                    replace = FALSE
+                )
+                pSamples[[i]] <- shuffle_df
+            }
+            
+            return(list(boot_Samples = samples, perm_Samples = pSamples))
+            
+        }
+        
+    }
+    
