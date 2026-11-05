@@ -6,7 +6,6 @@ parallel_peptide <- function(BPPARAM = NULL,
                           meta.info,
                           peptide_metadata,
                           pSamples,
-                          model,
                           pairwise_contrasts) {
     if (is.null(BPPARAM)) {
         if (.Platform$OS.type == "windows") {
@@ -30,7 +29,6 @@ parallel_peptide <- function(BPPARAM = NULL,
         meta.info = meta.info,
         peptide_metadata = peptide_metadata,
         pSamples = pSamples,
-        model = model,
         pairwise_contrasts = pairwise_contrasts
     )
     for (name in names(export_vars)) {
@@ -53,7 +51,6 @@ parallel_peptide <- function(BPPARAM = NULL,
             group = group,
             meta.info = meta.info,
             model_formula = model_formula,
-            model = model,
             pairwise_contrasts = pairwise_contrasts
         )
         d_result <- fit$d
@@ -64,7 +61,6 @@ parallel_peptide <- function(BPPARAM = NULL,
             group = group,
             meta.info = pSamples_i,
             model_formula = model_formula,
-            model = model,
             pairwise_contrasts = pairwise_contrasts
         )
         pd_result <- pFit$d
@@ -81,7 +77,7 @@ parallel_peptide <- function(BPPARAM = NULL,
 
 
 
-fit_bootstrap_peptide <- function(x, group, meta.info, model_formula, model,
+fit_bootstrap_peptide <- function(x, group, meta.info, model_formula,
                             pairwise_contrasts, peptide_metadata) {
 
         ### Generate combined data and covariates for model fitting
@@ -244,55 +240,8 @@ fit_bootstrap_peptide <- function(x, group, meta.info, model_formula, model,
 
 }
 
-#' Assemble Bootstrap Data and Matching Metadata
-#'
-#' Combine group-specific matrices and construct a metadata row for every
-#' resampled sample, preserving alignment and separating repeated draws of a
-#' correlation block.
-#'
-#' @param x List of feature-by-sample matrices, one per group in the bootstrap
-#' replicate. Matrices must have matching feature names.
-#' @param meta.info Data frame of sample-level metadata, with sample names as
-#' row names.
-#'
-#' @return A list containing the combined feature-by-sample matrix
-#' `combined_data` and corresponding sample-level metadata `covariates.p`.
-.generate_data_for_fit <- function(x, meta.info) {
-    ### Check if x is a list of matrices with identical rownames
-    stopifnot(
-        all(vapply(
-            x,
-            function(z) identical(rownames(z), rownames(x[[1L]])),
-            logical(1)
-        ))
-    )
-    combined_data <- do.call(cbind, x)
-    
-    ### create a unique colnames for the combined data to avoid duplicates
-    colnames(combined_data) <-
-        paste0(colnames(combined_data), ".", seq(1, ncol(combined_data)))
 
-    ### create a covariates data frame for the combined data
-    covariates.p <- data.frame()
-    meta.info.temp <- meta.info
-    meta.info.temp$sample.id <- row.names(meta.info.temp)
-    for (i in colnames(combined_data)) {
-        real_SampleNames <- str_split_fixed(i, fixed("."), 2)[, 1]
-        df.temp <- meta.info.temp[real_SampleNames, , drop = FALSE]
-        df.temp[,"sample.id"] <- i
-        covariates.p <- rbind(covariates.p, df.temp)
-    }
-    stopifnot(identical(colnames(combined_data), covariates.p[,"sample.id"]))
-    row.names(covariates.p) <- covariates.p[,"sample.id"]
-    covariates.p[,"sample.id"] <- NULL
-
-    stopifnot(identical(colnames(combined_data), row.names(covariates.p)))
-    return(list(combined_data = combined_data, covariates.p = covariates.p))
-}
-
-
-
-fit_permutation_peptide <- function(x, group, meta.info, model_formula, model,
+fit_permutation_peptide <- function(x, group, meta.info, model_formula,
                             pairwise_contrasts, peptide_metadata) {
 
         ### Generate combined data and covariates for model fitting
@@ -452,4 +401,51 @@ fit_permutation_peptide <- function(x, group, meta.info, model_formula, model,
         return(list(d = coefficient, s = standard_error))
 
 
+}
+
+
+#' Assemble Bootstrap Data and Matching Metadata
+#'
+#' Combine group-specific matrices and construct a metadata row for every
+#' resampled sample, preserving alignment and separating repeated draws of a
+#' correlation block.
+#'
+#' @param x List of feature-by-sample matrices, one per group in the bootstrap
+#' replicate. Matrices must have matching feature names.
+#' @param meta.info Data frame of sample-level metadata, with sample names as
+#' row names.
+#'
+#' @return A list containing the combined feature-by-sample matrix
+#' `combined_data` and corresponding sample-level metadata `covariates.p`.
+.generate_data_for_fit <- function(x, meta.info) {
+    ### Check if x is a list of matrices with identical rownames
+    stopifnot(
+        all(vapply(
+            x,
+            function(z) identical(rownames(z), rownames(x[[1L]])),
+            logical(1)
+        ))
+    )
+    combined_data <- do.call(cbind, x)
+    
+    ### create a unique colnames for the combined data to avoid duplicates
+    colnames(combined_data) <-
+        paste0(colnames(combined_data), ".", seq(1, ncol(combined_data)))
+
+    ### create a covariates data frame for the combined data
+    covariates.p <- data.frame()
+    meta.info.temp <- meta.info
+    meta.info.temp$sample.id <- row.names(meta.info.temp)
+    for (i in colnames(combined_data)) {
+        real_SampleNames <- str_split_fixed(i, fixed("."), 2)[, 1]
+        df.temp <- meta.info.temp[real_SampleNames, , drop = FALSE]
+        df.temp[,"sample.id"] <- i
+        covariates.p <- rbind(covariates.p, df.temp)
+    }
+    stopifnot(identical(colnames(combined_data), covariates.p[,"sample.id"]))
+    row.names(covariates.p) <- covariates.p[,"sample.id"]
+    covariates.p[,"sample.id"] <- NULL
+
+    stopifnot(identical(colnames(combined_data), row.names(covariates.p)))
+    return(list(combined_data = combined_data, covariates.p = covariates.p))
 }

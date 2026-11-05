@@ -8,7 +8,6 @@ LimROTS_peptide <- function(
     group,
     formula.str,
     pairwise_contrasts,
-    model,
     strata){
 
     ### Perform sanity checks on the input parameters and data.
@@ -182,7 +181,6 @@ LimROTS_peptide <- function(
         group = group,
         meta.info = meta.info,
         pSamples = list_boot_perm[["perm_Samples"]],
-        model = model,
         pairwise_contrasts = pairwise_contrasts
     )
 
