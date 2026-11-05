@@ -143,7 +143,6 @@ LimROTS <- function(x,
     meta.info <- SanityChecK.list[["meta.info"]]
     data <- SanityChecK.list[["data"]]
     group <- SanityChecK.list[["group"]]
-    event <- SanityChecK.list[["event"]]
     K <- SanityChecK.list[["K"]]
 
     ### bootstrap and permutation samples

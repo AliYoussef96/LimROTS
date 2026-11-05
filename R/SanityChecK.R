@@ -403,22 +403,33 @@ meta.info) {
             stop("All variables in the formula must be present in meta.info.")
         }
 
+        ### check if the first variable after '~' is the group variable
+        formula_terms <- attr(terms(formula(formula.str)), "term.labels")
+        first_var <- all.vars(as.formula(paste("~", formula_terms[1])))[1]
+        if(first_var != group){
+            stop("The first variable in the formula must be the group variable: ", group)
+        }
+
         ### Check for random effects in the formula
         random_terms <- lme4::findbars(formula(formula.str))
         if(model == "limma"){
             if (!is.null(random_terms)) { 
                 stop("random terms analysis with random effects is not supported in Limma.
                 Please use model='dream' for random effects analysis.")
+            }else if(model == "lmer"){
+            if (!is.null(random_terms)) { 
+                stop("random terms analysis with random effects is not supported in LimROTS_peptide")
             }
-        }else if(model == "dream"){
-            if (is.null(random_terms)) { 
-                stop("dream need a random term(s) in the formula.str")
-            }
-            if(is.null(correlation_block)){
-                stop("Please specify which random effect term to use via correlation_block")
-            }
-            any(vapply(random_terms, function(x) {
-                rlang::as_string(rlang::get_expr(x[[3]])) == correlation_block
-            }, logical(1)))
+            }}else if(model == "dream"){
+                if (is.null(random_terms)) { 
+                    stop("dream need a random term(s) in the formula.str")
+                }
+                if(!is.null(correlation_block)){            
+                    if (!any(vapply(random_terms, function(x) {
+                    rlang::as_string(rlang::get_expr(x[[3]])) == correlation_block
+                }, logical(1)))) {
+                    stop("correlation_block must match a random-effect grouping variable in the formula.")
+                    }
+                }
         }
 }
