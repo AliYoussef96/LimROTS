@@ -169,8 +169,66 @@ LimROTS_peptide <- function(x,
     pairwise_contrasts = pairwise_contrasts,
     peptide_metadata = peptide_metadata
   )
+
+  row_length <- nrow(as.matrix(data))
+  col_length <- nrow(list_boot_perm[["boot_Samples"]])
   
+  D <- matrix(nrow = row_length, ncol = col_length)
+  S <- matrix(nrow = row_length, ncol = col_length)
+  pD <- matrix(nrow = row_length, ncol = col_length)
+  pS <- matrix(nrow = row_length, ncol = col_length)
+
+  for (i in seq_along(results_list)) {
+    D[, i] <- results_list[[i]][["ds"]][["d_result"]]
+    S[, i] <- results_list[[i]][["ds"]][["s_result"]]
+    pD[, i] <- results_list[[i]][["pdps"]][["pd_result"]]
+    pS[, i] <- results_list[[i]][["pdps"]][["ps_result"]]
+    }
+
+  ### optimize parameters
+  optimized.parameters <-
+        Optimizing(niter =  niter, K = K,
+        N = N, D = D, S = S, pD = pD, pS = pS)
+    a1 <- optimized.parameters[["a1"]]
+    a2 <- optimized.parameters[["a2"]]
+    k <- optimized.parameters[["k"]]
+    R <- optimized.parameters[["R"]]
+    Z <- optimized.parameters[["Z"]]
+    ztable <- optimized.parameters[["ztable"]]
+
+    final_peptide <- .fit_final_peptide(
+        data = data,
+        meta.info = meta.info,
+        group = group,
+        formula.str = model_formula,
+        a1 = a1, a2 = a2,
+        pairwise_contrasts = pairwise_contrasts,
+        pD = pD, pS = pS, peptide_metadata = peptide_metadata
+    )
+
+    d = final_peptide[["d"]]
+    #pD = final_peptide[["pD"]]
+    p_value = final_peptide[["p_value"]]
+    FDR = final_peptide[["FDR"]]
+    corrected.logfc = final_peptide[["corrected.logfc"]]
+    q_values = final_peptide[["q_values"]]
+    BH.pvalue = final_peptide[["BH.pvalue"]]
   
+    ### generate output
+    LimROTS.output <- .generate_output(
+        x = x,
+        data = data,
+        d = d,
+        p_value = p_value,
+        FDR = FDR,
+        corrected.logfc = corrected.logfc,
+        q_values = q_values,
+        BH.pvalue = BH.pvalue,
+        a1 = a1, a2 = a2, k = k, Z = Z, R = R, ztable = ztable, pD = pD
+    )
+    
+    return(LimROTS.output)
+
 }
 
 
@@ -232,3 +290,51 @@ LimROTS_peptide <- function(x,
   
 }
 
+
+
+
+.fit_final_peptide <- function(data, meta.info, group, formula.str,
+        a1, a2, pairwise_contrasts, pD , pS, peptide_metadata) {
+        # Fit the limma model on the original data and compute statistics, p-values, and FDR.
+        fit <- fit_original_peptide(
+            x = data,
+            group = group,
+            meta.info = meta.info,
+            formula.str = formula.str,
+            pairwise_contrasts = pairwise_contrasts,
+            peptide_metadata = peptide_metadata
+        )
+        d <- abs(fit$d) / (a1 + a2 * fit$s)
+        pD <- pD / (a1 + a2 * pS)
+
+        p_value <- empPvals(
+            stat = d,
+            stat0 = pD,
+            pool = TRUE
+        )
+        FDR <- calculateFalseDiscoveryRate(d, pD)
+        corrected.logfc <- fit$d
+        q_values <- tryCatch(
+            {
+                    qvalue(
+                        p_value,
+                        pi0.method = "bootstrap",
+                        lambda = seq(0.01, 0.95, 0.01))
+            },
+            error = function(e) {
+                message("qvalue() failed (return NULL): ", e$message)
+                NULL
+            }
+        )
+        BH.pvalue <- p.adjust(p_value, method = "BH")
+    return(list(
+        d = d,
+        pD = pD,
+        p_value = p_value,
+        FDR = FDR,
+        corrected.logfc = corrected.logfc,
+        q_values = q_values,
+        BH.pvalue = BH.pvalue
+    ))
+
+    }

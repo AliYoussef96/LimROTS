@@ -76,7 +76,172 @@ parallel_peptide <- function(BPPARAM = NULL,
   return(results_list)
 }
 
-
+fit_original_peptide <- function(x, group, meta.info, model_formula,
+                                  pairwise_contrasts, peptide_metadata){
+  ### Generate combined data and covariates for model fitting
+  combined_data <- x
+  covariates.p <- meta.info
+  
+  stopifnot(identical(colnames(combined_data) , 
+                      row.names(covariates.p)))
+  
+  covariates.p[["sample_id"]] <- row.names(covariates.p)
+  
+  row.names(covariates.p) <- NULL
+  
+  stopifnot(identical(colnames(combined_data) , 
+                      covariates.p[["sample_id"]]))
+  
+  stopifnot(identical(row.names(combined_data) , 
+                      peptide_metadata[["peptide_id"]]))
+  
+  
+  #============================================================
+  # Fast conversion from matrix to long format
+  #============================================================
+  
+  combined_data <- as.data.table(
+    combined_data,
+    keep.rownames = "peptide_id"
+  )
+  
+  long_data <- melt(
+    combined_data,
+    id.vars = "peptide_id",
+    variable.name = "sample_id",
+    value.name = "y",
+    variable.factor = FALSE,
+    na.rm = TRUE
+  )
+  
+  #============================================================
+  # Add peptide metadata
+  #============================================================
+  
+  peptide_metadata <- as.data.table(peptide_metadata)
+  
+  if (anyDuplicated(peptide_metadata$peptide_id)) {
+    stop("peptide_metadata contains duplicated peptide_id values.")
+  }
+  
+  long_data[
+    peptide_metadata,
+    protein_id := i.protein_id,
+    on = "peptide_id"
+  ]
+  
+  #============================================================
+  # Add all columns from covariates.p
+  #============================================================
+  
+  covariates.p <- as.data.table(covariates.p)
+  
+  if (anyDuplicated(covariates.p[["sample_id"]])) {
+    stop("covariates.p contains duplicated sample_id values.")
+  }
+  
+  if (!all(long_data[["sample_id"]] %in% covariates.p[["sample_id"]])) {
+    stop("Some sample IDs in long_data are missing from covariates.p.")
+  }
+  
+  covariate_columns <- setdiff(
+    colnames(covariates.p),
+    "sample_id"
+  )
+  
+  duplicated_columns <- intersect(
+    covariate_columns,
+    colnames(long_data)
+  )
+  
+  if (length(duplicated_columns) > 0) {
+    stop(
+      paste0(
+        "These columns already exist in long_data: ",
+        paste(duplicated_columns, collapse = ", ")
+      )
+    )
+  }
+  
+  long_data[
+    covariates.p,
+    (covariate_columns) := mget(
+      paste0("i.", covariate_columns)
+    ),
+    on = "sample_id"
+  ]
+  
+  #============================================================
+  # Fit one peptide-level mixed model per protein
+  #============================================================
+  protein_names <- unique(long_data[["protein_id"]])
+  
+  coefficient <- setNames(
+    numeric(length(protein_names)),
+    protein_names
+  )
+  
+  standard_error <- setNames(
+    numeric(length(protein_names)),
+    protein_names
+  )
+  
+  for (current_protein in protein_names) {
+    
+    protein_data <- long_data[
+      protein_id == current_protein
+    ]
+    
+    protein_data[, (group) := factor(get(group))]
+    protein_data[, peptide_id := factor(peptide_id)]
+    protein_data[, sample_id := factor(sample_id)]
+    
+    model <- lmer(
+      model_formula,
+      data = protein_data,
+      REML = TRUE
+    )
+    
+    estimated_group_means <- emmeans(
+      model,
+      specs = group,
+      lmer.df = "satterthwaite"
+    )
+    
+    group_levels <- as.character(
+      as.data.frame(estimated_group_means)[[group]]
+    )
+    
+    contrast_weights <- limma::makeContrasts(
+      contrasts = str_remove_all(pairwise_contrasts, fixed(group)),
+      levels = group_levels
+    )[, 1]
+    
+    
+    contrast_result <- contrast(
+      estimated_group_means,
+      method = setNames(
+        list(contrast_weights),
+        pairwise_contrasts
+      ),
+      adjust = "none"
+    )
+    
+    contrast_summary <- as.data.frame(
+      summary(contrast_result)
+    )
+    
+    contrast_summary <- contrast_summary[contrast_summary[["contrast"]] == pairwise_contrasts,,drop=FALSE]
+    
+    coefficient[current_protein] <-
+      contrast_summary[["estimate"]]
+    
+    standard_error[current_protein] <-
+      contrast_summary[["SE"]]
+  }
+  
+  return(list(d = coefficient, s = standard_error))
+                                  }
 
 
 fit_bootstrap_peptide <- function(x, group, meta.info, model_formula,
@@ -239,7 +404,7 @@ fit_bootstrap_peptide <- function(x, group, meta.info, model_formula,
     contrast_summary <- contrast_summary[contrast_summary[["contrast"]] == pairwise_contrasts,,drop=FALSE]
     
     coefficient[current_protein] <-
-      contrast_summary[["estimate"]]
+      abs(contrast_summary[["estimate"]])
     
     standard_error[current_protein] <-
       contrast_summary[["SE"]]
@@ -248,7 +413,6 @@ fit_bootstrap_peptide <- function(x, group, meta.info, model_formula,
   return(list(d = coefficient, s = standard_error))
   
 }
-
 
 fit_permutation_peptide <- function(x, group, meta.info, model_formula,
                                     pairwise_contrasts, peptide_metadata) {
@@ -409,7 +573,7 @@ fit_permutation_peptide <- function(x, group, meta.info, model_formula,
     contrast_summary <- contrast_summary[contrast_summary[["contrast"]] == pairwise_contrasts,,drop=FALSE]
     
     coefficient[current_protein] <-
-      contrast_summary[["estimate"]]
+      abs(contrast_summary[["estimate"]])
     
     standard_error[current_protein] <-
       contrast_summary[["SE"]]

@@ -211,18 +211,25 @@ LimROTS_survival <- function(x,
         verbose = verbose
     )
 
-    ### Generate output.
-    .generate_output_survival(
+    d = fit_survival_result[["d"]]
+    #pD = fit_limma[["pD"]]
+    p_value = fit_survival_result[["p_value"]]
+    FDR = fit_survival_result[["FDR"]]
+    q_values = fit_survival_result[["q_values"]]
+    BH.pvalue = fit_survival_result[["BH.pvalue"]]
+
+    ### generate output
+
+    LimROTS.output <- .generate_output(
         x = x,
         data = data,
-        fit = fit_survival_result,
-        niter = niter,
-        a1 = a1,
-        a2 = a2,
-        k = k,
-        Z = Z,
-        R = R,
-        ztable = ztable
+        d = d,
+        p_value = p_value,
+        FDR = FDR,
+        corrected.logfc = NULL,
+        q_values = q_values,
+        BH.pvalue = BH.pvalue,
+        a1 = a1, a2 = a2, k = k, Z = Z, R = R, ztable = ztable, pD = pD
     )
 }
 
@@ -288,10 +295,11 @@ LimROTS_survival <- function(x,
     d <- fit[["d"]] / (a1 + a2 * fit[["s"]])
     pD <- pD / (a1 + a2 * pS)
 
-    if (verbose) {
-        message("Computing p-values and FDR")
-    }
-    p_value <- empPvals(stat = d, stat0 = pD, pool = TRUE)
+    p_value <- empPvals(
+        stat = d, 
+        stat0 = pD, 
+        pool = TRUE
+    )
     FDR <- calculateFalseDiscoveryRate(d, pD)
     q_values <- tryCatch(
         qvalue(
@@ -315,71 +323,4 @@ LimROTS_survival <- function(x,
         q_values = q_values,
         BH.pvalue = BH.pvalue
     )
-}
-
-#' Add Survival Results to a SummarizedExperiment
-#'
-#' Add feature-level statistics to `rowData()` and optimization details and
-#' null statistics to `metadata()`.
-#'
-#' @param x A `SummarizedExperiment` whose rows correspond to analyzed features.
-#' @param data Feature-by-sample matrix used for fitting, with feature names as
-#' row names.
-#' @param fit Result list returned by `.final_fit_survival()`.
-#' @param niter Integer. Number of bootstrap or permutation replicates used.
-#' @param a1 Numeric first statistic-scaling parameter.
-#' @param a2 Numeric second statistic-scaling parameter.
-#' @param k Integer. Number of top-ranked features selected during optimization.
-#' @param Z Numeric optimization z-score.
-#' @param R Numeric reproducibility score from optimization.
-#' @param ztable Matrix of z-scores across the optimization parameter grid.
-#'
-#' @return The `SummarizedExperiment` `x` with survival-analysis results added
-#' to its row data and metadata.
-.generate_output_survival <- function(x, data, fit, niter, a1, a2, k, Z,
-    R, ztable) {
-    feat_names <- rownames(x)
-    new_rowData <- DataFrame(
-        statistics = setNames(fit[["d"]], rownames(data))[feat_names],
-        pvalue = setNames(fit[["p_value"]], rownames(data))[feat_names],
-        qvalue = if (is.null(fit[["q_values"]])) {
-            rep(NA_real_, length(feat_names))
-        } else {
-            setNames(fit[["q_values"]]$qvalues, rownames(data))[feat_names]
-        },
-        FDR = setNames(fit[["FDR"]], rownames(data))[feat_names],
-        exp_coef = setNames(
-            as.numeric(fit[["exp_coef"]]),
-            rownames(data)
-        )[feat_names],
-        BH.pvalue = setNames(fit[["BH.pvalue"]], rownames(data))[feat_names],
-        row.names = feat_names
-    )
-    if (!identical(rownames(new_rowData), feat_names)) {
-        stop("Can not add the LimROTS results to the SummarizedExperiment")
-    }
-
-    correct.order <- rownames(x)
-    if (ncol(rowData(x)) == 0L) {
-        rowData(x) <- new_rowData
-    } else {
-        rowData(x) <- cbind(rowData(x), new_rowData)
-    }
-    if (!identical(correct.order, rownames(x))) {
-        stop("Can not add the LimROTS results to the SummarizedExperiment")
-    }
-    metadata(x) <- c(metadata(x), list(
-        a1 = a1,
-        a2 = a2,
-        k = k,
-        Z = Z,
-        R = R,
-        ztable = ztable,
-        q_values = fit[["q_values"]],
-        null.statistics = fit[["pD"]]
-    ))
-
-    LimROTS.output <- x
-    return(LimROTS.output)
-
 }
