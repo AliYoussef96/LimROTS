@@ -70,19 +70,19 @@ Boot_parallel <- function(BPPARAM = NULL,
         model = model,
         pairwise_contrasts = pairwise_contrasts
     )
-    export_funcs <- list(fit_bootstrap = fit_bootstrap,
-                         fit_permutation = fit_permutation,
-                         .Limma_bootstrap = .Limma_bootstrap,
-                         .Dream_bootstrap  = .Dream_bootstrap,
-                         .generate_data_for_fit = .generate_data_for_fit,
-                         .Limma_permutating = .Limma_permutating,
-                         .Dream_permutating = .Dream_permutating)
+    # export_funcs <- list(fit_bootstrap = fit_bootstrap,
+    #                      fit_permutation = fit_permutation,
+    #                      .Limma_bootstrap = .Limma_bootstrap,
+    #                      .Dream_bootstrap  = .Dream_bootstrap,
+    #                      .generate_data_for_fit = .generate_data_for_fit,
+    #                      .Limma_permutating = .Limma_permutating,
+    #                      .Dream_permutating = .Dream_permutating)
     for (name in names(export_vars)) {
         assign(name, export_vars[[name]])
     }
-    for (name in names(export_funcs)) {
-        assign(name, export_funcs[[name]])
-    }
+    # for (name in names(export_funcs)) {
+    #     assign(name, export_funcs[[name]])
+    # }
     
    
     results_list <- bplapply(seq_len(nrow(samples)), function(i) {

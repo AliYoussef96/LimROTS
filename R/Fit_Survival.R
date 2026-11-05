@@ -61,16 +61,16 @@ Boot_parallel_survival <- function(BPPARAM = NULL,
         pSamples = pSamples,
         competing_risks = competing_risks
     )
-    export_funcs <- list(
-        bootstrap_survival = bootstrap_survival,
-        permutating_survival = permutating_survival
-    )
+    # export_funcs <- list(
+    #     bootstrap_survival = bootstrap_survival,
+    #     permutating_survival = permutating_survival
+    # )
     for (name in names(export_vars)) {
         assign(name, export_vars[[name]])
     }
-    for (name in names(export_funcs)) {
-        assign(name, export_funcs[[name]])
-    }
+    # for (name in names(export_funcs)) {
+    #     assign(name, export_funcs[[name]])
+    # }
     
     results_list <- bplapply(seq_len(nrow(samples)), function(i) {
         samples.R <- split(samples[i, ], rep(1, length(samples[i, ])))
@@ -289,7 +289,7 @@ bootstrap_survival <-
   function(x, meta.info, formula.str, competing_risks) {
     
     ### Generate combined data and covariates for model fitting
-    data_for_fit <- .generate_data_for_fit(x = x, meta.info = meta.info)
+    data_for_fit <- .generate_data_for_fit_survival(x = x, meta.info = meta.info)
     combined_data <- data_for_fit$combined_data
     covariates.p <- data_for_fit$covariates.p
     
@@ -354,7 +354,7 @@ bootstrap_survival <-
   }
 
 
-.generate_data_for_fit <- function(x, meta.info) {
+.generate_data_for_fit_survival <- function(x, meta.info) {
   ### Check if x is a list of matrices with identical rownames
   stopifnot(
     all(vapply(
