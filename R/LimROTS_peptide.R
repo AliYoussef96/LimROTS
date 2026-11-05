@@ -1,4 +1,4 @@
-LimROTS_peptide <- function(    
+LimROTS_peptide <- function(x,  
     assay.type = NULL,
     niter = 1000,
     K = NULL,
