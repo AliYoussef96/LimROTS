@@ -194,6 +194,10 @@ LimROTS <- function(x,
     if (any(vapply(list(D, S, pD, pS), function(x) any(!is.finite(x)), logical(1)))) {
     stop("D, S, pD, and pS must not contain NA, NaN, Inf, or -Inf.")
     }
+    
+    if (any(vapply(list(D, S, pD, pS), function(x) any(x < 0), logical(1)))) {
+    stop("D, S, pD, and pS must contain only non-negative values.")
+    }
 
     ### optimize parameters
     optimized.parameters <-

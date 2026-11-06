@@ -189,6 +189,10 @@ LimROTS_survival <- function(x,
     stop("D, S, pD, and pS must not contain NA, NaN, Inf, or -Inf.")
     }
 
+    if (any(vapply(list(D, S, pD, pS), function(x) any(x < 0), logical(1)))) {
+    stop("D, S, pD, and pS must contain only non-negative values.")
+    }
+
     ### Optimize parameters unless both values were supplied.
     optimized.parameters <-
         Optimizing(niter = niter, K = K, D = D, S = S, pD = pD, pS = pS)
