@@ -35,6 +35,9 @@
 #' null statistics are added to `metadata()`.
 #'
 #' @importFrom stats as.formula
+#' 
+#' @export 
+#' 
 LimROTS_peptide <- function(x,  
                             assay.type = NULL,
                             niter = 1000,
