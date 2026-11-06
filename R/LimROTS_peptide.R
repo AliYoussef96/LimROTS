@@ -1,3 +1,40 @@
+#' Reproducibility-Optimized Peptide-Level Differential Expression Analysis
+#'
+#' Analyze peptide intensity data using protein-level mixed models,
+#' reproducibility-optimized bootstrap statistics, and permutation-based
+#' inference.
+#'
+#' @param x A `SummarizedExperiment` containing peptide features in rows and
+#' samples in columns.
+#' @param assay.type Character string or numeric index selecting the assay in
+#' `x` to analyze. If `NULL`, the first assay is used.
+#' @param niter Integer. Number of bootstrap or permutation replicates to
+#' generate.
+#' @param K Integer. Number of top-ranked features to use. If `NULL`, defaults
+#' to one quarter of the number of features.
+#' @param meta.info Character vector naming the sample-level metadata columns
+#' in `colData(x)` required by the model.
+#' @param peptide_metadata Data frame mapping each `peptide_id` to a
+#' `protein_id`. Peptide IDs must match the row names of the intensity matrix.
+#' @param BPPARAM A `BiocParallelParam` object specifying the parallel backend.
+#' If `NULL`, the parallel helper selects a two-worker backend appropriate to
+#' the operating system.
+#' @param group Character string naming the column in `meta.info` that
+#' identifies each sample's group.
+#' @param formula.str Character string containing the fixed-effects portion of
+#' the model formula. Its first variable must be `group`; random intercepts for
+#' peptide and sample are added internally.
+#' @param pairwise_contrasts Character vector of contrast expressions, such as
+#' `"group1 - group2"`, to fit.
+#' @param strata Character vector or `NULL`. Names of character or factor
+#' metadata columns used to define strata for resampling and permutation.
+#'
+#' @return The input `SummarizedExperiment` with protein-level statistics,
+#' empirical p-values, q-values, FDR estimates, corrected log-fold changes,
+#' and BH-adjusted p-values added to `rowData()`. Optimization parameters and
+#' null statistics are added to `metadata()`.
+#'
+#' @importFrom stats as.formula
 LimROTS_peptide <- function(x,  
                             assay.type = NULL,
                             niter = 1000,
@@ -240,10 +277,10 @@ LimROTS_peptide <- function(x,
 }
 
 
-#' Generate Bootstrap and Permutation Samples
+#' Generate Peptide Bootstrap and Permutation Samples
 #'
 #' Generate group-preserving bootstrap samples and corresponding permuted
-#' metadata, using optional correlation blocks or strata.
+#' metadata, optionally stratifying samples by the requested metadata columns.
 #'
 #' @param niter_2 Integer. Number of bootstrap and permutation replicates to
 #' generate.
@@ -251,13 +288,12 @@ LimROTS_peptide <- function(x,
 #' row names.
 #' @param group Character string naming the column in `meta.info` that
 #' identifies each sample's group.
-#' @param correlation_block Character string or `NULL`. Name of the column in
-#' `meta.info` identifying correlated samples or blocks.
 #' @param strata Character vector or `NULL`. Names of character or factor
 #' metadata columns used to define strata for resampling and permutation.
 #'
 #' @return A list containing `boot_Samples`, a matrix of bootstrap sample
 #' names, and `perm_Samples`, a list of permuted metadata data frames.
+#'
 .generate_bootstrap_permutations_peptide <- function(niter_2, meta.info, group, strata) {
   
   
@@ -301,6 +337,34 @@ LimROTS_peptide <- function(x,
 
 
 
+#' Fit Final Peptide Models and Calculate Inference
+#'
+#' Fit protein-level mixed models on the original data, scale observed and null
+#' statistics, and calculate empirical p-values and false-discovery measures.
+#'
+#' @param data Feature-by-sample matrix with sample names as column names and
+#' peptide IDs as row names.
+#' @param meta.info Data frame of sample-level metadata, with sample names as
+#' row names.
+#' @param group Character string naming the column in `meta.info` that
+#' identifies each sample's group.
+#' @param formula.str Formula for the peptide-level mixed model.
+#' @param a1 Numeric first statistic-scaling parameter.
+#' @param a2 Numeric second statistic-scaling parameter.
+#' @param pairwise_contrasts Character vector of contrast expressions, such as
+#' `"group1 - group2"`, to fit.
+#' @param pD Matrix of null-model statistics from the permutation fits.
+#' @param pS Matrix of null-model standard errors from the permutation fits.
+#' @param peptide_metadata Data frame mapping each `peptide_id` to a
+#' `protein_id`.
+#'
+#' @return A list containing scaled observed statistics `d`, scaled null
+#' statistics `pD`, empirical p-values `p_value`, FDR estimates `FDR`,
+#' corrected log-fold changes `corrected.logfc`, q-values `q_values`, and
+#' BH-adjusted p-values `BH.pvalue`.
+#'
+#' @importFrom qvalue empPvals qvalue
+#' @importFrom stats p.adjust
 .fit_final_peptide <- function(data, meta.info, group, formula.str,
         a1, a2, pairwise_contrasts, pD , pS, peptide_metadata) {
         # Fit the limma model on the original data and compute statistics, p-values, and FDR.

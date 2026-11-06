@@ -1,3 +1,31 @@
+#' Fit Peptide Bootstrap and Permutation Replicates in Parallel
+#'
+#' Fit the peptide-level mixed model for each bootstrap replicate and its
+#' corresponding permuted metadata using a `BiocParallel` backend.
+#'
+#' @param BPPARAM A `BiocParallelParam` object specifying the parallel backend.
+#' If `NULL`, the function selects a two-worker backend appropriate to the
+#' operating system.
+#' @param samples Matrix of bootstrap replicates, with one row per replicate
+#' and resampled sample names in its columns.
+#' @param data Feature-by-sample matrix with sample names as column names.
+#' @param model_formula Formula for the peptide-level mixed model.
+#' @param group Character string naming the column in `meta.info` that
+#' identifies each sample's group.
+#' @param meta.info Data frame of sample-level metadata, with sample names as
+#' row names.
+#' @param peptide_metadata Data frame mapping each `peptide_id` to a
+#' `protein_id`.
+#' @param pSamples List of permuted sample-level metadata data frames, one per
+#' bootstrap replicate.
+#' @param pairwise_contrasts Character vector of contrast expressions, such as
+#' `"group1 - group2"`, to fit.
+#'
+#' @return A list with one element per replicate. Each element contains `ds`
+#' (bootstrap statistics and standard errors) and `pdps` (permutation
+#' statistics and standard errors).
+#'
+#' @importFrom BiocParallel SnowParam MulticoreParam bplapply bpoptions
 parallel_peptide <- function(BPPARAM = NULL,
                              samples,
                              data,
@@ -76,6 +104,31 @@ parallel_peptide <- function(BPPARAM = NULL,
   return(results_list)
 }
 
+#' Fit the Original Peptide Data
+#'
+#' Fit a peptide-level linear mixed model for each protein using the original
+#' expression matrix, sample metadata, and peptide-to-protein mapping.
+#'
+#' @param x Feature-by-sample matrix with sample names as column names and
+#' peptide IDs as row names.
+#' @param group Character string naming the column in `meta.info` that
+#' identifies each sample's group.
+#' @param meta.info Data frame of sample-level metadata, with sample names as
+#' row names.
+#' @param model_formula Formula for the peptide-level mixed model.
+#' @param pairwise_contrasts Character vector of contrast expressions, such as
+#' `"group1 - group2"`, to fit.
+#' @param peptide_metadata Data frame mapping each `peptide_id` to a
+#' `protein_id`.
+#'
+#' @return A list containing signed protein-level contrast estimates `d` and
+#' their standard errors `s`.
+#'
+#' @rawNamespace import(data.table, except = shift)
+#' @importFrom emmeans emmeans contrast
+#' @importFrom lme4 lmer
+#' @importFrom stats setNames
+#' @importFrom stringr fixed str_remove_all
 fit_original_peptide <- function(x, group, meta.info, model_formula,
                                   pairwise_contrasts, peptide_metadata){
   ### Generate combined data and covariates for model fitting
@@ -244,6 +297,31 @@ fit_original_peptide <- function(x, group, meta.info, model_formula,
                                   }
 
 
+#' Fit Peptide Bootstrap Samples
+#'
+#' Combine group-specific bootstrap matrices and fit peptide-level mixed
+#' models, returning a statistic and standard error for each protein.
+#'
+#' @param x List of feature-by-sample matrices, one per group in the bootstrap
+#' replicate. Matrices must have matching peptide IDs as row names.
+#' @param group Character string naming the column in `meta.info` that
+#' identifies each sample's group.
+#' @param meta.info Data frame of sample-level metadata, with sample names as
+#' row names.
+#' @param model_formula Formula for the peptide-level mixed model.
+#' @param pairwise_contrasts Character vector of contrast expressions, such as
+#' `"group1 - group2"`, to fit.
+#' @param peptide_metadata Data frame mapping each `peptide_id` to a
+#' `protein_id`.
+#'
+#' @return A list containing absolute protein-level statistics `d` and their
+#' standard errors `s`.
+#'
+#' @rawNamespace import(data.table, except = shift)
+#' @importFrom emmeans emmeans contrast
+#' @importFrom lme4 lmer
+#' @importFrom stats setNames
+#' @importFrom stringr fixed str_remove_all
 fit_bootstrap_peptide <- function(x, group, meta.info, model_formula,
                                   pairwise_contrasts, peptide_metadata) {
   
@@ -414,6 +492,31 @@ fit_bootstrap_peptide <- function(x, group, meta.info, model_formula,
   
 }
 
+#' Fit Peptide Models with Permuted Metadata
+#'
+#' Fit peptide-level mixed models to the original expression matrix using
+#' permuted sample metadata to obtain null statistics.
+#'
+#' @param x Feature-by-sample matrix with sample names as column names and
+#' peptide IDs as row names.
+#' @param group Character string naming the column in `meta.info` that
+#' identifies each sample's group.
+#' @param meta.info Data frame of permuted sample-level metadata, with sample
+#' names as row names.
+#' @param model_formula Formula for the peptide-level mixed model.
+#' @param pairwise_contrasts Character vector of contrast expressions, such as
+#' `"group1 - group2"`, to fit.
+#' @param peptide_metadata Data frame mapping each `peptide_id` to a
+#' `protein_id`.
+#'
+#' @return A list containing absolute protein-level null statistics `d` and
+#' their standard errors `s`.
+#'
+#' @rawNamespace import(data.table, except = shift)
+#' @importFrom emmeans emmeans contrast
+#' @importFrom lme4 lmer
+#' @importFrom stats setNames
+#' @importFrom stringr fixed str_remove_all
 fit_permutation_peptide <- function(x, group, meta.info, model_formula,
                                     pairwise_contrasts, peptide_metadata) {
   
@@ -587,17 +690,18 @@ fit_permutation_peptide <- function(x, group, meta.info, model_formula,
 
 #' Assemble Bootstrap Data and Matching Metadata
 #'
-#' Combine group-specific matrices and construct a metadata row for every
-#' resampled sample, preserving alignment and separating repeated draws of a
-#' correlation block.
+#' Combine group-specific matrices and construct a metadata row for each
+#' resampled sample while preserving their alignment.
 #'
 #' @param x List of feature-by-sample matrices, one per group in the bootstrap
-#' replicate. Matrices must have matching feature names.
+#' replicate. Matrices must have matching peptide IDs as row names.
 #' @param meta.info Data frame of sample-level metadata, with sample names as
 #' row names.
 #'
 #' @return A list containing the combined feature-by-sample matrix
 #' `combined_data` and corresponding sample-level metadata `covariates.p`.
+#'
+#' @importFrom stringr fixed str_split_fixed
 .generate_data_for_fit <- function(x, meta.info) {
   ### Check if x is a list of matrices with identical rownames
   stopifnot(
