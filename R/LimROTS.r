@@ -191,6 +191,10 @@ LimROTS <- function(x,
         stop("D, S, pD, and pS must all have identical dimensions.")
     }
 
+    if (any(vapply(list(D, S, pD, pS), function(x) any(!is.finite(x)), logical(1)))) {
+    stop("D, S, pD, and pS must not contain NA, NaN, Inf, or -Inf.")
+    }
+
     ### optimize parameters
     optimized.parameters <-
         Optimizing(niter = niter, K = K, D = D, S = S, pD = pD, pS = pS)
