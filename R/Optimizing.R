@@ -56,7 +56,7 @@ Optimizing <- function(niter, K, N, D, S, pD, pS) {
         seq(21, 40) * 25,
         seq(11, 1000) * 100
     )
-    N <- N[N < K]
+    N <- N[N <= K]
 
     reprotable <- matrix(nrow = length(ssq) + 1, ncol = length(N))
     colnames(reprotable) <- N
