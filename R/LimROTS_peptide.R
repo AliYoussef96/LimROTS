@@ -260,7 +260,7 @@ LimROTS_peptide <- function(x,
         data = data,
         meta.info = meta.info,
         group = group,
-        formula.str = model_formula,
+        model_formula = model_formula,
         a1 = a1, a2 = a2,
         pairwise_contrasts = pairwise_contrasts,
         pD = pD, pS = pS, peptide_metadata = peptide_metadata
@@ -380,14 +380,14 @@ LimROTS_peptide <- function(x,
 #'
 #' @importFrom qvalue empPvals qvalue
 #' @importFrom stats p.adjust
-.fit_final_peptide <- function(data, meta.info, group, formula.str,
+.fit_final_peptide <- function(data, meta.info, group, model_formula,
         a1, a2, pairwise_contrasts, pD , pS, peptide_metadata) {
         # Fit the limma model on the original data and compute statistics, p-values, and FDR.
         fit <- fit_original_peptide(
             x = data,
             group = group,
             meta.info = meta.info,
-            formula.str = formula.str,
+            model_formula = model_formula,
             pairwise_contrasts = pairwise_contrasts,
             peptide_metadata = peptide_metadata
         )
