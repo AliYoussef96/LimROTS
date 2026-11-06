@@ -72,7 +72,7 @@ parallel_peptide <- function(BPPARAM = NULL,
   }, BPPARAM = BPPARAM, 
   BPOPTIONS = bpoptions(packages = c("utils", 
                                      "stringr", "stats", 
-                                     "limma" , "variancePartition")))
+                                     "data.table", "lme4", "emmeans",)))
   return(results_list)
 }
 
