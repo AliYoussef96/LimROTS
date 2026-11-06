@@ -129,11 +129,11 @@ LimROTS_peptide <- function(x,
     stop("sample IDs in meta.info must be unique.")
   }
   
-  if("sample_id" %in% stata) {
+  if("sample_id" %in% strata) {
     stop("sample_id should not be a column in meta.info.")
   }
 
-    if("peptide_id" %in% stata) {
+    if("peptide_id" %in% strata) {
     stop("peptide_id should not be a column in meta.info.")
   }
 
