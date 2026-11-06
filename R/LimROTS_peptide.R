@@ -49,7 +49,7 @@ LimROTS_peptide <- function(x,
   
   formula.str <- paste0(
     "y" ,formula.str,
-    " + peptide_id + (1 | sample_id)"
+    " + (1 | peptide_id) + (1 | sample_id)"
   )
   
   model_formula <- as.formula(formula.str)
