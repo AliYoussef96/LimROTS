@@ -129,6 +129,14 @@ LimROTS_peptide <- function(x,
     stop("sample IDs in meta.info must be unique.")
   }
   
+  if("sample_id" %in% stata) {
+    stop("sample_id should not be a column in meta.info.")
+  }
+
+    if("peptide_id" %in% stata) {
+    stop("peptide_id should not be a column in meta.info.")
+  }
+
   #============================================================
   # Reorder metadata to exactly match the matrix
   #============================================================
