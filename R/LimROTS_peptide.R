@@ -11,7 +11,7 @@ LimROTS_peptide <- function(x,
                             strata){
   
   ### Perform sanity checks on the input parameters and data.
-  SanityChecK.list <- LimROTS:::SanityChecK(
+  SanityChecK.list <- SanityChecK(
     x,
     assay.type = assay.type,
     niter = niter,
@@ -256,13 +256,13 @@ LimROTS_peptide <- function(x,
   if(!is.null(strata)){
     message("..........")
     
-    samples <- LimROTS:::bootstrapSamples_limRots(
+    samples <- bootstrapSamples_limRots(
       niter = niter_2,
       meta.info = meta.info,
       group = group, strata = strata
     )
     
-    pSamples <- LimROTS:::permutationSamples_limRots(niter = niter_2, meta.info = meta.info, 
+    pSamples <- permutationSamples_limRots(niter = niter_2, meta.info = meta.info, 
                                            group = group, strata = strata)
     
     return(list(boot_Samples = samples, perm_Samples = pSamples))
