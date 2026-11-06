@@ -177,8 +177,13 @@ LimROTS_survival <- function(x,
         pS[, i] <- results_list[[i]][["pdps"]][["ps_result"]]
     }
 
-    D <- abs(D)
-    pD <- abs(pD)
+    if (any(vapply(list(D, S, pD, pS), anyNA, logical(1)))) {
+        stop("D, S, pD, and pS must not contain NA values.")
+    }
+    
+    if (!all(vapply(list(S, pD, pS), function(x) identical(dim(x), dim(D)), logical(1)))) {
+        stop("D, S, pD, and pS must all have identical dimensions.")
+    }
 
     ### Optimize parameters unless both values were supplied.
     optimized.parameters <- Optimizing(
