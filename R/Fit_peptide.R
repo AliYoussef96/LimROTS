@@ -258,7 +258,7 @@ fit_original_peptide <- function(x, group, meta.info, model_formula,
     estimated_group_means <- emmeans(
       model,
       specs = group,
-      lmer.df = "satterthwaite"
+      lmer.df = "asymptotic"
     )
     
     group_levels <- as.character(
@@ -453,7 +453,7 @@ fit_bootstrap_peptide <- function(x, group, meta.info, model_formula,
     estimated_group_means <- emmeans(
       model,
       specs = group,
-      lmer.df = "satterthwaite"
+      lmer.df = "asymptotic"
     )
     
     group_levels <- as.character(
@@ -647,7 +647,7 @@ fit_permutation_peptide <- function(x, group, meta.info, model_formula,
     estimated_group_means <- emmeans(
       model,
       specs = group,
-      lmer.df = "satterthwaite"
+      lmer.df = "asymptotic"
     )
     
     group_levels <- as.character(
