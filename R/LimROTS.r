@@ -193,8 +193,7 @@ LimROTS <- function(x,
 
     ### optimize parameters
     optimized.parameters <-
-        Optimizing(niter =  niter, K = K,
-        N = N, D = D, S = S, pD = pD, pS = pS)
+        Optimizing(niter = niter, K = K, D = D, S = S, pD = pD, pS = pS)
     a1 <- optimized.parameters[["a1"]]
     a2 <- optimized.parameters[["a2"]]
     k <- optimized.parameters[["k"]]
