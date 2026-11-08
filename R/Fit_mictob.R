@@ -5,7 +5,6 @@ parallel_microb <- function(BPPARAM = NULL,
                           group,
                           meta.info,
                           pSamples,
-                          correlation_block,
                           pairwise_contrasts){
 
     if (is.null(BPPARAM)) {
@@ -18,9 +17,6 @@ parallel_microb <- function(BPPARAM = NULL,
         }
     } else {
         message("Using provided parallel backend BPPARAM.")
-    }
-    if (inherits(BPPARAM, "SnowParam")) {
-        BPPARAM$exportglobals <- FALSE
     }
    
     results_list <- bplapply(seq_len(nrow(samples)), function(i) {
@@ -37,7 +33,6 @@ parallel_microb <- function(BPPARAM = NULL,
             group = group,
             meta.info = meta.info,
             formula.str = formula.str,
-            correlation_block = correlation_block,
             pairwise_contrasts = pairwise_contrasts
         )
         d_result <- fit$d
@@ -48,7 +43,6 @@ parallel_microb <- function(BPPARAM = NULL,
             group = group,
             meta.info = pSamples_i,
             formula.str = formula.str,
-            correlation_block = correlation_block,
             pairwise_contrasts = pairwise_contrasts
         )
         pd_result <- pFit$d
@@ -60,4 +54,50 @@ parallel_microb <- function(BPPARAM = NULL,
                                        "stringr", "stats", 
                                        "limma")))
     return(results_list)
+}
+
+
+fit_original_microb <- function(x, group, meta.info, formula.str, 
+            trend, robust, pairwise_contrasts){
+    combined_data <- x
+    if(!identical(colnames(combined_data), row.names(meta.info))){
+        stop("Column names of the data matrix must match row names of meta.info.")
+    }
+    ### Create the design matrix based on the provided formula and covariates
+    design.matrix <- model.matrix(formula(formula.str), data = meta.info)
+    colnames(design.matrix) <- make.names(colnames(design.matrix))
+    stopifnot(identical(colnames(combined_data) , row.names(design.matrix)))
+
+    ### Fit the linear model using Limma, accounting for correlation blocks if specified
+    fit <- lmFit(combined_data, design.matrix)
+    cont_matrix <- makeContrasts(
+            contrasts = pairwise_contrasts, levels =
+                design.matrix
+        )
+
+    ### Fit the contrasts and apply empirical Bayes moderation
+    fit2 <- limma::contrasts.fit(fit, cont_matrix)
+
+
+    beta <- fit$coefficients[, 1]
+    bias <- .estimate_bias(
+        beta,
+        ncol(processed_counts)
+    )
+
+
+}
+
+
+.estimate_bias <- function(coefficient, n_samples) {
+    tryCatch(
+        as.numeric(
+            modeest::mlv(
+                sqrt(n_samples) * coefficient,
+                method = "meanshift",
+                kernel = "gaussian"
+            )
+        ) / sqrt(n_samples),
+        error = function(e) median(coefficient, na.rm = TRUE)
+    )
 }

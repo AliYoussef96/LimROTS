@@ -8,7 +8,6 @@ LimROTS_microb <- function(
     formula.str,
     robust = TRUE,
     trend = TRUE,
-    correlation_block = NULL,
     pairwise_contrasts,
     model,
     strata,
@@ -27,7 +26,7 @@ LimROTS_microb <- function(
         model = model,
         formula.str = formula.str,
         pairwise_contrasts = pairwise_contrasts,
-        correlation_block = correlation_block,
+        correlation_block = NULL,
         strata = strata,
         survival = FALSE,
         competing_risks = FALSE
@@ -70,7 +69,7 @@ LimROTS_microb <- function(
         model = model,
         formula.str = formula.str,
         pairwise_contrasts = pairwise_contrasts,
-        correlation_block = correlation_block,
+        correlation_block = NULL,
         strata = strata,
         survival = FALSE,
         competing_risks = FALSE
@@ -86,11 +85,11 @@ LimROTS_microb <- function(
         niter_2 = 2 * niter,
         meta.info = meta.info,
         group = group,
-        correlation_block = correlation_block,
+        correlation_block = NULL,
         strata = strata
     )
 
-    
+
 
 
 }
@@ -193,18 +192,21 @@ LimROTS_microb <- function(
 
         log_counts <- log2(processed_counts)
         clr_samples_by_features <- t(log_counts) - colMeans(log_counts)
+        clr_samples_by_features <- data.frame(t(clr_samples_by_features), 
+        check.names = FALSE,
+        check.rows = FALSE)
 
         metadata_use <- as.data.frame(
             colData(tse)
         )
 
         metadata_use <- metadata_use[
-            row.names(clr_samples_by_features),
+            colnames(clr_samples_by_features),
             ,
             drop = FALSE
         ]
 
-        if (!identical(row.names(clr_samples_by_features), rownames(metadata_use))) {
+        if (!identical(colnames(clr_samples_by_features), rownames(metadata_use))) {
             stop("Processed counts and metadata are not aligned.")
         }
 
