@@ -34,32 +34,19 @@ LimROTS_microb <- function(
     group <- SanityChecK.list[["group"]]
     K <- SanityChecK.list[["K"]]
 
-    if (anyDuplicated(rownames(feature_data)) ||
-        anyDuplicated(colnames(feature_data)) ||
-        anyDuplicated(rownames(metadata))) {
-        stop("Feature names and sample names must be unique.")
+
+    ### Extra Perform sanity checks on the data
+
+    if (anyNA(data) || any(!is.finite(data))) {
+        stop("data contains missing or non-finite values.")
     }
 
-    if (anyNA(feature_data) || any(!is.finite(feature_data))) {
-        stop("feature_data contains missing or non-finite values.")
+    if (any(data < 0)) {
+        stop("data cannot contain negative values.")
     }
 
-    if (any(feature_data < 0)) {
-        stop("feature_data cannot contain negative values.")
-    }
-
-    if (any(feature_data != round(feature_data))) {
-        stop("feature_data must contain original integer counts.")
-    }
-
-    if (!all(colnames(feature_data) %in% rownames(metadata))) {
-        stop(
-            "Samples missing from metadata: ",
-            paste(
-                setdiff(colnames(feature_data), rownames(metadata)),
-                collapse = ", "
-            )
-        )
+    if (any(data != round(data))) {
+        stop("data must contain original integer counts.")
     }
 
 

@@ -210,6 +210,10 @@ SanityChecK <- function(x,
         stop("Feature names and sample names must be unique.")
     }
 
+    if (anyNA(meta.info)) {
+        stop("meta.info contains missing values.")
+    }
+
     return(list(
         data = data, group = group,
         meta.info = meta.info,
