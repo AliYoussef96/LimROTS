@@ -204,6 +204,12 @@ SanityChecK <- function(x,
         Setting K to a quarter of the number of rows in the data: ", K)
     }
 
+    if (anyDuplicated(rownames(data)) ||
+        anyDuplicated(colnames(data)) ||
+        anyDuplicated(rownames(meta.info))) {
+        stop("Feature names and sample names must be unique.")
+    }
+
     return(list(
         data = data, group = group,
         meta.info = meta.info,
