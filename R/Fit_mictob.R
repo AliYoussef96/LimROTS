@@ -75,18 +75,36 @@ fit_original_microb <- function(x, group, meta.info, formula.str,
                 design.matrix
         )
 
-    ### Fit the contrasts and apply empirical Bayes moderation
+    ### Fit the contrasts 
     fit2 <- limma::contrasts.fit(fit, cont_matrix)
 
-
-    beta <- fit$coefficients[, 1]
+    beta <- fit2$coefficients[, 1]
     bias <- .estimate_bias(
         beta,
         ncol(processed_counts)
     )
+    coef <- beta - bias
+
+    d_values <- setNames(abs(coef), rownames(fit2$coefficients))
+    corrected.logfc <- setNames(coef, rownames(fit2$coefficients))
+
+    stopifnot(identical(names(fit2[["sigma"]]) , 
+        row.names(fit2[["stdev.unscaled"]])))
+        
+    s_values <- setNames(
+        as.numeric(sqrt(fit2[["sigma"]]) *
+                        fit2[["stdev.unscaled"]]),
+        row.names(fit2[["stdev.unscaled"]]))
+
+    stopifnot(identical(names(s_values), names(d_values) ) )
+    stopifnot(identical(names(corrected.logfc), names(d_values) ) )
+    stopifnot(identical(names(s_values), names(corrected.logfc) ) )
 
 
 }
+
+fit_bootstrap_microb <- function()
+
 
 
 .estimate_bias <- function(coefficient, n_samples) {
