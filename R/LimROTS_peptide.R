@@ -278,7 +278,7 @@ LimROTS_peptide <- function(x,
     BH.pvalue = final_peptide[["BH.pvalue"]]
   
     ### generate output
-    LimROTS.output <- .generate_output(
+    LimROTS.output <- .generate_output_peptide(
         x = x,
         data = data,
         d = d,
@@ -428,3 +428,35 @@ LimROTS_peptide <- function(x,
     ))
 
     }
+
+
+.generate_output_peptide <- function(x, data, d, p_value, FDR, corrected.logfc,
+                             q_values, BH.pvalue, a1, a2, k, Z, R, ztable, pD) {
+  # Generate the output SummarizedExperiment object with the LimROTS results.
+  new_rowData <- DataFrame(
+    statistics = d,
+    pvalue = p_value,
+    qvalue = if (is.null(q_values)) rep(NA_real_, length(d))
+    else q_values$qvalues,
+    FDR = FDR,
+    corrected.logfc = corrected.logfc,
+    BH.pvalue = BH.pvalue,
+    row.names = names(d)
+  )
+  
+
+  metadata(x) <- c(metadata(x), list(
+    LimROTS_peptide = new_rowData,
+    a1 = a1,
+    a2 = a2,
+    k = k,
+    Z = Z,
+    R = R,
+    ztable = ztable,
+    q_values = q_values,
+    null.statistics = pD
+  ))
+  
+  LimROTS.output <- x
+  return(LimROTS.output)
+}
