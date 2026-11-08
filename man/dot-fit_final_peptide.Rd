@@ -8,7 +8,7 @@
   data,
   meta.info,
   group,
-  formula.str,
+  model_formula,
   a1,
   a2,
   pairwise_contrasts,
@@ -27,8 +27,6 @@ row names.}
 \item{group}{Character string naming the column in \code{meta.info} that
 identifies each sample's group.}
 
-\item{formula.str}{Formula for the peptide-level mixed model.}
-
 \item{a1}{Numeric first statistic-scaling parameter.}
 
 \item{a2}{Numeric second statistic-scaling parameter.}
@@ -42,6 +40,8 @@ identifies each sample's group.}
 
 \item{peptide_metadata}{Data frame mapping each \code{peptide_id} to a
 \code{protein_id}.}
+
+\item{formula.str}{Formula for the peptide-level mixed model.}
 }
 \value{
 A list containing scaled observed statistics \code{d}, scaled null

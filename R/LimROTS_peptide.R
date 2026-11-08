@@ -430,8 +430,33 @@ LimROTS_peptide <- function(x,
     }
 
 
+#' Add LimROTS Peptide Results to a SummarizedExperiment
+#'
+#' Add peptide-level statistics and associated results to `metadata()` of the
+#' input `SummarizedExperiment`.
+#'
+#' @param x A `SummarizedExperiment` whose rows correspond to analyzed features.
+#' @param data Feature-by-sample matrix used for fitting, with feature names as
+#' row names.
+#' @param d Numeric vector of scaled feature statistics.
+#' @param p_value Numeric vector of empirical p-values.
+#' @param FDR Numeric vector of estimated false discovery rates.
+#' @param corrected.logfc Numeric vector of signed model coefficients.
+#' @param q_values Q-value estimation result from `qvalue()`, or `NULL` if
+#' estimation failed.
+#' @param BH.pvalue Numeric vector of Benjamini-Hochberg adjusted p-values.
+#' @param a1 Numeric first statistic-scaling parameter.
+#' @param a2 Numeric second statistic-scaling parameter.
+#' @param k Integer. Number of top-ranked features selected during optimization.
+#' @param Z Numeric optimization z-score.
+#' @param R Numeric reproducibility score from optimization.
+#' @param ztable Matrix of z-scores across the optimization parameter grid.
+#' @param pD Matrix of scaled null statistics from the permutation fits.
+#'
+#' @return The `SummarizedExperiment` `x` with peptide-level results and
+#' optimization metadata added to `metadata()`.
 .generate_output_peptide <- function(x, data, d, p_value, FDR, corrected.logfc,
-                             q_values, BH.pvalue, a1, a2, k, Z, R, ztable, pD) {
+                            q_values, BH.pvalue, a1, a2, k, Z, R, ztable, pD) {
   # Generate the output SummarizedExperiment object with the LimROTS results.
   new_rowData <- DataFrame(
     statistics = d,
