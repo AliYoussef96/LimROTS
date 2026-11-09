@@ -3,6 +3,8 @@
 #' Analyze microbiome count data using prevalence filtering, compositional
 #' preprocessing, and LimROTS bootstrap and permutation statistics.
 #'
+#' @param x A `SummarizedExperiment` containing feature counts in rows and
+#' samples in columns.
 #' @param assay.type Character string or numeric index selecting the assay in
 #' `x` to analyze. If `NULL`, the first assay is used.
 #' @param niter Integer. Number of bootstrap or permutation replicates to
@@ -67,6 +69,7 @@
 #'
 #' @export
 LimROTS_microb <- function(
+    x,
     assay.type = NULL,
     niter = 1000,
     K = NULL,

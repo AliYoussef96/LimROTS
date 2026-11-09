@@ -5,6 +5,7 @@
 \title{LimROTS Microbiome Differential-Abundance Analysis}
 \usage{
 LimROTS_microb(
+  x,
   assay.type = NULL,
   niter = 1000,
   K = NULL,
@@ -24,6 +25,9 @@ LimROTS_microb(
 )
 }
 \arguments{
+\item{x}{A \code{SummarizedExperiment} containing feature counts in rows and
+samples in columns.}
+
 \item{assay.type}{Character string or numeric index selecting the assay in
 \code{x} to analyze. If \code{NULL}, the first assay is used.}
 
