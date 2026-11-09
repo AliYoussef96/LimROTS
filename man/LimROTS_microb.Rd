@@ -16,7 +16,6 @@ LimROTS_microb(
   robust = TRUE,
   trend = TRUE,
   pairwise_contrasts,
-  model,
   strata,
   prev_filter = 0,
   is_winsor = TRUE,
@@ -59,9 +58,6 @@ in the prior variance. See \link[limma]{eBayes}.}
 \item{pairwise_contrasts}{Character vector of contrast expressions, such as
 \code{"group1 - group2"}, to fit.}
 
-\item{model}{Character string specifying the fitting method, such as
-\code{"limma"} or \code{"dream"}.}
-
 \item{strata}{Character vector or \code{NULL}. Names of character or factor
 metadata columns used to define strata for resampling and permutation.}
 
@@ -76,6 +72,9 @@ to winsorize within each feature.}
 
 \item{pseudo_count}{Positive numeric scalar added to processed counts before
 the log transformation.}
+
+\item{model}{Character string specifying the fitting method, such as
+\code{"limma"} or \code{"dream"}.}
 }
 \value{
 The input \code{SummarizedExperiment} with feature-level statistics,

@@ -4,7 +4,7 @@
 \alias{.check_formula}
 \title{Validate a model formula and correlation-block specification}
 \usage{
-.check_formula(formula.str, model, correlation_block, meta.info)
+.check_formula(formula.str, model, correlation_block, meta.info, group)
 }
 \arguments{
 \item{formula.str}{Character string containing the model formula.}
