@@ -89,7 +89,18 @@ LimROTS_microb <- function(
         strata = strata
     )
 
-
+    ### parallelized bootstrapping and permutation fit
+    results_list <- parallel_microb(
+        BPPARAM  = BPPARAM ,
+        samples = list_boot_perm[["boot_Samples"]], 
+        data = data,
+        formula.str = formula.str,
+        group = group,
+        meta.info = meta.info,
+        pSamples = list_boot_perm[["perm_Samples"]],
+        model = model,
+        pairwise_contrasts = pairwise_contrasts
+    )
 
 
 }

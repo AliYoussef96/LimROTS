@@ -5,7 +5,9 @@ parallel_microb <- function(BPPARAM = NULL,
                           group,
                           meta.info,
                           pSamples,
-                          pairwise_contrasts){
+                          pairwise_contrasts,
+                          trend,
+                          robust) {
 
     if (is.null(BPPARAM)) {
         if (.Platform$OS.type == "windows") {
@@ -33,7 +35,9 @@ parallel_microb <- function(BPPARAM = NULL,
             group = group,
             meta.info = meta.info,
             formula.str = formula.str,
-            pairwise_contrasts = pairwise_contrasts
+            pairwise_contrasts = pairwise_contrasts,
+            trend = trend,
+            robust = robust
         )
         d_result <- fit$d
         s_result <- fit$s
@@ -43,7 +47,9 @@ parallel_microb <- function(BPPARAM = NULL,
             group = group,
             meta.info = pSamples_i,
             formula.str = formula.str,
-            pairwise_contrasts = pairwise_contrasts
+            pairwise_contrasts = pairwise_contrasts,
+            trend = trend,
+            robust = robust
         )
         pd_result <- pFit$d
         ps_result <- pFit$s
