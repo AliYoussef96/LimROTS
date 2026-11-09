@@ -298,6 +298,9 @@ LimROTS_microb <- function(
             pseudocount = FALSE
         )
 
+        relative_abundance <- as.matrix(
+            SummarizedExperiment::assay(tse, "relabundance")
+        )
 
         if (is_winsor) {
             if (!is.numeric(outlier_pct) || length(outlier_pct) != 1L ||
