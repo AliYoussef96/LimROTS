@@ -42,7 +42,7 @@
 #'   \item \code{ztable}: Matrix of z-scores for all evaluated parameters.
 #' }
 #'
-#' @importFrom cli cli_progress_bar cli_progress_update cli_progress_done
+#' @importFrom progress progress_bar
 #'
 #'
 Optimizing <- function(niter, K, N, D, S, pD, pS) {
@@ -68,7 +68,8 @@ Optimizing <- function(niter, K, N, D, S, pD, pS) {
     reprotable.sd <- matrix(nrow = length(ssq) + 1, ncol = length(N))
     colnames(reprotable.sd) <- N
     row.names(reprotable.sd) <- c(ssq, "slr")
-    progress_id <- cli_progress_bar("Optimizing parameters", total = length(ssq) + 2)
+    pb <- progress::progress_bar$new(format = "Optimizing [:bar] :percent | ETA: :eta", 
+            total = length(ssq) + 1, clear = FALSE)
     for (i in seq_len(length(ssq))) {
         overlaps <- matrix(0, nrow = niter, ncol = length(N))
         overlaps.P <- matrix(0, nrow = niter, ncol = length(N))
@@ -81,7 +82,7 @@ Optimizing <- function(niter, K, N, D, S, pD, pS) {
         reprotable.sd[i, ] <- sqrt(rowSums((t(cResults[["overlaps"]]) -
             reprotable[i, ])^2) /
             (nrow(cResults[["overlaps"]]) - 1))
-        cli_progress_update(id = progress_id)
+        pb$tick()
     }
     i <- length(ssq) + 1
     overlaps <- matrix(0, nrow = niter, ncol = length(N))
@@ -95,7 +96,6 @@ Optimizing <- function(niter, K, N, D, S, pD, pS) {
     reprotable.sd[i, ] <- sqrt(rowSums((t(cResults[["overlaps"]]) -
         reprotable[i, ])^2) /
         (nrow(cResults[["overlaps"]]) - 1))
-    cli_progress_update(id = progress_id)
     ztable <- (reprotable - reprotable.P) / reprotable.sd
     sel <- which(ztable == max(ztable[is.finite(ztable)]), arr.ind = TRUE)
     if (length(sel) > 2) {
@@ -114,8 +114,8 @@ Optimizing <- function(niter, K, N, D, S, pD, pS) {
     Z <- ztable[sel[1], sel[2]]
     rm(reprotable, D, S, overlaps, overlaps.P, cResults, reprotable.P, 
                                                             reprotable.sd)
+    pb$tick()                                                        
     gc()
-    cli_progress_done(id = progress_id)
     return(list(a1 = a1, a2 = a2, k = k, R = R, Z = Z, ztable = ztable))
 }
 
