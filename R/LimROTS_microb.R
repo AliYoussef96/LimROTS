@@ -168,7 +168,6 @@ LimROTS_microb <- function(
         group = group,
         meta.info = meta.info,
         pSamples = list_boot_perm[["perm_Samples"]],
-        model = model,
         pairwise_contrasts = pairwise_contrasts
     )
 
@@ -222,7 +221,6 @@ LimROTS_microb <- function(
         robust = robust,
         a1 = a1, a2 = a2,
         pairwise_contrasts = pairwise_contrasts,
-        model = model,
         pD = pD, pS = pS
     )
 
@@ -423,8 +421,8 @@ LimROTS_microb <- function(
 #' statistics `pD`, empirical p-values `p_value`, FDR estimates `FDR`,
 #' corrected log-fold changes `corrected.logfc`, q-values `q_values`, and
 #' BH-adjusted p-values `BH.pvalue`.
-.final_fit <- function(data, meta.info, group, formula.str, trend, robust,
- a1, a2, pairwise_contrasts, model,
+.final_fit_microb <- function(data, meta.info, group, formula.str, trend, robust,
+ a1, a2, pairwise_contrasts,
     pD , pS) {
         # Fit the limma model on the original data and compute statistics, p-values, and FDR.
         fit <- fit_original_microb(
@@ -434,8 +432,7 @@ LimROTS_microb <- function(
             formula.str = formula.str,
             trend = trend,
             robust = robust,
-            pairwise_contrasts = pairwise_contrasts,
-            model = model
+            pairwise_contrasts = pairwise_contrasts
         )
 
         d <- fit$d / (a1 + a2 * fit$s)
