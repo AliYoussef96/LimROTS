@@ -165,7 +165,9 @@ LimROTS <- function(x,
         pSamples = list_boot_perm[["perm_Samples"]],
         correlation_block = correlation_block,
         model = model,
-        pairwise_contrasts = pairwise_contrasts
+        pairwise_contrasts = pairwise_contrasts,
+        trend = trend,
+        robust = robust
     )
 
     row_length <- nrow(as.matrix(data))

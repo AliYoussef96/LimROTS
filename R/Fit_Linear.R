@@ -44,7 +44,9 @@ Boot_parallel <- function(BPPARAM = NULL,
                           pSamples,
                           correlation_block,
                           model,
-                          pairwise_contrasts) {
+                          pairwise_contrasts,
+                          trend,
+                          robust) {
     if (is.null(BPPARAM)) {
         if (.Platform$OS.type == "windows") {
             BPPARAM <- SnowParam(workers = 2)
@@ -68,23 +70,15 @@ Boot_parallel <- function(BPPARAM = NULL,
         pSamples = pSamples,
         correlation_block = correlation_block,
         model = model,
-        pairwise_contrasts = pairwise_contrasts
+        pairwise_contrasts = pairwise_contrasts,
+        trend = trend,
+        robust = robust
     )
-    # export_funcs <- list(fit_bootstrap = fit_bootstrap,
-    #                      fit_permutation = fit_permutation,
-    #                      .Limma_bootstrap = .Limma_bootstrap,
-    #                      .Dream_bootstrap  = .Dream_bootstrap,
-    #                      .generate_data_for_fit = .generate_data_for_fit,
-    #                      .Limma_permutating = .Limma_permutating,
-    #                      .Dream_permutating = .Dream_permutating)
+
     for (name in names(export_vars)) {
         assign(name, export_vars[[name]])
     }
-    # for (name in names(export_funcs)) {
-    #     assign(name, export_funcs[[name]])
-    # }
-    
-   
+
     results_list <- bplapply(seq_len(nrow(samples)), function(i) {
         
         samples.R <- split(samples[i, ], meta.info[samples[i, ], group])
@@ -102,7 +96,9 @@ Boot_parallel <- function(BPPARAM = NULL,
             formula.str = formula.str,
             correlation_block = correlation_block,
             model = model,
-            pairwise_contrasts = pairwise_contrasts
+            pairwise_contrasts = pairwise_contrasts,
+            trend = trend,
+            robust = robust
         )
         d_result <- fit$d
         s_result <- fit$s
@@ -114,7 +110,9 @@ Boot_parallel <- function(BPPARAM = NULL,
             formula.str = formula.str,
             correlation_block = correlation_block,
             model = model,
-            pairwise_contrasts = pairwise_contrasts
+            pairwise_contrasts = pairwise_contrasts,
+            trend = trend,
+            robust = robust
         )
         pd_result <- pFit$d
         ps_result <- pFit$s
