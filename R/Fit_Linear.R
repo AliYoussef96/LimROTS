@@ -181,12 +181,17 @@ fit_original <- function(x, group, meta.info, formula.str, trend, robust,
                           correlation_block, model,
                           pairwise_contrasts) {
     if(model == "limma"){
-        return(.Limma_fit_original(x = x, group = group, meta.info = meta.info, formula.str = formula.str, 
-        correlation_block = correlation_block, pairwise_contrasts = pairwise_contrasts,
+        return(.Limma_fit_original(x = x, group = group, 
+        meta.info = meta.info, formula.str = formula.str, 
+        correlation_block = correlation_block, 
+        pairwise_contrasts = pairwise_contrasts,
         trend = trend, robust = robust ))
+
     }else if (model == "dream") {
-        return(.Dream_fit_original(x = x, group = group, meta.info = meta.info, formula.str = formula.str, 
-        correlation_block = correlation_block, pairwise_contrasts = pairwise_contrasts,
+        return(.Dream_fit_original(x = x, group = group, 
+        meta.info = meta.info, formula.str = formula.str, 
+        correlation_block = correlation_block, 
+        pairwise_contrasts = pairwise_contrasts,
         trend = trend, robust = robust ))
     }else{
         stop("Invalid model specified. Choose either 'limma' or 'dream'.")
@@ -392,13 +397,20 @@ fit_original <- function(x, group, meta.info, formula.str, trend, robust,
 
 fit_bootstrap <- function(x, group, meta.info, formula.str, 
                             correlation_block, model,
-                            pairwise_contrasts) {
+                            trend , robust, pairwise_contrasts) {
     if(model == "limma"){
-        return(.Limma_bootstrap(x, group, meta.info, formula.str, 
-        correlation_block, pairwise_contrasts))
+        return(.Limma_bootstrap(x = x, group = group, 
+        meta.info = meta.info, formula.str = formula.str, 
+        correlation_block = correlation_block, 
+        pairwise_contrasts = pairwise_contrasts, 
+        trend = trend, robust = robust))
+
     }else if (model == "dream") {
-        return(.Dream_bootstrap(x, group, meta.info, formula.str, 
-        correlation_block, pairwise_contrasts))
+        return(.Dream_bootstrap(x = x, group = group, 
+        meta.info = meta.info, formula.str = formula.str, 
+        correlation_block = correlation_block, 
+        pairwise_contrasts = pairwise_contrasts , 
+        trend = trend, robust = robust))
     }else{
         stop("Invalid model specified. Choose either 'limma' or 'dream'.")
     }
@@ -425,7 +437,7 @@ fit_bootstrap <- function(x, group, meta.info, formula.str,
 #' errors `s`.
 .Limma_bootstrap <-
     function(x, group, meta.info, formula.str,
-             correlation_block , pairwise_contrasts) {
+    trend , robust, correlation_block , pairwise_contrasts) {
 
         
         ### Generate combined data and covariates for model fitting
@@ -459,7 +471,7 @@ fit_bootstrap <- function(x, group, meta.info, formula.str,
 
         ### Fit the contrasts and apply empirical Bayes moderation
         fit2 <- limma::contrasts.fit(fit, cont_matrix)
-        fit.ebayes <- limma::eBayes(fit2, trend = FALSE, robust = FALSE)
+        fit.ebayes <- limma::eBayes(fit2, trend = trend, robust = robust)
 
         d_values <- setNames(
             abs(as.numeric(fit.ebayes[["coefficients"]])),
@@ -503,7 +515,7 @@ fit_bootstrap <- function(x, group, meta.info, formula.str,
 #' @return A list containing absolute feature statistics `d` and standard
 #' errors `s`.
 .Dream_bootstrap <- function(x, group, meta.info, formula.str,
-             correlation_block, pairwise_contrasts) {
+             trend , robust, correlation_block, pairwise_contrasts) {
 
         ### Generate combined data and covariates for model fitting
         data_for_fit <- .generate_data_for_fit(x = x, meta.info = meta.info, correlation_block = correlation_block)
@@ -523,7 +535,7 @@ fit_bootstrap <- function(x, group, meta.info, formula.str,
             BPPARAM = BiocParallel::SerialParam()
         )
         fit.ebayes <- variancePartition::eBayes(
-            fit, trend = FALSE, robust = FALSE
+            fit, trend = trend, robust = robust
         )
         d_values <- variancePartition::topTable(
             fit.ebayes,
@@ -647,13 +659,20 @@ fit_bootstrap <- function(x, group, meta.info, formula.str,
 
 fit_permutation <- function(x, group, meta.info, formula.str,
                              correlation_block, model,
-                             pairwise_contrasts) {
+                             pairwise_contrasts , trend , robust) {
     if(model == "limma"){
-        return(.Limma_permutating(x, group, meta.info, formula.str, 
-        correlation_block, pairwise_contrasts))
+        return(.Limma_permutating(x = x, group = group, 
+        meta.info = meta.info, formula.str = formula.str, 
+        correlation_block = correlation_block, 
+        pairwise_contrasts = pairwise_contrasts, 
+        trend = trend, robust = robust))
+
     }else if (model == "dream") {
-        return(.Dream_permutating(x, group, meta.info, formula.str, 
-        correlation_block, pairwise_contrasts))
+        return(.Dream_permutating(x = x, group = group, 
+        meta.info = meta.info, formula.str = formula.str, 
+        correlation_block = correlation_block, 
+        pairwise_contrasts = pairwise_contrasts, 
+        trend = trend, robust = robust))
     }else{
         stop("Invalid model specified. Choose either 'limma' or 'dream'.")
     }
@@ -679,7 +698,7 @@ fit_permutation <- function(x, group, meta.info, formula.str,
 #' @return A list containing absolute feature statistics `d` and standard
 #' errors `s`.
 .Limma_permutating <- function(x, group, meta.info, formula.str,
-                             correlation_block, pairwise_contrasts) {
+                             trend , robust, correlation_block, pairwise_contrasts) {
 
     ### Generate combined data and covariates for model fitting
     combined_data <- x
@@ -713,7 +732,7 @@ fit_permutation <- function(x, group, meta.info, formula.str,
 
     ### Fit the contrasts and apply empirical Bayes moderation
     fit2 <- limma::contrasts.fit(fit, cont_matrix)
-    fit.ebayes <- limma::eBayes(fit2, trend = FALSE, robust = FALSE)
+    fit.ebayes <- limma::eBayes(fit2, trend = trend, robust = robust)
 
     d_values <- setNames(
         abs(as.numeric(fit.ebayes[["coefficients"]])),
@@ -754,7 +773,7 @@ fit_permutation <- function(x, group, meta.info, formula.str,
 #' @return A list containing absolute feature statistics `d` and standard
 #' errors `s`.
 .Dream_permutating <- function(x, group, meta.info, formula.str,
-            correlation_block, pairwise_contrasts) {
+            correlation_block, pairwise_contrasts, trend, robust) {
 
     ### Generate combined data and covariates for model fitting
     combined_data <- x
@@ -771,7 +790,7 @@ fit_permutation <- function(x, group, meta.info, formula.str,
         BPPARAM = BiocParallel::SerialParam()
     )
     fit.ebayes <- variancePartition::eBayes(
-        fit, trend = FALSE, robust = FALSE
+        fit, trend = trend, robust = robust
     )
     d_values <- variancePartition::topTable(fit.ebayes,
         coef = pairwise_contrasts,
