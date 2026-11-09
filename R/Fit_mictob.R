@@ -143,6 +143,8 @@ fit_original_microb <- function(x, group, meta.info, formula.str,
     d_values <- setNames(abs(coef), rownames(fit.ebayes[["coefficients"]]))
     corrected.logfc <- setNames(coef , rownames(fit.ebayes[["coefficients"]]))
 
+    names(fit.ebayes[["s2.post"]]) <- rownames(fit[["coefficients"]])
+
     stopifnot(identical(names(fit.ebayes[["s2.post"]]) ,  
                     row.names(fit.ebayes[["stdev.unscaled"]])))
 
@@ -218,6 +220,7 @@ fit_bootstrap_microb <- function(x, group, meta.info, formula.str,
 
     d_values <- setNames(abs(coef), rownames(fit.ebayes[["coefficients"]]))
 
+    names(fit.ebayes[["s2.post"]]) <- rownames(fit[["coefficients"]])
     stopifnot(identical(names(fit.ebayes[["s2.post"]]) ,  
                     row.names(fit.ebayes[["stdev.unscaled"]])))
 
@@ -287,7 +290,8 @@ fit_permutation_microb <- function(x, group, meta.info, formula.str,
     coef <- beta - bias
 
     d_values <- setNames(abs(coef), rownames(fit.ebayes[["coefficients"]]))
-
+    
+    names(fit.ebayes[["s2.post"]]) <- rownames(fit[["coefficients"]])
     stopifnot(identical(names(fit.ebayes[["s2.post"]]) ,  
                     row.names(fit.ebayes[["stdev.unscaled"]])))
 
