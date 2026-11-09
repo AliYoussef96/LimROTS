@@ -108,7 +108,7 @@ SanityChecK <- function(x,
 
     ### Checks for the model type and random effects in the formula
     .check_formula(formula.str = formula.str, model = model, 
-    correlation_block = correlation_block , meta.info = meta.info)
+    correlation_block = correlation_block , meta.info = meta.info , group = group)
 
     ### Final checks and sorting of meta.info and data based on the group column
     meta.info <- meta.info[order(meta.info[,group]), , drop = FALSE]
@@ -390,7 +390,7 @@ SanityChecK <- function(x,
 #' @return `NULL` if all checks pass; errors are raised for invalid formulas or
 #' correlation-block specifications.
 .check_formula <- function(formula.str, model, correlation_block,
-meta.info) {
+meta.info , group) {
 
         #### Check if correlation_block is provided and is a single character string
         if(!is.null(correlation_block)){
