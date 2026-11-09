@@ -126,6 +126,7 @@ LimROTS_survival <- function(x,
     formula.str,
     competing_risks = FALSE) {
     
+    cli_alert_info("Validating survival-analysis inputs.")
     formula.str <- gsub("\\s+", "",formula.str)
     ### Perform sanity checks on the input parameters and data.
     SanityChecK.list <- SanityChecK(
@@ -150,12 +151,14 @@ LimROTS_survival <- function(x,
     
 
     ### Generate bootstrap and permutation samples.
+    cli_alert_info("Generating survival bootstrap and permutation samples.")
     list_boot_perm <- .generate_bootstrap_permutations_survival(
         niter_2 = 2 * niter,
         meta.info = meta.info
     )
 
     ### Run the bootstrap and permutation fits in parallel.
+    cli_alert_info("Fitting survival bootstrap and permutation replicates.")
     results_list <- Boot_parallel_survival(
         BPPARAM = BPPARAM,
         samples = list_boot_perm[["boot_Samples"]],
@@ -165,6 +168,7 @@ LimROTS_survival <- function(x,
         pSamples = list_boot_perm[["perm_Samples"]],
         competing_risks = competing_risks
     )
+    cli_alert_success("Survival bootstrap and permutation fits complete.")
 
     row_length <- nrow(as.matrix(data))
     col_length <- nrow(list_boot_perm[["boot_Samples"]])
@@ -181,22 +185,23 @@ LimROTS_survival <- function(x,
     }
 
     if (any(vapply(list(D, S, pD, pS), anyNA, logical(1)))) {
-        stop("D, S, pD, and pS must not contain NA values.")
+        cli_abort("D, S, pD, and pS must not contain NA values.")
     }
     
     if (!all(vapply(list(S, pD, pS), function(x) identical(dim(x), dim(D)), logical(1)))) {
-        stop("D, S, pD, and pS must all have identical dimensions.")
+        cli_abort("D, S, pD, and pS must all have identical dimensions.")
     }
 
     if (any(vapply(list(D, S, pD, pS), function(x) any(!is.finite(x)), logical(1)))) {
-    stop("D, S, pD, and pS must not contain NA, NaN, Inf, or -Inf.")
+    cli_abort("D, S, pD, and pS must not contain NA, NaN, Inf, or -Inf.")
     }
 
     if (any(vapply(list(D, S, pD, pS), function(x) any(x < 0), logical(1)))) {
-    stop("D, S, pD, and pS must contain only non-negative values.")
+    cli_abort("D, S, pD, and pS must contain only non-negative values.")
     }
 
     ### Optimize parameters unless both values were supplied.
+    cli_alert_info("Optimizing survival reproducibility parameters.")
     optimized.parameters <-
         Optimizing(niter = niter, K = K, D = D, S = S, pD = pD, pS = pS)
     a1 <- optimized.parameters[["a1"]]
@@ -205,9 +210,11 @@ LimROTS_survival <- function(x,
     R <- optimized.parameters[["R"]]
     Z <- optimized.parameters[["Z"]]
     ztable <- optimized.parameters[["ztable"]]
+    cli_alert_success("Survival parameter optimization complete.")
 
 
     ### Fit the survival model on the original data.
+    cli_alert_info("Fitting the final survival model and calculating inference.")
     fit_survival_result <- .final_fit_survival(
         data = data,
         meta.info = meta.info,
@@ -219,6 +226,7 @@ LimROTS_survival <- function(x,
         pS = pS,
         verbose = verbose
     )
+    cli_alert_success("Final survival inference complete.")
 
     d = fit_survival_result[["d"]]
     #pD = fit_limma[["pD"]]
@@ -240,6 +248,7 @@ LimROTS_survival <- function(x,
         BH.pvalue = BH.pvalue,
         a1 = a1, a2 = a2, k = k, Z = Z, R = R, ztable = ztable, pD = pD
     )
+    cli_alert_success("LimROTS survival analysis complete.")
 }
 
 #' Generate Survival Bootstrap and Permutation Samples
@@ -317,7 +326,7 @@ LimROTS_survival <- function(x,
             lambda = seq(0.01, 0.95, 0.01)
         ),
         error = function(e) {
-            message("qvalue() failed (return NULL): ", e$message)
+            cli_alert_warning("qvalue() failed (return NULL): {e$message}")
             NULL
         }
     )

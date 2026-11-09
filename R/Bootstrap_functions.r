@@ -27,6 +27,7 @@
 #' @return A character matrix with `niter` rows and one column per sample.
 #' Each row is a bootstrap replicate containing resampled sample names.
 bootstrapS <- function(niter, meta.info, group) {
+    cli_alert_info("Generating group-wise bootstrap samples.")
     groups <- meta.info[, group]
     bootsamples <- matrix(nrow = niter, ncol = length(groups))
     for (i in seq_len(niter)) {
@@ -36,6 +37,7 @@ bootstrapS <- function(niter, meta.info, group) {
                 sample(g.names, length(g.names), replace = TRUE)
         }
     }
+    cli_alert_success("Group-wise bootstrap samples generated.")
     return(bootsamples)
 }
 
@@ -65,6 +67,7 @@ bootstrapS <- function(niter, meta.info, group) {
 #' @return A character matrix with `niter` rows and one column per sample.
 #' Each row is a bootstrap replicate containing resampled sample names.
 bootstrapSamples_limRots <- function(niter, meta.info, group, strata) {
+    cli_alert_info("Generating stratified group-wise bootstrap samples.")
     labels <- meta.info[, group]
     samples <- matrix(nrow = niter, ncol = length(labels))
 
@@ -75,7 +78,7 @@ bootstrapSamples_limRots <- function(niter, meta.info, group, strata) {
 
     meta.info.factors <- meta.info.factors[meta.info.factors %in% strata]
 
-    message("Strata used: ", paste(meta.info.factors, collapse = ", "))
+    cli_alert_info("Strata used: {paste(meta.info.factors, collapse = ', ')}")
 
     for (i in seq_len(niter)) {
         for (label_i in unique(labels)) {
@@ -99,6 +102,7 @@ bootstrapSamples_limRots <- function(niter, meta.info, group, strata) {
             samples[i, pos] <- sampled_indices
         }
     }
+    cli_alert_success("Stratified bootstrap samples generated.")
     return(samples)
     }
 
@@ -136,24 +140,28 @@ bootstrapSamples_limRots_block <- function(
     correlation_block
 ) {
     
-    message(
-        "Using correlation blocks for bootstrap sampling. ",
-        "All samples sharing the same block ID will be sampled together. ",
-        "No stratification will be applied."
+    cli_alert_info(
+        paste0(
+            "Using correlation blocks for bootstrap sampling. All samples ",
+            "sharing a block ID will be sampled together; no stratification ",
+            "will be applied."
+        )
     )
     
     groups <- as.character(meta.info[, group])
     blocks <- as.character(meta.info[, correlation_block])
     
     if (anyNA(blocks)) {
-        stop("The correlation-block column contains missing values.")
+        cli_abort("The correlation-block column contains missing values.")
     }
     
     # Every block must contain exactly one sample from each group.
     if (any(table(blocks, groups) != 1L)) {
-        stop(
-            "Every correlation block must contain exactly one sample ",
-            "from each of the two groups."
+        cli_abort(
+            paste0(
+                "Every correlation block must contain exactly one sample ",
+                "from each of the two groups."
+            )
         )
     }
     
@@ -189,9 +197,11 @@ bootstrapSamples_limRots_block <- function(
             # Defensive check: all block-group combinations
             # should have corresponding samples.
             if (anyNA(matched_positions)) {
-                stop(
-                    "A sample could not be found for one or more ",
-                    "block-group combinations."
+                cli_abort(
+                    paste0(
+                        "A sample could not be found for one or more ",
+                        "block-group combinations."
+                    )
                 )
             }
             
@@ -200,6 +210,7 @@ bootstrapSamples_limRots_block <- function(
         }
     }
     
+    cli_alert_success("Correlation-block bootstrap samples generated.")
     return(samples)
 }
 
@@ -227,6 +238,7 @@ bootstrapSamples_limRots_block <- function(
 #' with the `group` labels permuted within strata.
 permutationSamples_limRots <- function(niter, meta.info, group, strata) {
 
+    cli_alert_info("Generating stratified permutation samples.")
     meta.info.factors <- names(meta.info)[sapply(meta.info, 
                                                 function(x) is.character(x) || is.factor(x))]
     meta.info.factors <-
@@ -234,7 +246,7 @@ permutationSamples_limRots <- function(niter, meta.info, group, strata) {
 
     meta.info.factors <- meta.info.factors[meta.info.factors %in% strata]
 
-    message("Strata used: ", paste(meta.info.factors, collapse = ", "))
+    cli_alert_info("Strata used: {paste(meta.info.factors, collapse = ', ')}")
     ## Create one combined stratum when multiple variables are supplied
     stratum <- interaction(
         meta.info[, meta.info.factors, drop = FALSE],
@@ -258,5 +270,6 @@ permutationSamples_limRots <- function(niter, meta.info, group, strata) {
         shuffle_df[[group]] <- permuted_group
         pSamples[[i]] <- shuffle_df
     }
+    cli_alert_success("Stratified permutation samples generated.")
     return(pSamples)
 }

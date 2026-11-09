@@ -46,6 +46,7 @@ BugReports: https://github.com/AliYoussef96/LimROTS/issues
 VignetteBuilder: 
     knitr 
 Imports: 
+    cli,
     limma,
     stringr,
     qvalue,

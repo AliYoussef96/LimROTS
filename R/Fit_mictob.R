@@ -39,13 +39,13 @@ parallel_microb <- function(BPPARAM = NULL,
     if (is.null(BPPARAM)) {
         if (.Platform$OS.type == "windows") {
             BPPARAM <- SnowParam(workers = 2)
-            message("Using SnowParam (Windows) with two workers.")
+            cli_alert_info("Using SnowParam (Windows) with two workers.")
         } else {
             BPPARAM <- MulticoreParam(workers = 2)
-            message("Using MulticoreParam (Unix-like OS) with two workers.")
+            cli_alert_info("Using MulticoreParam (Unix-like OS) with two workers.")
         }
     } else {
-        message("Using provided parallel backend BPPARAM.")
+        cli_alert_info("Using the provided parallel backend.")
     }
    
     results_list <- bplapply(seq_len(nrow(samples)), function(i) {
@@ -115,7 +115,7 @@ fit_original_microb <- function(x, group, meta.info, formula.str,
             trend, robust, pairwise_contrasts){
     combined_data <- x
     if(!identical(colnames(combined_data), row.names(meta.info))){
-        stop("Column names of the data matrix must match row names of meta.info.")
+        cli_abort("Column names of the data matrix must match row names of meta.info.")
     }
     ### Create the design matrix based on the provided formula and covariates
     design.matrix <- model.matrix(formula(formula.str), data = meta.info)

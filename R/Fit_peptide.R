@@ -37,13 +37,13 @@ parallel_peptide <- function(BPPARAM = NULL,
   if (is.null(BPPARAM)) {
     if (.Platform$OS.type == "windows") {
       BPPARAM <- SnowParam(workers = 2)
-      message("Using SnowParam (Windows) with two workers.")
+      cli_alert_info("Using SnowParam (Windows) with two workers.")
     } else {
       BPPARAM <- MulticoreParam(workers = 2)
-      message("Using MulticoreParam (Unix-like OS) with two workers.")
+      cli_alert_info("Using MulticoreParam (Unix-like OS) with two workers.")
     }
   } else {
-    message("Using provided parallel backend BPPARAM.")
+    cli_alert_info("Using the provided parallel backend.")
   }
   if (inherits(BPPARAM, "SnowParam")) {
     BPPARAM$exportglobals <- FALSE
@@ -168,7 +168,7 @@ fit_original_peptide <- function(x, group, meta.info, model_formula,
   peptide_metadata <- as.data.table(peptide_metadata)
   
   if (anyDuplicated(peptide_metadata$peptide_id)) {
-    stop("peptide_metadata contains duplicated peptide_id values.")
+    cli_abort("peptide_metadata contains duplicated peptide_id values.")
   }
   
   long_data[
@@ -184,11 +184,11 @@ fit_original_peptide <- function(x, group, meta.info, model_formula,
   covariates.p <- as.data.table(covariates.p)
   
   if (anyDuplicated(covariates.p[["sample_id"]])) {
-    stop("covariates.p contains duplicated sample_id values.")
+    cli_abort("covariates.p contains duplicated sample_id values.")
   }
   
   if (!all(long_data[["sample_id"]] %in% covariates.p[["sample_id"]])) {
-    stop("Some sample IDs in long_data are missing from covariates.p.")
+    cli_abort("Some sample IDs in long_data are missing from covariates.p.")
   }
   
   covariate_columns <- setdiff(
@@ -202,7 +202,7 @@ fit_original_peptide <- function(x, group, meta.info, model_formula,
   )
   
   if (length(duplicated_columns) > 0) {
-    stop(
+    cli_abort(
       paste0(
         "These columns already exist in long_data: ",
         paste(duplicated_columns, collapse = ", ")
@@ -358,7 +358,7 @@ fit_bootstrap_peptide <- function(x, group, meta.info, model_formula,
   peptide_metadata <- as.data.table(peptide_metadata)
   
   if (anyDuplicated(peptide_metadata$peptide_id)) {
-    stop("peptide_metadata contains duplicated peptide_id values.")
+    cli_abort("peptide_metadata contains duplicated peptide_id values.")
   }
   
   long_data[
@@ -374,11 +374,11 @@ fit_bootstrap_peptide <- function(x, group, meta.info, model_formula,
   covariates.p <- as.data.table(covariates.p)
   
   if (anyDuplicated(covariates.p[["sample_id"]])) {
-    stop("covariates.p contains duplicated sample_id values.")
+    cli_abort("covariates.p contains duplicated sample_id values.")
   }
   
   if (!all(long_data[["sample_id"]] %in% covariates.p[["sample_id"]])) {
-    stop("Some sample IDs in long_data are missing from covariates.p.")
+    cli_abort("Some sample IDs in long_data are missing from covariates.p.")
   }
   
   covariate_columns <- setdiff(
@@ -392,7 +392,7 @@ fit_bootstrap_peptide <- function(x, group, meta.info, model_formula,
   )
   
   if (length(duplicated_columns) > 0) {
-    stop(
+    cli_abort(
       paste0(
         "These columns already exist in long_data: ",
         paste(duplicated_columns, collapse = ", ")
@@ -547,7 +547,7 @@ fit_permutation_peptide <- function(x, group, meta.info, model_formula,
   peptide_metadata <- as.data.table(peptide_metadata)
   
   if (anyDuplicated(peptide_metadata$peptide_id)) {
-    stop("peptide_metadata contains duplicated peptide_id values.")
+    cli_abort("peptide_metadata contains duplicated peptide_id values.")
   }
   
   long_data[
@@ -563,11 +563,11 @@ fit_permutation_peptide <- function(x, group, meta.info, model_formula,
   covariates.p <- as.data.table(covariates.p)
   
   if (anyDuplicated(covariates.p[["sample_id"]])) {
-    stop("covariates.p contains duplicated sample_id values.")
+    cli_abort("covariates.p contains duplicated sample_id values.")
   }
   
   if (!all(long_data[["sample_id"]] %in% covariates.p[["sample_id"]])) {
-    stop("Some sample IDs in long_data are missing from covariates.p.")
+    cli_abort("Some sample IDs in long_data are missing from covariates.p.")
   }
   
   covariate_columns <- setdiff(
@@ -581,7 +581,7 @@ fit_permutation_peptide <- function(x, group, meta.info, model_formula,
   )
   
   if (length(duplicated_columns) > 0) {
-    stop(
+    cli_abort(
       paste0(
         "These columns already exist in long_data: ",
         paste(duplicated_columns, collapse = ", ")

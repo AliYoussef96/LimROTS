@@ -61,6 +61,7 @@
 #' @importFrom stats model.matrix formula p.adjust
 #' @importFrom dplyr bind_cols
 #' @importFrom qvalue empPvals qvalue
+#' @importFrom cli cli_abort cli_alert_info cli_alert_success cli_alert_warning
 #' @importFrom utils txtProgressBar setTxtProgressBar combn
 #' @importFrom BiocParallel SnowParam MulticoreParam SerialParam bplapply
 #' bpoptions bpRNGseed
@@ -125,6 +126,7 @@ LimROTS <- function(x,
     model,
     strata
     ) {
+    cli_alert_info("Validating analysis inputs.")
     ### Perform sanity checks on the input parameters and data.
     SanityChecK.list <- SanityChecK(
         x,
@@ -148,6 +150,8 @@ LimROTS <- function(x,
     group <- SanityChecK.list[["group"]]
     K <- SanityChecK.list[["K"]]
 
+    cli_alert_success("Input validation complete.")
+
     ### bootstrap and permutation samples
     list_boot_perm <- .generate_bootstrap_permutations(
         niter_2 = 2 * niter,
@@ -158,6 +162,7 @@ LimROTS <- function(x,
     )
 
     ### parallelized bootstrapping and permutation fit
+    cli_alert_info("Fitting bootstrap and permutation replicates.")
     results_list <- Boot_parallel(
         BPPARAM  = BPPARAM ,
         samples = list_boot_perm[["boot_Samples"]], 
@@ -172,6 +177,7 @@ LimROTS <- function(x,
         trend = trend,
         robust = robust
     )
+    cli_alert_success("Bootstrap and permutation fits complete.")
 
     row_length <- nrow(as.matrix(data))
     col_length <- nrow(list_boot_perm[["boot_Samples"]])
@@ -188,23 +194,26 @@ LimROTS <- function(x,
         pS[, i] <- results_list[[i]][["pdps"]][["ps_result"]]
     }
 
+    cli_alert_info("Validating replicate statistics.")
     if (any(vapply(list(D, S, pD, pS), anyNA, logical(1)))) {
-        stop("D, S, pD, and pS must not contain NA values.")
+        cli_abort("D, S, pD, and pS must not contain NA values.")
     }
     
     if (!all(vapply(list(S, pD, pS), function(x) identical(dim(x), dim(D)), logical(1)))) {
-        stop("D, S, pD, and pS must all have identical dimensions.")
+        cli_abort("D, S, pD, and pS must all have identical dimensions.")
     }
 
     if (any(vapply(list(D, S, pD, pS), function(x) any(!is.finite(x)), logical(1)))) {
-    stop("D, S, pD, and pS must not contain NA, NaN, Inf, or -Inf.")
+    cli_abort("D, S, pD, and pS must not contain NA, NaN, Inf, or -Inf.")
     }
     
     if (any(vapply(list(D, S, pD, pS), function(x) any(x < 0), logical(1)))) {
-    stop("D, S, pD, and pS must contain only non-negative values.")
+    cli_abort("D, S, pD, and pS must contain only non-negative values.")
     }
+    cli_alert_success("Replicate statistics validated.")
 
     ### optimize parameters
+    cli_alert_info("Optimizing reproducibility parameters.")
     optimized.parameters <-
         Optimizing(niter = niter, K = K, D = D, S = S, pD = pD, pS = pS)
     a1 <- optimized.parameters[["a1"]]
@@ -213,9 +222,11 @@ LimROTS <- function(x,
     R <- optimized.parameters[["R"]]
     Z <- optimized.parameters[["Z"]]
     ztable <- optimized.parameters[["ztable"]]
+    cli_alert_success("Parameter optimization complete.")
 
     ### fit limma on the original data
 
+    cli_alert_info("Fitting the final model and calculating inference.")
     fit_limma <- .final_fit(
         data = data,
         meta.info = meta.info,
@@ -229,6 +240,7 @@ LimROTS <- function(x,
         model = model,
         pD = pD, pS = pS
     )
+    cli_alert_success("Final model fit and inference complete.")
     d = fit_limma[["d"]]
     #pD = fit_limma[["pD"]]
     p_value = fit_limma[["p_value"]]
@@ -239,6 +251,7 @@ LimROTS <- function(x,
 
     ### generate output
 
+    cli_alert_info("Adding results to the output object.")
     LimROTS.output <- .generate_output(
         x = x,
         data = data,
@@ -250,7 +263,9 @@ LimROTS <- function(x,
         BH.pvalue = BH.pvalue,
         a1 = a1, a2 = a2, k = k, Z = Z, R = R, ztable = ztable, pD = pD
     )
+    cli_alert_success("Results added to the output object.")
     
+    cli_alert_success("LimROTS analysis complete.")
     return(LimROTS.output)
 }
 
@@ -280,7 +295,7 @@ LimROTS <- function(x,
 
     if(!is.null(correlation_block)){
         
-        message("..........")
+        cli_alert_info("Generating bootstrap and permutation samples within correlation blocks.")
         
         samples <- bootstrapSamples_limRots_block(
             niter = niter_2,
@@ -292,13 +307,13 @@ LimROTS <- function(x,
         pSamples <- permutationSamples_limRots(niter = niter_2, meta.info = meta.info, 
                                    group = group, strata = correlation_block)
     
+        cli_alert_success("Bootstrap and permutation samples generated.")
         return(list(boot_Samples = samples, perm_Samples = pSamples))
         
     }else if(is.null(correlation_block)){
-        message("..........")
         
         if(!is.null(strata)){
-            message("..........")
+            cli_alert_info("Generating bootstrap and permutation samples within strata.")
             
             samples <- bootstrapSamples_limRots(
                 niter = niter_2,
@@ -309,10 +324,11 @@ LimROTS <- function(x,
             pSamples <- permutationSamples_limRots(niter = niter_2, meta.info = meta.info, 
                                                    group = group, strata = strata)
             
+            cli_alert_success("Bootstrap and permutation samples generated.")
             return(list(boot_Samples = samples, perm_Samples = pSamples))
             
         }else if(is.null(strata)){
-            message("..........")
+            cli_alert_info("Generating bootstrap and permutation samples.")
             
             samples <- bootstrapS(niter = niter_2, meta.info = meta.info, group = group)
 
@@ -328,6 +344,7 @@ LimROTS <- function(x,
                 pSamples[[i]] <- shuffle_df
             }
             
+            cli_alert_success("Bootstrap and permutation samples generated.")
             return(list(boot_Samples = samples, perm_Samples = pSamples))
             
         }
@@ -399,7 +416,7 @@ LimROTS <- function(x,
                         lambda = seq(0.01, 0.95, 0.01))
             },
             error = function(e) {
-                message("qvalue() failed (return NULL): ", e$message)
+                cli_alert_warning("qvalue() failed (return NULL): {e$message}")
                 NULL
             }
         )
@@ -458,14 +475,12 @@ LimROTS <- function(x,
     new_rowData <- new_rowData[match(rownames(x), 
                                             rownames(new_rowData)), ]
     if (!identical(rownames(new_rowData), rownames(x))) {
-        stop("Can not add the LimROTS results to the 
-                                                SummarizedExperiment")
+        cli_abort("Cannot add the LimROTS results to the SummarizedExperiment.")
     }
     correct.order <- rownames(x)
     rowData(x) <- cbind(rowData(x), new_rowData)
     if (!identical(correct.order, rownames(x))) {
-        stop("Can not add the LimROTS results to the 
-                                                SummarizedExperiment")
+        cli_abort("Cannot add the LimROTS results to the SummarizedExperiment.")
     }
     metadata(x) <- c(metadata(x), list(
         a1 = a1,

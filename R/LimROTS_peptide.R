@@ -57,6 +57,7 @@ LimROTS_peptide <- function(x,
                             strata){
   
   ### Perform sanity checks on the input parameters and data.
+  cli_alert_info("Validating peptide analysis inputs.")
   SanityChecK.list <- SanityChecK(
     x,
     assay.type = assay.type,
@@ -78,6 +79,7 @@ LimROTS_peptide <- function(x,
   data <- SanityChecK.list[["data"]]
   group <- SanityChecK.list[["group"]]
   K <- SanityChecK.list[["K"]]
+  cli_alert_success("Peptide analysis inputs validated.")
   
   ### Extra Perform sanity checks on the peptide_metadata
   
@@ -85,7 +87,7 @@ LimROTS_peptide <- function(x,
   formula_variables <- all.vars(formula_variables)
   
   if (formula_variables[1] != group) {
-    stop(
+    cli_abort(
       paste0(
         "The first variable after '~' must be the group variable: ",
         group
@@ -100,34 +102,34 @@ LimROTS_peptide <- function(x,
   
   model_formula <- as.formula(formula.str)
   
-  message("Using the following formula for the model: ", formula.str)
+  cli_alert_info("Using the following formula for the model: {formula.str}")
   
   #============================================================
   # Check the intensity matrix
   #============================================================
   
   if (!is.matrix(data)) {
-    stop("data must be a matrix.")
+    cli_abort("data must be a matrix.")
   }
   
   if (!is.numeric(data)) {
-    stop("data must contain numeric intensities.")
+    cli_abort("data must contain numeric intensities.")
   }
   
   if (is.null(rownames(data))) {
-    stop("data must have peptide IDs as row names.")
+    cli_abort("data must have peptide IDs as row names.")
   }
   
   if (is.null(colnames(data))) {
-    stop("data must have sample IDs as column names.")
+    cli_abort("data must have sample IDs as column names.")
   }
   
   if (anyDuplicated(rownames(data))) {
-    stop("Peptide IDs in data must be unique.")
+    cli_abort("Peptide IDs in data must be unique.")
   }
   
   if (anyDuplicated(colnames(data))) {
-    stop("Sample IDs in data must be unique.")
+    cli_abort("Sample IDs in data must be unique.")
   }
   #============================================================
   # Check peptide metadata
@@ -139,19 +141,19 @@ LimROTS_peptide <- function(x,
       colnames(peptide_metadata)
     )
   ) {
-    stop("peptide_metadata must contain peptide_id and protein_id.")
+    cli_abort("peptide_metadata must contain peptide_id and protein_id.")
   }
   
   if (anyNA(peptide_metadata[["peptide_id"]])) {
-    stop("peptide_metadata contains missing peptide IDs.")
+    cli_abort("peptide_metadata contains missing peptide IDs.")
   }
   
   if (anyNA(peptide_metadata[["protein_id"]])) {
-    stop("peptide_metadata contains missing protein IDs.")
+    cli_abort("peptide_metadata contains missing protein IDs.")
   }
   
   if (anyDuplicated(peptide_metadata[["peptide_id"]])) {
-    stop("peptide IDs in peptide_metadata must be unique.")
+    cli_abort("peptide IDs in peptide_metadata must be unique.")
   }
   
   if (
@@ -160,7 +162,7 @@ LimROTS_peptide <- function(x,
       peptide_metadata[["peptide_id"]]
     )
   ) {
-    stop("Peptide IDs do not align between data and peptide_metadata.")
+    cli_abort("Peptide IDs do not align between data and peptide_metadata.")
   }
   
   
@@ -168,19 +170,19 @@ LimROTS_peptide <- function(x,
   # Check sample metadata
   #============================================================
   if (anyNA(meta.info)) {
-    stop("meta.info contains missing values.")
+    cli_abort("meta.info contains missing values.")
   }
   
   if (anyDuplicated(meta.info[["sample_id"]])) {
-    stop("sample IDs in meta.info must be unique.")
+    cli_abort("sample IDs in meta.info must be unique.")
   }
   
   if("sample_id" %in% strata) {
-    stop("sample_id should not be a column in meta.info.")
+    cli_abort("sample_id should not be a column in meta.info.")
   }
 
     if("peptide_id" %in% strata) {
-    stop("peptide_id should not be a column in meta.info.")
+    cli_abort("peptide_id should not be a column in meta.info.")
   }
 
   #============================================================
@@ -197,12 +199,13 @@ LimROTS_peptide <- function(x,
   ]
   
   if(!identical(rownames(data), peptide_metadata[["peptide_id"]])) {
-    stop("Peptide IDs do not align between data and peptide_metadata after
+    cli_abort("Peptide IDs do not align between data and peptide_metadata after
          reordering.")
   }
   
   
   ### bootstrap and permutation samples
+  cli_alert_info("Generating peptide bootstrap and permutation samples.")
   list_boot_perm <- .generate_bootstrap_permutations_peptide(
     niter_2 = 2 * niter,
     meta.info = meta.info,
@@ -212,6 +215,7 @@ LimROTS_peptide <- function(x,
   
   
   ### parallelized bootstrapping and permutation fit
+  cli_alert_info("Fitting peptide bootstrap and permutation replicates.")
   results_list <- parallel_peptide(
     BPPARAM  = BPPARAM,
     samples = list_boot_perm[["boot_Samples"]], 
@@ -223,6 +227,7 @@ LimROTS_peptide <- function(x,
     pairwise_contrasts = pairwise_contrasts,
     peptide_metadata = peptide_metadata
   )
+  cli_alert_success("Peptide bootstrap and permutation fits complete.")
 
   row_length <- nrow(as.matrix(data))
   col_length <- nrow(list_boot_perm[["boot_Samples"]])
@@ -240,22 +245,23 @@ LimROTS_peptide <- function(x,
     }
 
   if (any(vapply(list(D, S, pD, pS), anyNA, logical(1)))) {
-      stop("D, S, pD, and pS must not contain NA values.")
+      cli_abort("D, S, pD, and pS must not contain NA values.")
   }
   
   if (!all(vapply(list(S, pD, pS), function(x) identical(dim(x), dim(D)), logical(1)))) {
-      stop("D, S, pD, and pS must all have identical dimensions.")
+      cli_abort("D, S, pD, and pS must all have identical dimensions.")
   }
 
   if (any(vapply(list(D, S, pD, pS), function(x) any(!is.finite(x)), logical(1)))) {
-  stop("D, S, pD, and pS must not contain NA, NaN, Inf, or -Inf.")
+  cli_abort("D, S, pD, and pS must not contain NA, NaN, Inf, or -Inf.")
   }
 
   if (any(vapply(list(D, S, pD, pS), function(x) any(x < 0), logical(1)))) {
-  stop("D, S, pD, and pS must contain only non-negative values.")
+  cli_abort("D, S, pD, and pS must contain only non-negative values.")
   }
 
   ### optimize parameters
+  cli_alert_info("Optimizing peptide reproducibility parameters.")
   optimized.parameters <-
         Optimizing(niter = niter, K = K, D = D, S = S, pD = pD, pS = pS)
     a1 <- optimized.parameters[["a1"]]
@@ -264,7 +270,9 @@ LimROTS_peptide <- function(x,
     R <- optimized.parameters[["R"]]
     Z <- optimized.parameters[["Z"]]
     ztable <- optimized.parameters[["ztable"]]
+    cli_alert_success("Peptide parameter optimization complete.")
 
+    cli_alert_info("Fitting final peptide models and calculating inference.")
     final_peptide <- .fit_final_peptide(
         data = data,
         meta.info = meta.info,
@@ -274,6 +282,7 @@ LimROTS_peptide <- function(x,
         pairwise_contrasts = pairwise_contrasts,
         pD = pD, pS = pS, peptide_metadata = peptide_metadata
     )
+    cli_alert_success("Final peptide inference complete.")
 
     d = final_peptide[["d"]]
     #pD = final_peptide[["pD"]]
@@ -295,6 +304,7 @@ LimROTS_peptide <- function(x,
         BH.pvalue = BH.pvalue,
         a1 = a1, a2 = a2, k = k, Z = Z, R = R, ztable = ztable, pD = pD
     )
+    cli_alert_success("LimROTS peptide analysis complete.")
     
     return(LimROTS.output)
 
@@ -322,7 +332,7 @@ LimROTS_peptide <- function(x,
   
   
   if(!is.null(strata)){
-    message("..........")
+    cli_alert_info("Generating bootstrap and permutation samples within strata.")
     
     samples <- bootstrapSamples_limRots(
       niter = niter_2,
@@ -336,7 +346,7 @@ LimROTS_peptide <- function(x,
     return(list(boot_Samples = samples, perm_Samples = pSamples))
     
   }else if(is.null(strata)){
-    message("..........")
+    cli_alert_info("Generating bootstrap and permutation samples.")
     
     samples <- bootstrapS(niter = niter_2, meta.info = meta.info, group = group)
     
@@ -416,7 +426,7 @@ LimROTS_peptide <- function(x,
                         lambda = seq(0.01, 0.95, 0.01))
             },
             error = function(e) {
-                message("qvalue() failed (return NULL): ", e$message)
+                cli_alert_warning("qvalue() failed (return NULL): {e$message}")
                 NULL
             }
         )

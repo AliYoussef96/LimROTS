@@ -50,6 +50,7 @@ SanityChecK <- function(x,
         formula.str, survival, pairwise_contrasts,
         correlation_block, strata , competing_risks) {
 
+    cli_alert_info("Validating analysis inputs and metadata.")
     ### Check if x is a SummarizedExperiment and extract data and metadata
     ### and extract the assay if specified
     Check_SExp <- .Check_SummarizedExperiment(
@@ -77,14 +78,14 @@ SanityChecK <- function(x,
     ### Check if strata in meta.info and it is character or factor
     if(!is.null(strata)){
         if(!all(strata %in% colnames(meta.info))){
-            stop("'strata' must be NULL or names of a column in meta.info.")
+            cli_abort("'strata' must be NULL or names of a column in meta.info.")
         }
         if(!all(sapply(meta.info[strata], 
         function(x) is.character(x)))){
-            stop("strata' must be character")
+            cli_abort("strata' must be character")
         }
         if(group %in% strata){
-            stop("group column should not be included in strata")
+            cli_abort("group column should not be included in strata")
             }    
         }
 
@@ -92,7 +93,7 @@ SanityChecK <- function(x,
 
     ### Check if survival analysis is requested and perform additional checks
     if(survival){
-        message("Survival analysis mode activated. Performing additional checks.")
+        cli_alert_info("Survival analysis mode activated. Performing additional checks.")
         survival_check <- .check_survival(meta.info = meta.info, 
         data = data, 
         K = K, 
@@ -103,7 +104,7 @@ SanityChecK <- function(x,
       }
 
     if(!(group %in% colnames(meta.info))){
-        stop("The specified group column is not present in meta.info.")
+        cli_abort("The specified group column is not present in meta.info.")
     }
 
     ### Checks for the model type and random effects in the formula
@@ -114,12 +115,12 @@ SanityChecK <- function(x,
     meta.info <- meta.info[order(meta.info[,group]), , drop = FALSE]
     data <- data[, row.names(meta.info)]
     if(!identical(colnames(data) , row.names(meta.info)) ){
-        stop("After sorting, column names of data do not match row names of
+        cli_abort("After sorting, column names of data do not match row names of
              meta info in colData")
     }
 
     if(!inherits(meta.info[, group], "character")) {
-        stop("The group column in meta info from colData must be of type character.")
+        cli_abort("The group column in meta info from colData must be of type character.")
     }
 
     .Check_meta_info(
@@ -131,6 +132,7 @@ SanityChecK <- function(x,
         survival = survival
     )
 
+    cli_alert_success("Analysis input and metadata checks passed.")
     return(list(
         meta.info = meta.info,
         data = data,
@@ -169,13 +171,13 @@ SanityChecK <- function(x,
 
     
     if(!inherits(x, "SummarizedExperiment")){
-        stop("Input 'x' must be a SummarizedExperiment object.")
+        cli_abort("Input 'x' must be a SummarizedExperiment object.")
     }
 
     if (inherits(x, "SummarizedExperiment")) {
-        message("Data is SummarizedExperiment object")
+        cli_alert_info("Input is a SummarizedExperiment object.")
         if (is.null(meta.info)) {
-            stop("meta.info should be a vector of colData names to be used")
+            cli_abort("meta.info should be a vector of colData names to be used")
         } else {
             meta.info.colnames <- meta.info
             meta.info <- data.frame(
@@ -184,36 +186,36 @@ SanityChecK <- function(x,
                 row.names = row.names(colData(x))
             )
             if (!identical(colnames(meta.info) , meta.info.colnames)) {
-                stop("meta.info should be a vector of colData names to be used")
+                cli_abort("meta.info should be a vector of colData names to be used")
             }
         }
         
         if (is.null(assay.type)) {
             assay.type <- assayNames(x)[1]
         }
-        message(sprintf("Assay: %s will be used", assay.type))
+        cli_alert_info("Using assay: {assay.type}")
         data <- assay(x, assay.type)
     } else {
-        stop("Input 'x' must be a SummarizedExperiment object.")
+        cli_abort("Input 'x' must be a SummarizedExperiment object.")
     }
 
     ### Check if K is NULL and set it to a quarter of the number of rows in the data
     if (is.null(K)) {
         K <- floor(nrow(data) / 4)
-        message("Top list size (K) not provided. 
-        Setting K to a quarter of the number of rows in the data: ", K)
+        cli_alert_info("Top-list size `K` not provided; using one quarter of the features: {K}")
     }
 
     if (anyDuplicated(rownames(data)) ||
         anyDuplicated(colnames(data)) ||
         anyDuplicated(rownames(meta.info))) {
-        stop("Feature names and sample names must be unique.")
+        cli_abort("Feature names and sample names must be unique.")
     }
 
     if (anyNA(meta.info)) {
-        stop("meta.info contains missing values.")
+        cli_abort("meta.info contains missing values.")
     }
 
+    cli_alert_success("Input data and metadata extracted.")
     return(list(
         data = data, group = group,
         meta.info = meta.info,
@@ -243,57 +245,59 @@ SanityChecK <- function(x,
 
 .Check_meta_info <- function(meta.info, data , group, K, survival, competing_risks) {
     if (any(!row.names(meta.info) %in% colnames(data))) {
-        stop("rownames
+        cli_abort("rownames
             for colData should match the data colnames (samples names)")
     }
     if (any(grepl(".", colnames(data), fixed = TRUE))) {
-        stop("Sample names should contains no '.', please remove it if any")
+        cli_abort("Sample names should contain no '.', please remove it if any.")
     }
     if (nrow(meta.info) != ncol(data)) {
-        stop("Number of samples in the data does not match the group")
+        cli_abort("Number of samples in the data does not match the group.")
     }
     if(!identical(sort(rownames(meta.info)), sort(colnames(data)))){
-        stop("Sample names in the data and meta info in colData do not match")
+        cli_abort("Sample names in the data and meta info in colData do not match.")
     }
     if (is.null(row.names(meta.info)) ||
         anyDuplicated(row.names(meta.info))) {
-        stop("meta.info must have unique sample names as row names.")
+        cli_abort("meta.info must have unique sample names as row names.")
     }
 
     if (!group %in% colnames(meta.info)) {
-        stop(
-            "group should be a string specifying",
-            " the column in `meta.info` that",
-            " represents the group or conditions",
-            " for comparison."
+        cli_abort(
+            paste0(
+                "group should be a string specifying",
+                " the column in `meta.info` that",
+                " represents the group or conditions",
+                " for comparison."
+            )
         )
     }
 
     if(!survival){
         if(length(unique(meta.info[, group])) != 2){
-        stop("LimROTS only supports two-group comparisons.")
+        cli_abort("LimROTS only supports two-group comparisons.")
         }
     }else if(survival){
         
         if(competing_risks == FALSE){ 
         
         if(length(unique(meta.info[, group])) != 2 ){
-        stop("Survival analysis requires at two unique groups in the 'event' column.")
+        cli_abort("Survival analysis requires at two unique groups in the 'event' column.")
         }
         }else if(competing_risks == TRUE){
             
             if(length(unique(meta.info[, group])) != 3){
-        stop("Competing risks analysis requires three unique groups in the 'event' column.")
+        cli_abort("Competing risks analysis requires three unique groups in the 'event' column.")
             }
             
         }
     }
 
     if (anyNA(meta.info[, group])) {
-        stop("The group column contains missing values.")
+        cli_abort("The group column contains missing values.")
     }
     if(K < 1 || K > nrow(data)){
-        stop("K must be between 1 and the number of rows in the data matrix.")
+        cli_abort("K must be between 1 and the number of rows in the data matrix.")
     }
     return(TRUE)
 }
@@ -322,17 +326,17 @@ SanityChecK <- function(x,
 .check_survival <- function(meta.info, data, K, formula.str, competing_risks, group ) {
   
   if(grepl("[*:]", formula.str)){
-    stop("For survival analysis, 'formula.str' should not contain interaction terms or 
+    cli_abort("For survival analysis, 'formula.str' should not contain interaction terms or 
              special characters like '*' or ':'.")
   }
   
   if(!str_detect( formula.str , fixed("Surv(time,event)~y"))){
-    stop("For survival analysis, 'formula.str' must include a 
+    cli_abort("For survival analysis, 'formula.str' must include a 
              'Surv(time, event)~y'")
   }
   
   if(!all(c("time", "event") %in% colnames(meta.info))){
-    stop("For survival analysis, 'meta.info' must contain 'time' and 
+    cli_abort("For survival analysis, 'meta.info' must contain 'time' and 
              'event' columns.")
   }
 
@@ -341,7 +345,7 @@ SanityChecK <- function(x,
  formula.str.temp <- formula.str.temp[formula.str.temp != "y"]
  
   if(!all(formula.str.temp %in% colnames(meta.info))){
-    stop("All covariates specified in 'formula.str' must be present in 'meta.info'.")
+    cli_abort("All covariates specified in 'formula.str' must be present in 'meta.info'.")
   }
 
   if (is.null(K)) {
@@ -351,7 +355,7 @@ SanityChecK <- function(x,
   meta.info <- meta.info[order(meta.info[,"event"]), , drop = FALSE]
   data <- data[, row.names(meta.info)]
   if(!identical(colnames(data) , row.names(meta.info)) ){
-    stop("After sorting, column names of data do not match row names of
+    cli_abort("After sorting, column names of data do not match row names of
              meta info in colData")
   }
 
@@ -364,7 +368,7 @@ SanityChecK <- function(x,
     survival = TRUE
   )
   
-    message("Sanity check completed successfully!")
+    cli_alert_success("Survival-analysis checks passed.")
 
   return(list(
     meta.info = meta.info,
@@ -395,14 +399,16 @@ meta.info , group) {
         #### Check if correlation_block is provided and is a single character string
         if(!is.null(correlation_block)){
             if(length(correlation_block) != 1){
-                stop("correlation_block should be a single character string specifying the 
+                cli_abort("correlation_block should be a single character string specifying the 
                 column name in meta.info that defines correlation blocks.")
             }
             if (!correlation_block %in% colnames(meta.info)) {
-            stop(
-                "The correlation-block column '",
-                correlation_block,
-                "' was not found in meta.info."
+            cli_abort(
+                paste0(
+                    "The correlation-block column '",
+                    correlation_block,
+                    "' was not found in meta.info."
+                )
             )
         }
         }
@@ -410,35 +416,35 @@ meta.info , group) {
         ### check the formula terms and meta.info agree
         vars <- unique(all.vars(formula(formula.str)))
         if(!all(vars %in% colnames(meta.info))){
-            stop("All variables in the formula must be present in meta.info.")
+            cli_abort("All variables in the formula must be present in meta.info.")
         }
 
         ### check if the first variable after '~' is the group variable
         formula_terms <- attr(terms(formula(formula.str)), "term.labels")
         first_var <- all.vars(as.formula(paste("~", formula_terms[1])))[1]
         if(first_var != group){
-            stop("The first variable in the formula must be the group variable: ", group)
+            cli_abort("The first variable in the formula must be the group variable: {group}")
         }
 
         ### Check for random effects in the formula
         random_terms <- lme4::findbars(formula(formula.str))
         if(model == "limma"){
             if (!is.null(random_terms)) { 
-                stop("random terms analysis with random effects is not supported in Limma.
+                cli_abort("Random terms are not supported with model `limma`. Use `dream` for random effects.")
                 Please use model='dream' for random effects analysis.")
             }else if(model == "lmer"){
             if (!is.null(random_terms)) { 
-                stop("random terms analysis with random effects is not supported in LimROTS_peptide")
+                cli_abort("Random terms with model `lmer` are not supported in LimROTS_peptide.")
             }
             }}else if(model == "dream"){
                 if (is.null(random_terms)) { 
-                    stop("dream need a random term(s) in the formula.str")
+                    cli_abort("`dream` requires at least one random term in `formula.str`.")
                 }
                 if(!is.null(correlation_block)){            
                     if (!any(vapply(random_terms, function(x) {
                     rlang::as_string(rlang::get_expr(x[[3]])) == correlation_block
                 }, logical(1)))) {
-                    stop("correlation_block must match a random-effect grouping variable in the formula.")
+                    cli_abort("`correlation_block` must match a random-effect grouping variable in the formula.")
                     }
                 }
         }

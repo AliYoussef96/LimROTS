@@ -86,6 +86,7 @@ LimROTS_microb <- function(
     outlier_pct = 0.03,
     pseudo_count = 0.5){
     ### Perform sanity checks on the input parameters and data.
+    cli_alert_info("Validating microbiome analysis inputs.")
     SanityChecK.list <- SanityChecK(
         x,
         assay.type = assay.type,
@@ -104,19 +105,20 @@ LimROTS_microb <- function(
 
     meta.info <- SanityChecK.list[["meta.info"]]
     data <- SanityChecK.list[["data"]]
+    cli_alert_success("Microbiome analysis inputs validated.")
 
     ### Extra Perform sanity checks on the data
 
     if (anyNA(data) || any(!is.finite(data))) {
-        stop("data contains missing or non-finite values.")
+        cli_abort("data contains missing or non-finite values.")
     }
 
     if (any(data < 0)) {
-        stop("data cannot contain negative values.")
+        cli_abort("data cannot contain negative values.")
     }
 
     if (any(data != round(data))) {
-        stop("data must contain original integer counts.")
+        cli_abort("data must contain original integer counts.")
     }
 
     tse <- TreeSummarizedExperiment(
@@ -124,10 +126,13 @@ LimROTS_microb <- function(
         colData = DataFrame(meta.info)
     )
 
+    cli_alert_info("Preprocessing microbiome counts.")
     pre_microb <- .preprocess_microb(tse = tse, prev_filter = prev_filter, 
     is_winsor = is_winsor, outlier_pct = outlier_pct, pseudo_count = pseudo_count)
+    cli_alert_success("Microbiome count preprocessing complete.")
 
     
+    cli_alert_info("Validating preprocessed data and metadata.")
     SanityChecK.list <- SanityChecK(
         SummarizedExperiment(assays = list(clr = pre_microb[["clr_features"]]),
         colData = DataFrame(pre_microb[["metadata_use"]])),
@@ -151,6 +156,7 @@ LimROTS_microb <- function(
     K <- SanityChecK.list[["K"]]
 
     ### bootstrap and permutation samples (from the LimROTS.R script)
+    cli_alert_info("Generating bootstrap and permutation samples.")
     list_boot_perm <- .generate_bootstrap_permutations(
         niter_2 = 2 * niter,
         meta.info = meta.info,
@@ -160,6 +166,7 @@ LimROTS_microb <- function(
     )
 
     ### parallelized bootstrapping and permutation fit
+    cli_alert_info("Fitting bootstrap and permutation replicates.")
     results_list <- parallel_microb(
         BPPARAM  = BPPARAM ,
         samples = list_boot_perm[["boot_Samples"]], 
@@ -172,6 +179,7 @@ LimROTS_microb <- function(
         trend = trend,
         robust = robust
     )
+    cli_alert_success("Bootstrap and permutation fits complete.")
 
     row_length <- nrow(as.matrix(data))
     col_length <- nrow(list_boot_perm[["boot_Samples"]])
@@ -189,22 +197,23 @@ LimROTS_microb <- function(
     }
 
     if (any(vapply(list(D, S, pD, pS), anyNA, logical(1)))) {
-        stop("D, S, pD, and pS must not contain NA values.")
+        cli_abort("D, S, pD, and pS must not contain NA values.")
     }
     
     if (!all(vapply(list(S, pD, pS), function(x) identical(dim(x), dim(D)), logical(1)))) {
-        stop("D, S, pD, and pS must all have identical dimensions.")
+        cli_abort("D, S, pD, and pS must all have identical dimensions.")
     }
 
     if (any(vapply(list(D, S, pD, pS), function(x) any(!is.finite(x)), logical(1)))) {
-    stop("D, S, pD, and pS must not contain NA, NaN, Inf, or -Inf.")
+    cli_abort("D, S, pD, and pS must not contain NA, NaN, Inf, or -Inf.")
     }
     
     if (any(vapply(list(D, S, pD, pS), function(x) any(x < 0), logical(1)))) {
-    stop("D, S, pD, and pS must contain only non-negative values.")
+    cli_abort("D, S, pD, and pS must contain only non-negative values.")
     }
 
     ### optimize parameters
+    cli_alert_info("Optimizing reproducibility parameters.")
     optimized.parameters <-
         Optimizing(niter = niter, K = K, D = D, S = S, pD = pD, pS = pS)
     a1 <- optimized.parameters[["a1"]]
@@ -214,6 +223,8 @@ LimROTS_microb <- function(
     Z <- optimized.parameters[["Z"]]
     ztable <- optimized.parameters[["ztable"]]
 
+    cli_alert_success("Parameter optimization complete.")
+    cli_alert_info("Fitting the final microbiome model.")
     fit_microb_final <- .final_fit_microb(
         data = data,
         meta.info = meta.info,
@@ -225,6 +236,7 @@ LimROTS_microb <- function(
         pairwise_contrasts = pairwise_contrasts,
         pD = pD, pS = pS
     )
+    cli_alert_success("Final microbiome model fit complete.")
 
     d = fit_microb_final[["d"]]
     #pD = fit_microb_final[["pD"]]
@@ -247,6 +259,7 @@ LimROTS_microb <- function(
         BH.pvalue = BH.pvalue,
         a1 = a1, a2 = a2, k = k, Z = Z, R = R, ztable = ztable, pD = pD
     )
+    cli_alert_success("LimROTS microbiome analysis complete.")
 }
 
 
@@ -280,7 +293,7 @@ LimROTS_microb <- function(
         )
 
         if (nrow(tse) == 0L) {
-            stop("No features remain after prevalence filtering.")
+            cli_abort("No features remain after prevalence filtering.")
         }
 
         filtered_counts <- as.matrix(
@@ -305,7 +318,7 @@ LimROTS_microb <- function(
         if (is_winsor) {
             if (!is.numeric(outlier_pct) || length(outlier_pct) != 1L ||
                 is.na(outlier_pct) || outlier_pct < 0 || outlier_pct >= 1) {
-                stop("outlier_pct must be a single number in [0, 1).")
+                cli_abort("outlier_pct must be a single number in [0, 1).")
             }
 
             feature_names <- rownames(relative_abundance)
@@ -363,7 +376,7 @@ LimROTS_microb <- function(
         )
 
         if (any(processed_counts <= 0)) {
-            stop("All processed counts must be positive before log2 transformation.")
+            cli_abort("All processed counts must be positive before log2 transformation.")
         }
 
         log_counts <- log2(processed_counts)
@@ -383,7 +396,7 @@ LimROTS_microb <- function(
         ]
 
         if (!identical(colnames(clr_samples_by_features), rownames(metadata_use))) {
-            stop("Processed counts and metadata are not aligned.")
+            cli_abort("Processed counts and metadata are not aligned.")
         }
 
 
@@ -455,7 +468,7 @@ LimROTS_microb <- function(
                         lambda = seq(0.01, 0.95, 0.01))
             },
             error = function(e) {
-                message("qvalue() failed (return NULL): ", e$message)
+                cli_alert_warning("qvalue() failed (return NULL): {e$message}")
                 NULL
             }
         )

@@ -40,13 +40,13 @@ Boot_parallel_survival <- function(BPPARAM = NULL,
     if (is.null(BPPARAM)) {
         if (.Platform$OS.type == "windows") {
             BPPARAM <- SnowParam(workers = 2)
-            message("Using SnowParam (Windows) with two workers.")
+            cli_alert_info("Using SnowParam (Windows) with two workers.")
         } else {
             BPPARAM <- MulticoreParam(workers = 2)
-            message("Using MulticoreParam (Unix-like OS) with two workers.")
+            cli_alert_info("Using MulticoreParam (Unix-like OS) with two workers.")
         }
     } else {
-        message("Using provided parallel backend BPPARAM.")
+        cli_alert_info("Using the provided parallel backend.")
     }
     if (inherits(BPPARAM, "SnowParam")) {
         BPPARAM$exportglobals <- FALSE
