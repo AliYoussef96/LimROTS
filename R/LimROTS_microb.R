@@ -168,7 +168,9 @@ LimROTS_microb <- function(
         group = group,
         meta.info = meta.info,
         pSamples = list_boot_perm[["perm_Samples"]],
-        pairwise_contrasts = pairwise_contrasts
+        pairwise_contrasts = pairwise_contrasts,
+        trend = trend,
+        robust = robust
     )
 
     row_length <- nrow(as.matrix(data))

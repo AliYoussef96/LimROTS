@@ -192,7 +192,7 @@ fit_bootstrap_microb <- function(x, group, meta.info, formula.str,
     covariates.p <- data_for_fit$covariates.p
     stopifnot(identical(colnames(combined_data) , 
                         row.names(covariates.p)))
-                        
+
     ### Create the design matrix based on the provided formula and covariates
     design.matrix <- model.matrix(formula(formula.str), data = covariates.p)
     colnames(design.matrix) <- make.names(colnames(design.matrix))
@@ -267,7 +267,6 @@ fit_permutation_microb <- function(x, group, meta.info, formula.str,
     ### Create the design matrix based on the provided formula and covariates
     design.matrix <- model.matrix(formula(formula.str), data = covariates.p)
     colnames(design.matrix) <- make.names(colnames(design.matrix))
-    stopifnot(identical(colnames(combined_data) , row.names(design.matrix)))
 
     ### Fit the linear model using Limma, accounting for correlation blocks if specified
     fit <- lmFit(combined_data, design.matrix)
