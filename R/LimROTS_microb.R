@@ -102,7 +102,81 @@ LimROTS_microb <- function(
         pairwise_contrasts = pairwise_contrasts
     )
 
+    row_length <- nrow(as.matrix(data))
+    col_length <- nrow(list_boot_perm[["boot_Samples"]])
 
+    D <- matrix(nrow = row_length, ncol = col_length)
+    S <- matrix(nrow = row_length, ncol = col_length)
+    pD <- matrix(nrow = row_length, ncol = col_length)
+    pS <- matrix(nrow = row_length, ncol = col_length)
+
+    for (i in seq_along(results_list)) {
+        D[, i] <- results_list[[i]][["ds"]][["d_result"]]
+        S[, i] <- results_list[[i]][["ds"]][["s_result"]]
+        pD[, i] <- results_list[[i]][["pdps"]][["pd_result"]]
+        pS[, i] <- results_list[[i]][["pdps"]][["ps_result"]]
+    }
+
+    if (any(vapply(list(D, S, pD, pS), anyNA, logical(1)))) {
+        stop("D, S, pD, and pS must not contain NA values.")
+    }
+    
+    if (!all(vapply(list(S, pD, pS), function(x) identical(dim(x), dim(D)), logical(1)))) {
+        stop("D, S, pD, and pS must all have identical dimensions.")
+    }
+
+    if (any(vapply(list(D, S, pD, pS), function(x) any(!is.finite(x)), logical(1)))) {
+    stop("D, S, pD, and pS must not contain NA, NaN, Inf, or -Inf.")
+    }
+    
+    if (any(vapply(list(D, S, pD, pS), function(x) any(x < 0), logical(1)))) {
+    stop("D, S, pD, and pS must contain only non-negative values.")
+    }
+
+    ### optimize parameters
+    optimized.parameters <-
+        Optimizing(niter = niter, K = K, D = D, S = S, pD = pD, pS = pS)
+    a1 <- optimized.parameters[["a1"]]
+    a2 <- optimized.parameters[["a2"]]
+    k <- optimized.parameters[["k"]]
+    R <- optimized.parameters[["R"]]
+    Z <- optimized.parameters[["Z"]]
+    ztable <- optimized.parameters[["ztable"]]
+
+    fit_microb_final <- .final_fit_microb(
+        data = data,
+        meta.info = meta.info,
+        group = group,
+        formula.str = formula.str,
+        trend = trend,
+        robust = robust,
+        a1 = a1, a2 = a2,
+        pairwise_contrasts = pairwise_contrasts,
+        model = model,
+        pD = pD, pS = pS
+    )
+
+    d = fit_microb_final[["d"]]
+    #pD = fit_microb_final[["pD"]]
+    p_value = fit_microb_final[["p_value"]]
+    FDR = fit_microb_final[["FDR"]]
+    corrected.logfc = fit_microb_final[["corrected.logfc"]]
+    q_values = fit_microb_final[["q_values"]]
+    BH.pvalue = fit_microb_final[["BH.pvalue"]]
+
+    ### generate output
+    ### this from LimROTS main function file
+    LimROTS.output <- .generate_output(
+        x = x,
+        data = data,
+        d = d,
+        p_value = p_value,
+        FDR = FDR,
+        corrected.logfc = corrected.logfc,
+        q_values = q_values,
+        BH.pvalue = BH.pvalue,
+        a1 = a1, a2 = a2, k = k, Z = Z, R = R, ztable = ztable, pD = pD
+    )
 }
 
 
@@ -228,3 +302,54 @@ LimROTS_microb <- function(
         ))
 
 }
+
+
+.final_fit <- function(data, meta.info, group, formula.str, trend, robust,
+ a1, a2, pairwise_contrasts, model,
+    pD , pS) {
+        # Fit the limma model on the original data and compute statistics, p-values, and FDR.
+        fit <- fit_original_microb(
+            x = data,
+            group = group,
+            meta.info = meta.info,
+            formula.str = formula.str,
+            trend = trend,
+            robust = robust,
+            pairwise_contrasts = pairwise_contrasts,
+            model = model
+        )
+
+        d <- fit$d / (a1 + a2 * fit$s)
+        pD <- pD / (a1 + a2 * pS)
+
+        p_value <- empPvals(
+            stat = d,
+            stat0 = pD,
+            pool = TRUE
+        )
+        FDR <- calculateFalseDiscoveryRate(d, pD)
+        corrected.logfc <- fit$corrected.logfc
+        q_values <- tryCatch(
+            {
+                    qvalue(
+                        p_value,
+                        pi0.method = "bootstrap",
+                        lambda = seq(0.01, 0.95, 0.01))
+            },
+            error = function(e) {
+                message("qvalue() failed (return NULL): ", e$message)
+                NULL
+            }
+        )
+        BH.pvalue <- p.adjust(p_value, method = "BH")
+    return(list(
+        d = d,
+        pD = pD,
+        p_value = p_value,
+        FDR = FDR,
+        corrected.logfc = corrected.logfc,
+        q_values = q_values,
+        BH.pvalue = BH.pvalue
+    ))
+
+    }

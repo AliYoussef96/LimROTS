@@ -93,7 +93,7 @@ fit_original_microb <- function(x, group, meta.info, formula.str,
     coef <- beta - bias
 
     d_values <- setNames(abs(coef), rownames(fit.ebayes[["coefficients"]]))
-    corrected.logfc <- setNames(ceof , rownames(fit.ebayes[["coefficients"]]))
+    corrected.logfc <- setNames(coef , rownames(fit.ebayes[["coefficients"]]))
 
     stopifnot(identical(names(fit.ebayes[["s2.post"]]) ,  
                     row.names(fit.ebayes[["stdev.unscaled"]])))
