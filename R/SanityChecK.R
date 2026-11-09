@@ -430,13 +430,14 @@ meta.info , group) {
         random_terms <- lme4::findbars(formula(formula.str))
         if(model == "limma"){
             if (!is.null(random_terms)) { 
-                cli_abort("Random terms are not supported with model `limma`. Use `dream` for random effects.")
+                cli_abort("Random terms are not supported with model `limma`. Use `dream` for random effects.
                 Please use model='dream' for random effects analysis.")
-            }else if(model == "lmer"){
+            }
+        }else if(model == "lmer"){
             if (!is.null(random_terms)) { 
                 cli_abort("Random terms with model `lmer` are not supported in LimROTS_peptide.")
             }
-            }}else if(model == "dream"){
+        }else if(model == "dream"){
                 if (is.null(random_terms)) { 
                     cli_abort("`dream` requires at least one random term in `formula.str`.")
                 }
