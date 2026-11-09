@@ -190,9 +190,11 @@ fit_bootstrap_microb <- function(x, group, meta.info, formula.str,
     data_for_fit <- .generate_data_for_fit(x = x, meta.info = meta.info)
     combined_data <- data_for_fit$combined_data
     covariates.p <- data_for_fit$covariates.p
-
+    stopifnot(identical(colnames(combined_data) , 
+                        row.names(covariates.p)))
+                        
     ### Create the design matrix based on the provided formula and covariates
-    design.matrix <- model.matrix(formula(formula.str), data = meta.info)
+    design.matrix <- model.matrix(formula(formula.str), data = covariates.p)
     colnames(design.matrix) <- make.names(colnames(design.matrix))
     stopifnot(identical(colnames(combined_data) , row.names(design.matrix)))
 
@@ -258,17 +260,12 @@ fit_permutation_microb <- function(x, group, meta.info, formula.str,
     ### Generate combined data and covariates for model fitting
     combined_data <- x
     covariates.p <- meta.info
+    stopifnot(identical(colnames(combined_data) , 
+                    row.names(covariates.p)))
     row.names(covariates.p) <- NULL
-    
-    ### Create the design matrix based on the provided formula and covariates
-    design.matrix <-
-        model.matrix(formula(formula.str), data = covariates.p)
-    colnames(design.matrix) <-
-        make.names(colnames(design.matrix))
  
-
     ### Create the design matrix based on the provided formula and covariates
-    design.matrix <- model.matrix(formula(formula.str), data = meta.info)
+    design.matrix <- model.matrix(formula(formula.str), data = covariates.p)
     colnames(design.matrix) <- make.names(colnames(design.matrix))
     stopifnot(identical(colnames(combined_data) , row.names(design.matrix)))
 
@@ -366,7 +363,7 @@ fit_permutation_microb <- function(x, group, meta.info, formula.str,
             logical(1)
         ))
     )
-    combined_data <- do.call(cbind, x)
+    combined_data <- do.call(cbind, unname(x))
     
     ### create a unique colnames for the combined data to avoid duplicates
     colnames(combined_data) <-

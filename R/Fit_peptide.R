@@ -694,7 +694,7 @@ fit_permutation_peptide <- function(x, group, meta.info, model_formula,
       logical(1)
     ))
   )
-  combined_data <- do.call(cbind, x)
+  combined_data <- do.call(cbind, unname(x))
   
   ### create a unique colnames for the combined data to avoid duplicates
   colnames(combined_data) <-

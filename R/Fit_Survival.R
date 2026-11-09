@@ -149,6 +149,8 @@ competing_risks
 ) {
     combined_data <- data.frame(x, check.rows = FALSE, check.names = FALSE)
     covariates.p <- meta.info
+    stopifnot(identical(colnames(combined_data) , 
+                row.names(covariates.p)))
     covariates.p$sample.id <- NULL
     row.names(covariates.p) <- NULL
     
@@ -350,7 +352,7 @@ bootstrap_survival <-
       logical(1)
     ))
   )
-  combined_data <- do.call(cbind, x)
+  combined_data <- do.call(cbind, unname(x))
   
   ### create a unique colnames for the combined data to avoid duplicates
   colnames(combined_data) <-
@@ -418,6 +420,8 @@ permutating_survival <- function(x, meta.info, formula.str,
 ) {
   combined_data <- data.frame(x, check.rows = FALSE, check.names = FALSE)
   covariates.p <- meta.info
+  stopifnot(identical(colnames(combined_data) , 
+                row.names(covariates.p)))
   row.names(covariates.p) <- NULL
   
   d  <- numeric(nrow(combined_data))
