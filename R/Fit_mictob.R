@@ -76,36 +76,140 @@ fit_original_microb <- function(x, group, meta.info, formula.str,
         )
 
     ### Fit the contrasts 
-    fit2 <- limma::contrasts.fit(fit, cont_matrix)
+    fit2 <- contrasts.fit(fit, cont_matrix)
+    fit.ebayes <- eBayes(fit2, trend = trend, robust = robust)
 
-    beta <- fit2$coefficients[, 1]
+    beta <- as.numeric(fit.ebayes[["coefficients"]])
     bias <- .estimate_bias(
         beta,
         ncol(processed_counts)
     )
     coef <- beta - bias
 
-    d_values <- setNames(abs(coef), rownames(fit2$coefficients))
-    corrected.logfc <- setNames(coef, rownames(fit2$coefficients))
+    d_values <- setNames(abs(coef), rownames(fit.ebayes[["coefficients"]]))
+    corrected.logfc <- setNames(ceof , rownames(fit.ebayes[["coefficients"]]))
 
-    stopifnot(identical(names(fit2[["sigma"]]) , 
-        row.names(fit2[["stdev.unscaled"]])))
-        
+    stopifnot(identical(names(fit.ebayes[["s2.post"]]) ,  
+                    row.names(fit.ebayes[["stdev.unscaled"]])))
+
     s_values <- setNames(
-        as.numeric(sqrt(fit2[["sigma"]]) *
-                        fit2[["stdev.unscaled"]]),
-        row.names(fit2[["stdev.unscaled"]]))
+        as.numeric(
+            sqrt(fit.ebayes[["s2.post"]]) *
+                        fit.ebayes[["stdev.unscaled"]]
+                        ),
+        row.names(fit.ebayes[["stdev.unscaled"]]))
 
     stopifnot(identical(names(s_values), names(d_values) ) )
     stopifnot(identical(names(corrected.logfc), names(d_values) ) )
     stopifnot(identical(names(s_values), names(corrected.logfc) ) )
 
+    return(list(d = d_values, s = s_values, corrected.logfc = corrected.logfc))
 
 }
 
-fit_bootstrap_microb <- function()
+fit_bootstrap_microb <- function(x, group, meta.info, formula.str,
+ trend, robust, pairwise_contrasts){
+                            
+    ### Generate combined data and covariates for model fitting
+    data_for_fit <- .generate_data_for_fit(x = x, meta.info = meta.info)
+    combined_data <- data_for_fit$combined_data
+    covariates.p <- data_for_fit$covariates.p
 
+    ### Create the design matrix based on the provided formula and covariates
+    design.matrix <- model.matrix(formula(formula.str), data = meta.info)
+    colnames(design.matrix) <- make.names(colnames(design.matrix))
+    stopifnot(identical(colnames(combined_data) , row.names(design.matrix)))
 
+    ### Fit the linear model using Limma, accounting for correlation blocks if specified
+    fit <- lmFit(combined_data, design.matrix)
+    cont_matrix <- makeContrasts(
+            contrasts = pairwise_contrasts, levels =
+                design.matrix
+        )
+
+    ### Fit the contrasts 
+    fit2 <- contrasts.fit(fit, cont_matrix)
+    fit.ebayes <- eBayes(fit2, trend = trend, robust = robust)
+
+    beta <- as.numeric(fit.ebayes[["coefficients"]])
+    bias <- .estimate_bias(
+        beta,
+        ncol(processed_counts)
+    )
+    coef <- beta - bias
+
+    d_values <- setNames(abs(coef), rownames(fit.ebayes[["coefficients"]]))
+
+    stopifnot(identical(names(fit.ebayes[["s2.post"]]) ,  
+                    row.names(fit.ebayes[["stdev.unscaled"]])))
+
+    s_values <- setNames(
+        as.numeric(
+            sqrt(fit.ebayes[["s2.post"]]) *
+                        fit.ebayes[["stdev.unscaled"]]
+                        ),
+        row.names(fit.ebayes[["stdev.unscaled"]]))
+
+    stopifnot(identical(names(s_values), names(d_values) ) )
+
+    return(list(d = d_values, s = s_values))
+}
+
+fit_permutation_microb <- function(x, group, meta.info, formula.str,
+ trend, robust, pairwise_contrasts){
+    
+    ### Generate combined data and covariates for model fitting
+    combined_data <- x
+    covariates.p <- meta.info
+    row.names(covariates.p) <- NULL
+    
+    ### Create the design matrix based on the provided formula and covariates
+    design.matrix <-
+        model.matrix(formula(formula.str), data = covariates.p)
+    colnames(design.matrix) <-
+        make.names(colnames(design.matrix))
+ 
+
+    ### Create the design matrix based on the provided formula and covariates
+    design.matrix <- model.matrix(formula(formula.str), data = meta.info)
+    colnames(design.matrix) <- make.names(colnames(design.matrix))
+    stopifnot(identical(colnames(combined_data) , row.names(design.matrix)))
+
+    ### Fit the linear model using Limma, accounting for correlation blocks if specified
+    fit <- lmFit(combined_data, design.matrix)
+    cont_matrix <- makeContrasts(
+            contrasts = pairwise_contrasts, levels =
+                design.matrix
+        )
+
+    ### Fit the contrasts 
+    fit2 <- contrasts.fit(fit, cont_matrix)
+    fit.ebayes <- eBayes(fit2, trend = trend, robust = robust)
+
+    beta <- as.numeric(fit.ebayes[["coefficients"]])
+    bias <- .estimate_bias(
+        beta,
+        ncol(processed_counts)
+    )
+    coef <- beta - bias
+
+    d_values <- setNames(abs(coef), rownames(fit.ebayes[["coefficients"]]))
+
+    stopifnot(identical(names(fit.ebayes[["s2.post"]]) ,  
+                    row.names(fit.ebayes[["stdev.unscaled"]])))
+
+    s_values <- setNames(
+        as.numeric(
+            sqrt(fit.ebayes[["s2.post"]]) *
+                        fit.ebayes[["stdev.unscaled"]]
+                        ),
+        row.names(fit.ebayes[["stdev.unscaled"]]))
+
+    stopifnot(identical(names(s_values), names(d_values) ) )
+
+    return(list(d = d_values, s = s_values))
+
+}
 
 .estimate_bias <- function(coefficient, n_samples) {
     tryCatch(
@@ -118,4 +222,38 @@ fit_bootstrap_microb <- function()
         ) / sqrt(n_samples),
         error = function(e) median(coefficient, na.rm = TRUE)
     )
+}
+
+
+.generate_data_for_fit <- function(x, meta.info, correlation_block) {
+    ### Check if x is a list of matrices with identical rownames
+    stopifnot(
+        all(vapply(
+            x,
+            function(z) identical(rownames(z), rownames(x[[1L]])),
+            logical(1)
+        ))
+    )
+    combined_data <- do.call(cbind, x)
+    
+    ### create a unique colnames for the combined data to avoid duplicates
+    colnames(combined_data) <-
+        paste0(colnames(combined_data), ".", seq(1, ncol(combined_data)))
+
+    ### create a covariates data frame for the combined data
+    covariates.p <- data.frame()
+    meta.info.temp <- meta.info
+    meta.info.temp$sample.id <- row.names(meta.info.temp)
+    for (i in colnames(combined_data)) {
+        real_SampleNames <- str_split_fixed(i, fixed("."), 2)[, 1]
+        df.temp <- meta.info.temp[real_SampleNames, , drop = FALSE]
+        df.temp[,"sample.id"] <- i
+        covariates.p <- rbind(covariates.p, df.temp)
+    }
+    stopifnot(identical(colnames(combined_data), covariates.p[,"sample.id"]))
+    row.names(covariates.p) <- covariates.p[,"sample.id"]
+    covariates.p[,"sample.id"] <- NULL
+
+    stopifnot(identical(colnames(combined_data), row.names(covariates.p)))
+    return(list(combined_data = combined_data, covariates.p = covariates.p))
 }
