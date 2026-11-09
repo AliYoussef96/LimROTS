@@ -315,7 +315,7 @@ fit_bootstrap_peptide <- function(x, group, meta.info, model_formula,
                                   pairwise_contrasts, peptide_metadata) {
   
   ### Generate combined data and covariates for model fitting
-  data_for_fit <- .generate_data_for_fit(x = x, meta.info = meta.info)
+  data_for_fit <- .generate_data_for_fit_peptide(x = x, meta.info = meta.info)
   combined_data <- data_for_fit$combined_data
   covariates.p <- data_for_fit$covariates.p
   
@@ -685,7 +685,7 @@ fit_permutation_peptide <- function(x, group, meta.info, model_formula,
 #' @return A list containing the combined feature-by-sample matrix
 #' `combined_data` and corresponding sample-level metadata `covariates.p`.
 #'
-.generate_data_for_fit <- function(x, meta.info) {
+.generate_data_for_fit_peptide <- function(x, meta.info) {
   ### Check if x is a list of matrices with identical rownames
   stopifnot(
     all(vapply(

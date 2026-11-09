@@ -422,7 +422,7 @@ fit_bootstrap <- function(x, group, meta.info, formula.str,
 
         
         ### Generate combined data and covariates for model fitting
-        data_for_fit <- .generate_data_for_fit(x = x, meta.info = meta.info, 
+        data_for_fit <- .generate_data_for_fit_linear(x = x, meta.info = meta.info, 
         correlation_block = correlation_block)
         combined_data <- data_for_fit$combined_data
         covariates.p <- data_for_fit$covariates.p
@@ -501,7 +501,7 @@ fit_bootstrap <- function(x, group, meta.info, formula.str,
              trend , robust, correlation_block, pairwise_contrasts) {
 
         ### Generate combined data and covariates for model fitting
-        data_for_fit <- .generate_data_for_fit(x = x, meta.info = meta.info, correlation_block = correlation_block)
+        data_for_fit <- .generate_data_for_fit_linear(x = x, meta.info = meta.info, correlation_block = correlation_block)
         combined_data <- data_for_fit$combined_data
         covariates.p <- data_for_fit$covariates.p
         stopifnot(identical(colnames(combined_data) , 
@@ -550,7 +550,7 @@ fit_bootstrap <- function(x, group, meta.info, formula.str,
 #'
 #' @return A list containing the combined feature-by-sample matrix
 #' `combined_data` and corresponding sample-level metadata `covariates.p`.
-.generate_data_for_fit <- function(x, meta.info, correlation_block) {
+.generate_data_for_fit_linear <- function(x, meta.info, correlation_block) {
     ### Check if x is a list of matrices with identical rownames
     stopifnot(
         all(vapply(

@@ -343,41 +343,6 @@ bootstrap_survival <-
   }
 
 
-.generate_data_for_fit_survival <- function(x, meta.info) {
-  ### Check if x is a list of matrices with identical rownames
-  stopifnot(
-    all(vapply(
-      x,
-      function(z) identical(rownames(z), rownames(x[[1L]])),
-      logical(1)
-    ))
-  )
-  combined_data <- do.call(cbind, unname(x))
-  
-  ### create a unique colnames for the combined data to avoid duplicates
-  colnames(combined_data) <-
-    paste0(colnames(combined_data), ".", seq(1, ncol(combined_data)))
-  
-  ### create a covariates data frame for the combined data
-  covariates.p <- data.frame()
-  meta.info.temp <- meta.info
-  meta.info.temp$sample.id <- row.names(meta.info.temp)
-  for (i in colnames(combined_data)) {
-    real_SampleNames <- str_split_fixed(i, fixed("."), 2)[, 1]
-    df.temp <- meta.info.temp[real_SampleNames, , drop = FALSE]
-    df.temp[,"sample.id"] <- i
-    covariates.p <- rbind(covariates.p, df.temp)
-  }
-  stopifnot(identical(colnames(combined_data), covariates.p[,"sample.id"]))
-  row.names(covariates.p) <- covariates.p[,"sample.id"]
-  covariates.p[,"sample.id"] <- NULL
-  
-  stopifnot(identical(colnames(combined_data), row.names(covariates.p)))
-  return(list(combined_data = combined_data, covariates.p = covariates.p))
-}
-
-
-
 #' Fit Survival Models to Permuted Metadata
 #'
 #' Fit a survival model for every feature using the original data and permuted
@@ -482,4 +447,37 @@ permutating_survival <- function(x, meta.info, formula.str,
     return(list(d = abs(d), s = s))
   }
   
+}
+
+
+.generate_data_for_fit_survival <- function(x, meta.info) {
+  stopifnot(
+    all(vapply(
+      x,
+      function(z) identical(rownames(z), rownames(x[[1L]])),
+      logical(1)
+    ))
+  )
+  combined_data <- do.call(cbind, unname(x))
+  
+  ### create a unique colnames for the combined data to avoid duplicates
+  colnames(combined_data) <-
+    paste0(colnames(combined_data), ".", seq(1, ncol(combined_data)))
+  
+  ### create a covariates data frame for the combined data
+  covariates.p <- data.frame()
+  meta.info.temp <- meta.info
+  meta.info.temp$sample.id <- row.names(meta.info.temp)
+  for (i in colnames(combined_data)) {
+    real_SampleNames <- str_split_fixed(i, fixed("."), 2)[, 1]
+    df.temp <- meta.info.temp[real_SampleNames, , drop = FALSE]
+    df.temp[,"sample.id"] <- i
+    covariates.p <- rbind(covariates.p, df.temp)
+  }
+  stopifnot(identical(colnames(combined_data), covariates.p[,"sample.id"]))
+  row.names(covariates.p) <- covariates.p[,"sample.id"]
+  covariates.p[,"sample.id"] <- NULL
+  
+  stopifnot(identical(colnames(combined_data), row.names(covariates.p)))
+  return(list(combined_data = combined_data, covariates.p = covariates.p))
 }
