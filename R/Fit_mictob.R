@@ -1,3 +1,30 @@
+#' Fit Microbiome Bootstrap and Permutation Replicates in Parallel
+#'
+#' Fit microbiome models for bootstrap samples and their corresponding
+#' permuted metadata using a `BiocParallel` backend.
+#'
+#' @param BPPARAM A `BiocParallelParam` object specifying the parallel backend.
+#' If `NULL`, the parallel helper selects a two-worker backend appropriate to
+#' the operating system.
+#' @param samples Matrix of bootstrap sample names, with one replicate per row.
+#' @param data Feature-by-sample matrix with sample names as column names.
+#' @param formula.str Character string containing the model formula.
+#' @param group Character string naming the column in `meta.info` that
+#' identifies each sample's group.
+#' @param meta.info Data frame of sample-level metadata, with sample names as
+#' row names.
+#' @param pSamples List of permuted sample-level metadata data frames, one per
+#' replicate.
+#' @param pairwise_contrasts Character vector of contrast expressions, such as
+#' `"group1 - group2"`, to fit.
+#' @param trend Logical indicating whether to fit an intensity-dependent trend
+#' in the prior variance. See \link[limma]{eBayes}.
+#' @param robust Logical indicating whether to use robust empirical Bayes
+#' moderation. See \link[limma]{eBayes}.
+#'
+#' @return A list with one element per replicate. Each element contains `ds`
+#' (bootstrap statistics and standard errors) and `pdps` (permutation
+#' statistics and standard errors).
 parallel_microb <- function(BPPARAM = NULL,
                           samples,
                           data,
@@ -63,6 +90,27 @@ parallel_microb <- function(BPPARAM = NULL,
 }
 
 
+#' Fit Microbiome Models to the Original Data
+#'
+#' Fit the specified linear model and contrasts, apply empirical Bayes
+#' moderation, and estimate corrected feature coefficients and standard errors.
+#'
+#' @param x Feature-by-sample matrix with sample names as column names.
+#' @param group Character string naming the column in `meta.info` that
+#' identifies each sample's group.
+#' @param meta.info Data frame of sample-level metadata, with sample names as
+#' row names.
+#' @param formula.str Character string containing the model formula.
+#' @param trend Logical indicating whether to fit an intensity-dependent trend
+#' in the prior variance. See \link[limma]{eBayes}.
+#' @param robust Logical indicating whether to use robust empirical Bayes
+#' moderation. See \link[limma]{eBayes}.
+#' @param pairwise_contrasts Character vector of contrast expressions, such as
+#' `"group1 - group2"`, to fit.
+#'
+#'
+#' @return A list containing absolute feature statistics `d`, standard errors
+#' `s`, and signed corrected model coefficients `corrected.logfc`.
 fit_original_microb <- function(x, group, meta.info, formula.str, 
             trend, robust, pairwise_contrasts){
     combined_data <- x
@@ -113,6 +161,28 @@ fit_original_microb <- function(x, group, meta.info, formula.str,
 
 }
 
+#' Fit Microbiome Models to Bootstrap Samples
+#'
+#' Fit the specified linear model and contrasts to bootstrap data and return
+#' feature statistics and standard errors.
+#'
+#' @param x List of feature-by-sample matrices, one per group in the bootstrap
+#' replicate. Matrices must have matching feature row names.
+#' @param group Character string naming the column in `meta.info` that
+#' identifies each sample's group.
+#' @param meta.info Data frame of sample-level metadata, with sample names as
+#' row names.
+#' @param formula.str Character string containing the model formula.
+#' @param trend Logical indicating whether to fit an intensity-dependent trend
+#' in the prior variance. See \link[limma]{eBayes}.
+#' @param robust Logical indicating whether to use robust empirical Bayes
+#' moderation. See \link[limma]{eBayes}.
+#' @param pairwise_contrasts Character vector of contrast expressions, such as
+#' `"group1 - group2"`, to fit.
+#'
+#'
+#' @return A list containing absolute feature statistics `d` and their standard
+#' errors `s`.
 fit_bootstrap_microb <- function(x, group, meta.info, formula.str,
  trend, robust, pairwise_contrasts){
                             
@@ -161,6 +231,27 @@ fit_bootstrap_microb <- function(x, group, meta.info, formula.str,
     return(list(d = d_values, s = s_values))
 }
 
+#' Fit Microbiome Models to Permuted Metadata
+#'
+#' Fit the specified linear model and contrasts to the original data using
+#' permuted sample metadata to obtain null statistics.
+#'
+#' @param x Feature-by-sample matrix with sample names as column names.
+#' @param group Character string naming the column in `meta.info` that
+#' identifies each sample's group.
+#' @param meta.info Data frame of permuted sample-level metadata, with sample
+#' names as row names.
+#' @param formula.str Character string containing the model formula.
+#' @param trend Logical indicating whether to fit an intensity-dependent trend
+#' in the prior variance. See \link[limma]{eBayes}.
+#' @param robust Logical indicating whether to use robust empirical Bayes
+#' moderation. See \link[limma]{eBayes}.
+#' @param pairwise_contrasts Character vector of contrast expressions, such as
+#' `"group1 - group2"`, to fit.
+#'
+#'
+#' @return A list containing absolute null statistics `d` and their standard
+#' errors `s`.
 fit_permutation_microb <- function(x, group, meta.info, formula.str,
  trend, robust, pairwise_contrasts){
     
@@ -217,10 +308,30 @@ fit_permutation_microb <- function(x, group, meta.info, formula.str,
 
 }
 
+#' Estimate Microbiome Compositional Bias
+#'
+#' Estimate the coefficient-specific compositional bias from the mode of the
+#' scaled coefficients, using the median as a fallback if mode estimation fails.
+#'
+#' @param coefficient Numeric vector of feature coefficients.
+#' @param n_samples Integer number of samples used in the model fit.
+#'
+#'
+#' @details The microbiome compositional bias correction is adapted from the
+#' LinDA method implemented in \pkg{MicrobiomeStat}. LimROTS combines this
+#' correction with its bootstrap and permutation-based inference.
+#'
+#' @seealso \code{\link[MicrobiomeStat]{linda}}
+#'
+#' @references
+#' Huijuan Zhou, Kejun He, Jun Chen, and Xianyang Zhang. (2021). LinDA: Linear
+#' Models for Differential Abundance Analysis of Microbiome Compositional Data.
+#'
+#' @return A numeric scalar containing the estimated compositional bias.
 .estimate_bias <- function(coefficient, n_samples) {
     tryCatch(
         as.numeric(
-            modeest::mlv(
+            mlv(
                 sqrt(n_samples) * coefficient,
                 method = "meanshift",
                 kernel = "gaussian"
@@ -231,6 +342,21 @@ fit_permutation_microb <- function(x, group, meta.info, formula.str,
 }
 
 
+#' Assemble Bootstrap Data and Matching Metadata
+#'
+#' Combine group-specific feature matrices and construct metadata rows for each
+#' resampled sample while preserving their alignment.
+#'
+#' @param x List of feature-by-sample matrices, one per group in the bootstrap
+#' replicate. Matrices must have matching feature row names.
+#' @param meta.info Data frame of sample-level metadata, with sample names as
+#' row names.
+#' @param correlation_block Character string or `NULL` naming the metadata
+#' column identifying correlated samples or blocks. This argument is retained
+#' for compatibility; the helper does not use it.
+#'
+#' @return A list containing the combined feature-by-sample matrix
+#' `combined_data` and corresponding sample-level metadata `covariates.p`.
 .generate_data_for_fit <- function(x, meta.info, correlation_block) {
     ### Check if x is a list of matrices with identical rownames
     stopifnot(

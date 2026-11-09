@@ -1,3 +1,71 @@
+#' LimROTS Microbiome Differential-Abundance Analysis
+#'
+#' Analyze microbiome count data using prevalence filtering, compositional
+#' preprocessing, and LimROTS bootstrap and permutation statistics.
+#'
+#' @param assay.type Character string or numeric index selecting the assay in
+#' `x` to analyze. If `NULL`, the first assay is used.
+#' @param niter Integer. Number of bootstrap or permutation replicates to
+#' generate.
+#' @param K Integer. Number of top-ranked features to use. If `NULL`, defaults
+#' to one quarter of the number of features.
+#' @param meta.info Character vector naming the sample-level metadata columns
+#' in `colData(x)` required by the model.
+#' @param BPPARAM A `BiocParallelParam` object specifying the parallel backend.
+#' If `NULL`, the parallel helper selects a two-worker backend appropriate to
+#' the operating system.
+#' @param group Character string naming the column in `meta.info` that
+#' identifies each sample's group.
+#' @param formula.str Character string containing the model formula. It must
+#' include the group and any covariates to model.
+#' @param robust Logical indicating whether to use robust empirical Bayes
+#' moderation. See \link[limma]{eBayes}.
+#' @param trend Logical indicating whether to fit an intensity-dependent trend
+#' in the prior variance. See \link[limma]{eBayes}.
+#' @param pairwise_contrasts Character vector of contrast expressions, such as
+#' `"group1 - group2"`, to fit.
+#' @param model Character string specifying the fitting method, such as
+#' `"limma"` or `"dream"`.
+#' @param strata Character vector or `NULL`. Names of character or factor
+#' metadata columns used to define strata for resampling and permutation.
+#' @param prev_filter Numeric scalar specifying the minimum prevalence required
+#' for a feature to be retained.
+#' @param is_winsor Logical indicating whether to apply winsorization during
+#' microbiome preprocessing.
+#' @param outlier_pct Numeric scalar specifying the upper proportion of values
+#' to winsorize within each feature.
+#' @param pseudo_count Positive numeric scalar added to processed counts before
+#' the log transformation.
+#'
+#' @importFrom mia subsetByPrevalent transformAssay
+#' @importFrom TreeSummarizedExperiment TreeSummarizedExperiment
+#' @importFrom SummarizedExperiment assay colData
+#' @importFrom S4Vectors DataFrame
+#' @importFrom DescTools Winsorize
+#' @importFrom BiocParallel SnowParam MulticoreParam bplapply bpoptions
+#' @importFrom limma makeContrasts lmFit contrasts.fit eBayes
+#' @importFrom modeest mlv
+#' @importFrom stats as.formula complete.cases formula median model.matrix
+#' setNames quantile
+#' @importFrom stringr fixed str_split_fixed
+#' @importFrom utils combn
+#'
+#' @return The input `SummarizedExperiment` with feature-level statistics,
+#' empirical p-values, q-values, FDR estimates, corrected log-fold changes,
+#' and BH-adjusted p-values added to `rowData()`. Optimization parameters and
+#' null statistics are added to `metadata()`.
+#'
+#' @details The microbiome compositional bias correction is adapted from the
+#' LinDA method implemented in \pkg{MicrobiomeStat}. LimROTS combines this
+#' correction with its bootstrap and permutation-based inference.
+#'
+#' @seealso \code{\link[MicrobiomeStat]{linda}}
+#'
+#' @references
+#' Huijuan Zhou, Kejun He, Jun Chen, and Xianyang Zhang. (2021). LinDA: Linear
+#' Models for Differential Abundance Analysis of Microbiome Compositional Data.
+#'
+#' @export
 LimROTS_microb <- function(
     assay.type = NULL,
     niter = 1000,
@@ -180,6 +248,24 @@ LimROTS_microb <- function(
 }
 
 
+#' Preprocess Microbiome Counts for LimROTS
+#'
+#' Filter features by prevalence and prepare transformed microbiome data and
+#' aligned sample metadata for LimROTS analysis.
+#'
+#' @param tse A `TreeSummarizedExperiment` containing non-negative feature
+#' counts in the `"counts"` assay.
+#' @param prev_filter Numeric scalar specifying the minimum prevalence required
+#' for a feature to be retained.
+#' @param is_winsor Logical indicating whether to apply winsorization during
+#' microbiome preprocessing.
+#' @param outlier_pct Numeric scalar specifying the upper proportion of values
+#' to winsorize within each feature.
+#' @param pseudo_count Positive numeric scalar added to processed counts before
+#' the log transformation.
+#'
+#' @return A list containing the transformed feature data `clr_features` and
+#' the aligned sample metadata `metadata_use`.
 .preprocess_microb <- function(tse, prev_filter, is_winsor, outlier_pct, pseudo_count) {
 
     tse <- subsetByPrevalent(
@@ -304,6 +390,34 @@ LimROTS_microb <- function(
 }
 
 
+#' Fit Final Microbiome Models and Calculate Inference
+#'
+#' Fit the model on the original microbiome data, scale observed and null
+#' statistics, and calculate empirical p-values and false-discovery measures.
+#'
+#' @param data Feature-by-sample matrix with sample names as column names.
+#' @param meta.info Data frame of sample-level metadata, with sample names as
+#' row names.
+#' @param group Character string naming the column in `meta.info` that
+#' identifies each sample's group.
+#' @param formula.str Character string containing the model formula.
+#' @param trend Logical indicating whether to fit an intensity-dependent trend
+#' in the prior variance. See \link[limma]{eBayes}.
+#' @param robust Logical indicating whether to use robust empirical Bayes
+#' moderation. See \link[limma]{eBayes}.
+#' @param a1 Numeric first statistic-scaling parameter.
+#' @param a2 Numeric second statistic-scaling parameter.
+#' @param pairwise_contrasts Character vector of contrast expressions, such as
+#' `"group1 - group2"`, to fit.
+#' @param model Character string specifying the fitting method, such as
+#' `"limma"` or `"dream"`.
+#' @param pD Matrix of null-model statistics from the permutation fits.
+#' @param pS Matrix of null-model standard errors from the permutation fits.
+#'
+#' @return A list containing scaled observed statistics `d`, scaled null
+#' statistics `pD`, empirical p-values `p_value`, FDR estimates `FDR`,
+#' corrected log-fold changes `corrected.logfc`, q-values `q_values`, and
+#' BH-adjusted p-values `BH.pvalue`.
 .final_fit <- function(data, meta.info, group, formula.str, trend, robust,
  a1, a2, pairwise_contrasts, model,
     pD , pS) {
