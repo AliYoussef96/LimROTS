@@ -61,9 +61,12 @@
 #' @importFrom stats model.matrix formula p.adjust
 #' @importFrom dplyr bind_cols
 #' @importFrom qvalue empPvals qvalue
-#' @importFrom utils txtProgressBar setTxtProgressBar
-#' @importFrom BiocParallel SnowParam MulticoreParam bplapply bpoptions
-#' bpRNGseed
+#' @importFrom utils txtProgressBar setTxtProgressBar combn
+#' @importFrom BiocParallel SnowParam MulticoreParam SerialParam bplapply
+#' bpoptions bpRNGseed
+#' @importFrom limma makeContrasts lmFit contrasts.fit duplicateCorrelation
+#' @importFrom variancePartition dream makeContrastsDream
+#' @importFrom stringr str_split_fixed fixed
 #' @importFrom S4Vectors DataFrame metadata
 #'
 #' @details LimROTS fits linear models with \pkg{limma} or dream and applies empirical

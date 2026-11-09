@@ -11,7 +11,9 @@ fit_permutation(
   formula.str,
   correlation_block,
   model,
-  pairwise_contrasts
+  pairwise_contrasts,
+  trend,
+  robust
 )
 }
 \arguments{

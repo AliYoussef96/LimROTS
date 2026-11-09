@@ -11,6 +11,8 @@ fit_bootstrap(
   formula.str,
   correlation_block,
   model,
+  trend,
+  robust,
   pairwise_contrasts
 )
 }

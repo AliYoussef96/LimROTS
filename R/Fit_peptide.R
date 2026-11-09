@@ -25,7 +25,6 @@
 #' (bootstrap statistics and standard errors) and `pdps` (permutation
 #' statistics and standard errors).
 #'
-#' @importFrom BiocParallel SnowParam MulticoreParam bplapply bpoptions
 parallel_peptide <- function(BPPARAM = NULL,
                              samples,
                              data,
@@ -124,11 +123,6 @@ parallel_peptide <- function(BPPARAM = NULL,
 #' @return A list containing signed protein-level contrast estimates `d` and
 #' their standard errors `s`.
 #'
-#' @rawNamespace import(data.table, except = shift)
-#' @importFrom emmeans emmeans contrast
-#' @importFrom lme4 lmer
-#' @importFrom stats setNames
-#' @importFrom stringr fixed str_remove_all
 fit_original_peptide <- function(x, group, meta.info, model_formula,
                                   pairwise_contrasts, peptide_metadata){
   ### Generate combined data and covariates for model fitting
@@ -317,11 +311,6 @@ fit_original_peptide <- function(x, group, meta.info, model_formula,
 #' @return A list containing absolute protein-level statistics `d` and their
 #' standard errors `s`.
 #'
-#' @rawNamespace import(data.table, except = shift)
-#' @importFrom emmeans emmeans contrast
-#' @importFrom lme4 lmer
-#' @importFrom stats setNames
-#' @importFrom stringr fixed str_remove_all
 fit_bootstrap_peptide <- function(x, group, meta.info, model_formula,
                                   pairwise_contrasts, peptide_metadata) {
   
@@ -512,11 +501,6 @@ fit_bootstrap_peptide <- function(x, group, meta.info, model_formula,
 #' @return A list containing absolute protein-level null statistics `d` and
 #' their standard errors `s`.
 #'
-#' @rawNamespace import(data.table, except = shift)
-#' @importFrom emmeans emmeans contrast
-#' @importFrom lme4 lmer
-#' @importFrom stats setNames
-#' @importFrom stringr fixed str_remove_all
 fit_permutation_peptide <- function(x, group, meta.info, model_formula,
                                     pairwise_contrasts, peptide_metadata) {
   
@@ -701,7 +685,6 @@ fit_permutation_peptide <- function(x, group, meta.info, model_formula,
 #' @return A list containing the combined feature-by-sample matrix
 #' `combined_data` and corresponding sample-level metadata `covariates.p`.
 #'
-#' @importFrom stringr fixed str_split_fixed
 .generate_data_for_fit <- function(x, meta.info) {
   ### Check if x is a list of matrices with identical rownames
   stopifnot(

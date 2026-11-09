@@ -33,12 +33,15 @@
 #' and BH-adjusted p-values added to `rowData()`. Optimization results and
 #' null statistics are added to `metadata()`.
 #'
-#' @importFrom stats model.matrix formula p.adjust
+#' @importFrom stats model.matrix formula p.adjust setNames
 #' @importFrom dplyr bind_cols
 #' @importFrom qvalue empPvals qvalue
-#' @importFrom utils txtProgressBar setTxtProgressBar
+#' @importFrom utils txtProgressBar setTxtProgressBar combn
 #' @importFrom BiocParallel SnowParam MulticoreParam bplapply bpoptions
 #' bpRNGseed
+#' @import survival
+#' @importFrom cmprsk crr
+#' @importFrom stringr str_split_fixed fixed
 #' @importFrom S4Vectors DataFrame metadata
 #'
 #' @details The function applies the reproducibility-optimized statistic

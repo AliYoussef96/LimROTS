@@ -30,8 +30,6 @@
 #' (bootstrap statistics and standard errors) and `pdps` (permutation
 #' statistics and standard errors).
 #'
-#' @importFrom BiocParallel SnowParam MulticoreParam bplapply
-#' @importFrom stats model.matrix formula p.adjust
 #'
 
 
@@ -165,13 +163,6 @@ Boot_parallel <- function(BPPARAM = NULL,
 #' \code{\link[limma]{makeContrasts}},
 #' \code{\link[variancePartition]{dream}},
 #' \code{\link[variancePartition]{makeContrastsDream}}
-#' @importFrom stats model.matrix formula
-#' @importFrom dplyr bind_cols
-#' @importFrom utils combn
-#' @importFrom limma makeContrasts lmFit contrasts.fit
-#' @importFrom limma duplicateCorrelation
-#' @importFrom variancePartition dream makeContrastsDream
-#' @importFrom BiocParallel SerialParam
 #'
 
 
@@ -382,14 +373,6 @@ fit_original <- function(x, group, meta.info, formula.str, trend, robust,
 #' \code{\link[limma]{topTable}},
 #' \code{\link[limma]{makeContrasts}}
 #'
-#' @importFrom stats model.matrix formula
-#' @importFrom dplyr bind_cols
-#' @importFrom stringr str_split_fixed fixed
-#' @importFrom limma makeContrasts lmFit contrasts.fit
-#' @importFrom limma duplicateCorrelation
-#' @importFrom utils combn
-#' @importFrom variancePartition dream makeContrastsDream
-#' @importFrom BiocParallel SerialParam
 #'
 
 
@@ -643,14 +626,6 @@ fit_bootstrap <- function(x, group, meta.info, formula.str,
 #' \code{\link[limma]{topTable}},
 #' \code{\link[limma]{makeContrasts}}
 #'
-#' @importFrom stats model.matrix formula
-#' @importFrom dplyr bind_cols
-#' @importFrom limma makeContrasts lmFit contrasts.fit
-#' @importFrom limma duplicateCorrelation
-#' @importFrom stringr str_split_fixed fixed
-#' @importFrom utils combn
-#' @importFrom variancePartition dream makeContrastsDream
-#' @importFrom BiocParallel SerialParam
 #'
 #' 
 

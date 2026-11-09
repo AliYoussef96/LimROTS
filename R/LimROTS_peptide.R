@@ -34,7 +34,13 @@
 #' and BH-adjusted p-values added to `rowData()`. Optimization parameters and
 #' null statistics are added to `metadata()`.
 #'
-#' @importFrom stats as.formula
+#' @rawNamespace import(data.table, except = shift)
+#' @importFrom BiocParallel SnowParam MulticoreParam bplapply bpoptions
+#' @importFrom emmeans emmeans contrast
+#' @importFrom lme4 lmer
+#' @importFrom qvalue empPvals qvalue
+#' @importFrom stats as.formula p.adjust setNames
+#' @importFrom stringr fixed str_remove_all str_split_fixed
 #' 
 #' @export 
 #' 
@@ -381,8 +387,6 @@ LimROTS_peptide <- function(x,
 #' corrected log-fold changes `corrected.logfc`, q-values `q_values`, and
 #' BH-adjusted p-values `BH.pvalue`.
 #'
-#' @importFrom qvalue empPvals qvalue
-#' @importFrom stats p.adjust
 .fit_final_peptide <- function(data, meta.info, group, model_formula,
         a1, a2, pairwise_contrasts, pD , pS, peptide_metadata) {
         # Fit the limma model on the original data and compute statistics, p-values, and FDR.

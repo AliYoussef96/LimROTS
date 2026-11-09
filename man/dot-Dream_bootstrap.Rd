@@ -9,6 +9,8 @@
   group,
   meta.info,
   formula.str,
+  trend,
+  robust,
   correlation_block,
   pairwise_contrasts
 )

@@ -10,7 +10,9 @@
   meta.info,
   formula.str,
   correlation_block,
-  pairwise_contrasts
+  pairwise_contrasts,
+  trend,
+  robust
 )
 }
 \arguments{

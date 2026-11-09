@@ -27,8 +27,6 @@
 #' (bootstrap statistics and standard errors) and `pdps` (permutation
 #' statistics and standard errors).
 #'
-#' @importFrom BiocParallel SnowParam MulticoreParam bplapply
-#' @importFrom stats model.matrix formula p.adjust
 #'
 
 
@@ -143,11 +141,6 @@ Boot_parallel_survival <- function(BPPARAM = NULL,
 #'
 #' @seealso \code{\link[survival]{coxph}}, \code{\link[cmprsk]{crr}}
 #'
-#' @importFrom stats model.matrix formula setNames
-#' @importFrom dplyr bind_cols
-#' @import survival
-#' @importFrom utils combn
-#' @importFrom cmprsk crr
 #'
 #'
 #'
@@ -277,12 +270,6 @@ competing_risks
 #' `combined_data` and corresponding sample-level metadata `covariates.p`.
 #' @seealso \code{\link[survival]{coxph}}, \code{\link[cmprsk]{crr}}
 #'
-#' @importFrom stats model.matrix formula
-#' @importFrom dplyr bind_cols
-#' @importFrom stringr str_split_fixed fixed
-#' @import survival
-#' @importFrom utils combn
-#' @importFrom cmprsk crr
 #'
 
 bootstrap_survival <-
@@ -423,11 +410,6 @@ bootstrap_survival <-
 #'
 #' @seealso \code{\link[survival]{coxph}}, \code{\link[cmprsk]{crr}}
 #'
-#' @importFrom stats model.matrix formula
-#' @importFrom dplyr bind_cols
-#' @import survival
-#' @importFrom utils combn
-#' @importFrom cmprsk crr
 #'
 #'
 #'
