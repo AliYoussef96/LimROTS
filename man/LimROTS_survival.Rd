@@ -9,7 +9,6 @@ LimROTS_survival(
   assay.type = NULL,
   niter = 1000,
   K = NULL,
-  verbose = TRUE,
   meta.info,
   BPPARAM = NULL,
   formula.str,
@@ -28,8 +27,6 @@ generate.}
 
 \item{K}{Integer. Number of top-ranked features to use. If \code{NULL}, defaults
 to one quarter of the number of features.}
-
-\item{verbose}{Logical. If \code{TRUE}, report progress messages.}
 
 \item{meta.info}{Character vector naming the sample-level metadata columns
 in \code{colData(x)} required for the survival model. Must include \code{time},
@@ -108,7 +105,6 @@ result <- LimROTS_survival(
     meta.info = meta_data,
     formula.str = formula.str,
     niter = 10,
-    verbose = FALSE,
     competing_risks = FALSE
 )
 

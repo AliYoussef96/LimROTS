@@ -14,7 +14,6 @@
 #' generate.
 #' @param K Integer. Number of top-ranked features to use. If `NULL`, defaults
 #' to one quarter of the number of features.
-#' @param verbose Logical. If `TRUE`, report progress messages.
 #' @param meta.info Character vector naming the sample-level metadata columns
 #' in `colData(x)` required for the survival model. Must include `time`,
 #' `event`, and the formula covariates.
@@ -41,7 +40,7 @@
 #' bpRNGseed
 #' @import survival
 #' @importFrom cmprsk crr
-#' @importFrom stringr str_split_fixed fixed
+#' @importFrom stringr str_split_fixed fixed str_detect
 #' @importFrom S4Vectors DataFrame metadata
 #'
 #' @details The function applies the reproducibility-optimized statistic
@@ -111,7 +110,6 @@
 #'     meta.info = meta_data,
 #'     formula.str = formula.str,
 #'     niter = 10,
-#'     verbose = FALSE,
 #'     competing_risks = FALSE
 #' )
 #'
@@ -120,7 +118,6 @@ LimROTS_survival <- function(x,
     assay.type = NULL,
     niter = 1000,
     K = NULL,
-    verbose = TRUE,
     meta.info,
     BPPARAM  = NULL,
     formula.str,
@@ -223,8 +220,7 @@ LimROTS_survival <- function(x,
         a1 = a1,
         a2 = a2,
         pD = pD,
-        pS = pS,
-        verbose = verbose
+        pS = pS
     )
     cli_alert_success("Final survival inference complete.")
 
@@ -296,14 +292,13 @@ LimROTS_survival <- function(x,
 #' @param a2 Numeric second statistic-scaling parameter.
 #' @param pD Matrix of null-model coefficients from the permutation fits.
 #' @param pS Matrix of null-model standard errors from the permutation fits.
-#' @param verbose Logical. If `TRUE`, report progress messages.
 #'
 #' @return A list containing observed statistics `d`, scaled null statistics
 #' `pD`, empirical p-values `p_value`, FDR estimates `FDR`, exponentiated
 #' coefficients `exp_coef`, q-values `q_values`, and BH-adjusted p-values
 #' `BH.pvalue`.
 .final_fit_survival <- function(data, meta.info, formula.str,
-    competing_risks, a1, a2, pD, pS, verbose) {
+    competing_risks, a1, a2, pD, pS) {
     fit <- fit_survival(
         x = data,
         meta.info = meta.info,

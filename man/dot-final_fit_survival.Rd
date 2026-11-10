@@ -12,8 +12,7 @@
   a1,
   a2,
   pD,
-  pS,
-  verbose
+  pS
 )
 }
 \arguments{
@@ -34,8 +33,6 @@ model; otherwise use a Cox proportional hazards model.}
 \item{pD}{Matrix of null-model coefficients from the permutation fits.}
 
 \item{pS}{Matrix of null-model standard errors from the permutation fits.}
-
-\item{verbose}{Logical. If \code{TRUE}, report progress messages.}
 }
 \value{
 A list containing observed statistics \code{d}, scaled null statistics
