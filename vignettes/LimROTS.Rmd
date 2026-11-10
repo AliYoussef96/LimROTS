@@ -134,18 +134,18 @@ description of all parameters, refer to the function documentation:
 
 ## Dataset Description
 
-To illustrate LimROTS in a realistic multi-covariate scenario, we use a
-DIA proteomics dataset from a UPS1-spiked *E. coli* protein mixture
+To illustrate LimROTS in a multi-covariate scenario, we use a DIA
+proteomics dataset from a UPS1-spiked *E. coli* protein mixture
 @GOTTI2022107829. The dataset contains 1,656 proteins measured across 48
 samples: 24 processed with Spectronaut and 24 with ScaffoldDIA. Eight
 UPS1 concentrations (0.1–50 fmol) are grouped into two conditions:
 
--   **Low concentration** (0.1–2.5 fmol, `Conc. 2`): 12 samples per
+-   **High concentration** (5–50 fmol, concentration 1): 12 samples per
     software.
--   **High concentration** (5–50 fmol, `Conc. 1`): 12 samples per
-    software.
+-   **Low concentration** (0.1–2.5 fmol, concentration 2): 12 samples
+    per software.
 
-A synthetic unbalanced batch variable (`fake.batch`) was assigned across
+A synthetic unbalanced batch variable (`batch`) was assigned across
 samples with the following distribution:
 
 ```{r, echo=FALSE, message=FALSE, results="hide"}
@@ -154,7 +154,7 @@ data("UPS1.Case4")
 ```
 
 ```{r echo=FALSE}
-table(UPS1.Case4$fake.batch, UPS1.Case4$Conc.)
+table(UPS1.Case4$batch, UPS1.Case4$concentration)
 ```
 
 Additionally, a simulated batch effect was introduced: an effect size of
@@ -192,32 +192,27 @@ set.seed(1234, kind = "default", sample.kind = "default")
 > and `pairwise_contrasts` can be used to specify the contrasts, such as
 > `Conc.1-Conc.2`.
 
-```{r group as character}
-
-colData(UPS1.Case4)$Conc. <- as.character(
-     paste0("Conc." , colData(UPS1.Case4)$Conc.)
-)
-
-```
-
 ```{r run-limrots}
 # Define analysis parameters
-meta.info   <- c("Conc.", "tool", "fake.batch")
+meta.info   <- c("concentration", "Software", "batch")
 niter       <- 100   # bootstrap iterations (use >= 1000 for real analyses)
 K           <- 100   # top list size for reproducibility optimization
-formula.str <- "~ 0 + Conc. + tool + fake.batch"
+formula.str <- "~ 0 + concentration + Software + batch"
 
 # Run LimROTS
 UPS1.Case4 <- LimROTS(
-    x           = UPS1.Case4,
-    niter       = niter,
-    K           = K,
-    meta.info   = meta.info,
-    group       = "Conc.",
-    formula.str = formula.str,
-    trend       = TRUE,
-    robust      = TRUE,
-    permutating.group = FALSE
+  x           = UPS1.Case4,
+  niter       = niter,
+  K           = K,
+  meta.info   = meta.info,
+  group       = "concentration",
+  formula.str = formula.str,
+  pairwise_contrasts = "concentrationConc.1-concentrationConc.2",
+  trend       = TRUE,
+  strata = NULL,
+  correlation_block = NULL,
+  model = "limma",
+  BPPARAM = SnowParam(workers = 10, progressbar = T)
 )
 ```
 
@@ -240,6 +235,28 @@ To increase the number of workers, pass a `BPPARAM` argument:
 The results are appended directly to the `rowData` and `metadata` slots
 of the input `SummarizedExperiment` object.
 
+## **How `strata` and `correlation_block` affect resampling in LimROTS**
+
+In LimROTS, `strata` controls how bootstrap and permutation samples are
+grouped, while `correlation_block` identifies linked samples—usually
+repeated measurements from the same person. 1. If both are NULL, samples
+are bootstrapped within each group, and group labels are shuffled across
+all samples for permutation. 2. If `strata` is supplied and
+`correlation_block` is NULL, resampling and label shuffling happen
+within the specified strata; the group column is excluded from the
+strata. 3. If `strata` is NULL and `correlation_block` is supplied, the
+block setting takes precedence: whole blocks are resampled together, and
+permutations are done within blocks. For a before/after design, use a
+subject ID column so each person’s two measurements stay paired. The
+current bootstrap requires every block to have exactly one sample from
+each of the two groups. With `model = "limma"`, the block is also used
+to estimate within-block correlation. With `model = "dream"`, include
+the block as a random effect in the formula, such as `(1 \| subject)`;
+the formula models that effect, while the block setting controls
+resampling. 4. If both are supplied, the code follows the
+`correlation-block` branch, so `strata` is effectively ignored for
+sampling and permutation.
+
 ## Volcano Plot
 
 The volcano plot below shows corrected log-fold changes versus
@@ -250,13 +267,12 @@ proteins.
 ```{r volcano-plot}
 # Extract results
 result_df <- data.frame(
-    rowData(UPS1.Case4),
-    row.names = rownames(UPS1.Case4)
+    rowData(UPS1.Case4)
 )
 
 # Annotate proteins
 result_df$label <- ifelse(
-    grepl("HUMAN", result_df$GeneID),
+    grepl("HUMAN", result_df[["GeneID"]]),
     "UPS1 (true positive)",
     "E. coli (true negative)"
 )
