@@ -239,7 +239,7 @@ LimROTS_survival <- function(x,
         d = d,
         p_value = p_value,
         FDR = FDR,
-        corrected.logfc = NULL,
+        corrected.logfc = rep(NA, length(d)),
         q_values = q_values,
         BH.pvalue = BH.pvalue,
         a1 = a1, a2 = a2, k = k, Z = Z, R = R, ztable = ztable, pD = pD
