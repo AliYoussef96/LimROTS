@@ -40,7 +40,7 @@
 #' bpRNGseed
 #' @import survival
 #' @importFrom cmprsk crr
-#' @importFrom stringr str_split_fixed fixed str_detect
+#' @importFrom stringr str_split_fixed fixed str_detect str_remove
 #' @importFrom S4Vectors DataFrame metadata
 #'
 #' @details The function applies the reproducibility-optimized statistic
