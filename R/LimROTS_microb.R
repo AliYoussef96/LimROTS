@@ -260,6 +260,7 @@ LimROTS_microb <- function(
         a1 = a1, a2 = a2, k = k, Z = Z, R = R, ztable = ztable, pD = pD
     )
     cli_alert_success("LimROTS microbiome analysis complete.")
+    return(LimROTS.output)
 }
 
 

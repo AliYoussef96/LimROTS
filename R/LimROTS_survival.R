@@ -230,21 +230,23 @@ LimROTS_survival <- function(x,
     FDR = fit_survival_result[["FDR"]]
     q_values = fit_survival_result[["q_values"]]
     BH.pvalue = fit_survival_result[["BH.pvalue"]]
+    exp_coef = fit_survival_result[["exp_coef"]]
 
     ### generate output
 
-    LimROTS.output <- .generate_output(
+    LimROTS.output <- .generate_output_survival(
         x = x,
         data = data,
         d = d,
         p_value = p_value,
         FDR = FDR,
-        corrected.logfc = rep(NA, length(d)),
+        exp_coef = exp_coef,
         q_values = q_values,
         BH.pvalue = BH.pvalue,
         a1 = a1, a2 = a2, k = k, Z = Z, R = R, ztable = ztable, pD = pD
     )
     cli_alert_success("LimROTS survival analysis complete.")
+    return(LimROTS.output)
 }
 
 #' Generate Survival Bootstrap and Permutation Samples
@@ -337,3 +339,42 @@ LimROTS_survival <- function(x,
         BH.pvalue = BH.pvalue
     )
 }
+
+.generate_output_survival <- function(x, data, d, p_value, FDR, exp_coef,
+    q_values, BH.pvalue, a1, a2, k, Z, R, ztable, pD) {
+        # Generate the output SummarizedExperiment object with the LimROTS results.
+    new_rowData <- DataFrame(
+        statistics = d,
+        pvalue = p_value,
+        qvalue = if (is.null(q_values)) rep(NA_real_, length(d))
+                    else q_values$qvalues,
+        FDR = FDR,
+        exp_coef = exp_coef,
+        BH.pvalue = BH.pvalue,
+        row.names = row.names(data)
+    )
+
+    new_rowData <- new_rowData[match(rownames(x), 
+                                            rownames(new_rowData)), ]
+    if (!identical(rownames(new_rowData), rownames(x))) {
+        cli_abort("Cannot add the LimROTS results to the SummarizedExperiment.")
+    }
+    correct.order <- rownames(x)
+    rowData(x) <- cbind(rowData(x), new_rowData)
+    if (!identical(correct.order, rownames(x))) {
+        cli_abort("Cannot add the LimROTS results to the SummarizedExperiment.")
+    }
+    metadata(x) <- c(metadata(x), list(
+        a1 = a1,
+        a2 = a2,
+        k = k,
+        Z = Z,
+        R = R,
+        ztable = ztable,
+        q_values = q_values,
+        null.statistics = pD
+    ))
+
+    LimROTS.output <- x
+    return(LimROTS.output)
+    }
