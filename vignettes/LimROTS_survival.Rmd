@@ -155,7 +155,7 @@ crohn_cox <- LimROTS_survival(
     niter       = 30,    # use >= 1000 for real analyses
     K           = 10,     # number of top taxa
     meta.info   = c("time", "event"),
-    formula.str = "~ Surv(time, event)",
+    formula.str = "Surv(time, event)~y",
     competing_risks   = FALSE
 )
 ```
