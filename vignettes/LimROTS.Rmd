@@ -2,6 +2,7 @@
 title: "LimROTS: A Hybrid Method Integrating Empirical Bayes and 
         Reproducibility-Optimized Statistics for Robust 
         Differential Expression Analysis"
+subtitle: "Method overview and an UPS1-spiked DIA proteomics case study"
 bibliography: references.bib
 output:
     BiocStyle::html_document:
@@ -27,7 +28,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# Introduction
+# Background and objectives
 
 Differential expression analysis is commonly used to study diverse
 biological datasets. The reproducibility-optimized test statistic (ROTS)
@@ -48,7 +49,7 @@ Bioconductor package, but have not been formally published to our
 knowledge. Both ROTS and LimROTS added linear model extensions for
 survival analysis in the Bioconductor devel version 3.23.
 
-# Citation
+## How to cite LimROTS
 
 If you use `LimROTS` in your research, please cite:
 
@@ -58,7 +59,7 @@ If you use `LimROTS` in your research, please cite:
 > Expression Analysis. *Bioinformatics*, btaf570.
 > <https://doi.org/10.1093/bioinformatics/btaf570>
 
-# Disclaimer
+## Relationship to ROTS and limma
 
 LimROTS is a standalone package that extends ROTS ([Elo et al.,
 2008](https://ieeexplore.ieee.org/document/4359873); [Tomi Suomi et al.,
@@ -86,7 +87,7 @@ powers differential expression analyses for RNA-sequencing and
 microarray studies. Nucleic Acids Research. 2015;43(7):e47.
 <https://doi.org/10.1093/nar/gkv007>
 
-# Algorithm Overview
+## How LimROTS combines empirical Bayes from limma and reproducibility optimization
 
 The **LimROTS** workflow proceeds as follows:
 
@@ -112,7 +113,7 @@ P-values are derived from permutation-based null distributions using the
 implementation adapted from ROTS @rots, and q-values are computed via
 the bootstrap method for the proportion of true null hypotheses.
 
-# Computational Considerations
+## Computational considerations
 
 LimROTS runtime depends on four primary factors: the number of samples,
 features, bootstrap iterations (`niter`), and the top list size (`K`).
@@ -121,7 +122,7 @@ The bootstrapping step is parallelized using `BiocParallel`
 analyses. The optimization step is sequential and may be time-consuming
 for large values of `K`.
 
-# LimROTS Function Parameters
+## LimROTS function parameters
 
 `LimROTS()` is the primary interface for end users. For a full
 description of all parameters, refer to the function documentation:
@@ -130,43 +131,37 @@ description of all parameters, refer to the function documentation:
 ?LimROTS
 ```
 
-# UPS1 Case Study
+# UPS1-spiked DIA proteomics case study
 
-## Dataset Description
+## Dataset design and sample metadata
 
-To illustrate LimROTS in a multi-covariate scenario, we use a DIA
-proteomics dataset from a UPS1-spiked *E. coli* protein mixture
-@GOTTI2022107829. The dataset contains 1,656 proteins measured across 48
-samples: 24 processed with Spectronaut and 24 with ScaffoldDIA. Eight
-UPS1 concentrations (0.1–50 fmol) are grouped into two conditions:
+This case study demonstrates LimROTS with a quantitative proteomics
+dataset in which known UPS1 proteins are spiked into an *E. coli*
+background @Gotti2021. Because the spike-in concentrations are known,
+the data provide a useful setting for examining concentration-associated
+differences while accounting for the DIA isolation-window setting.
 
--   **High concentration** (5–50 fmol, concentration 1): 12 samples per
-    software.
--   **Low concentration** (0.1–2.5 fmol, concentration 2): 12 samples
-    per software.
+The same experimental groups were measured using two DIA acquisition
+settings: narrow and wide isolation windows. Each setting contains three
+replicate samples for each of eight UPS1 concentration groups: A (0.1
+fmol), B (0.25 fmol), C (1 fmol), D (2.5 fmol), E (5 fmol), F (10 fmol),
+G (25 fmol), and H (50 fmol). The combined dataset therefore has 48
+samples, with 24 samples per window.
 
-A synthetic unbalanced batch variable (`batch`) was assigned across
-samples with the following distribution:
+The `HEof_DIA` object stores log2 MaxLFQ intensities in its
+`log2_intensity` assay. Its sample metadata include the condition,
+replicate, and DIA window. The two window-specific datasets are combined
+by protein, and missing values are imputed separately within each window
+using BPCA before combination. The dataset was adapted from @Peng2024.
 
-```{r, echo=FALSE, message=FALSE, results="hide"}
-library(LimROTS, quietly = TRUE)
-data("UPS1.Case4")
-```
+This dataset is used for demonstration purposes; however, the same
+workflow can be applied to real-world label-free DIA or DDA experiments.
+In this example, the DIA isolation windows represent covariates that
+mirror those encountered in real-world experiments, including biological
+covariates (e.g., sex and age) and technical covariates (e.g., digestion
+batches).
 
-```{r echo=FALSE}
-table(UPS1.Case4$batch, UPS1.Case4$concentration)
-```
-
-Additionally, a simulated batch effect was introduced: an effect size of
-10 was added to 100 randomly selected *E. coli* proteins log2 values in
-one of the fake batches. The expected result is that only the 48 UPS1
-human proteins are truly differentially expressed; no *E. coli* protein
-should show a genuine concentration effect.
-
-This scenario mirrors real-world conditions such as unbalanced batch
-structures or unequal covariate distributions across groups.
-
-## Loading the Data
+## Load and inspect the dataset
 
 ```{r load-packages, message=FALSE}
 library(LimROTS, quietly = TRUE)
@@ -176,11 +171,69 @@ library(SummarizedExperiment, quietly = TRUE)
 ```
 
 ```{r load-dataset}
-data("UPS1.Case4")
-print(UPS1.Case4)
+data("HEof_DIA")
+print(HEof_DIA)
 ```
 
-## Running LimROTS
+```{r}
+table(HEof_DIA$condition, HEof_DIA$window)
+```
+
+## Explore sample patterns with PCA
+
+PCA provides an unsupervised, sample-level overview of the largest
+patterns of variation in the protein-intensity data. Here, color
+identifies the UPS1 concentration group and point shape identifies the
+DIA isolation window. This makes it easier to visually assess whether
+samples show patterns associated with the known concentration groups,
+whether replicates appear similar, and whether the acquisition window is
+associated with a broader shift in the data.
+
+This PCA is exploratory: it does not test for differential abundance or
+establish that a group or window caused an observed pattern. The LimROTS
+analysis below addresses concentration-associated differences while
+including the window as a covariate.
+
+```{r}
+data <- assay(HEof_DIA, "log2_intensity")
+variable_proteins <- apply(data, 1, sd) > 0
+pca <- prcomp(
+  t(data[variable_proteins, , drop = FALSE]),
+  center = TRUE
+)
+
+scores <- data.frame(
+  PC1 = pca$x[, 1],
+  PC2 = pca$x[, 2],
+  as.data.frame(colData(HEof_DIA))
+)
+variance <- summary(pca)$importance[2, 1:2] * 100
+
+ggplot(scores, aes(PC1, PC2, color = condition, shape = window)) +
+  geom_point(size = 3, alpha = 0.9) +
+  scale_color_manual(values = c(
+    "#0072B2", "#D55E00", "#009E73", "#CC79A7",
+    "#E69F00", "#56B4E9", "#F0E442", "#000000"
+  )) +
+  labs(
+    title = "PCA of narrow- and wide-window DIA samples",
+    x = sprintf("PC1 (%.1f%%)", variance[1]),
+    y = sprintf("PC2 (%.1f%%)", variance[2]),
+    color = "Sample group",
+    shape = "DIA window"
+  ) +
+  theme_classic(base_size = 12)
+
+```
+
+## Select two concentration groups for LimROTS
+
+```{r}
+CF_HEof_DIA <- HEof_DIA[, colData(HEof_DIA)$condition %in% c("C", "F")]
+table(AF_HEof_DIA$condition, AF_HEof_DIA$window)
+```
+
+## Run LimROTS on the selected groups
 
 Set a seed before running LimROTS to ensure reproducibility.
 
@@ -190,35 +243,36 @@ set.seed(1234, kind = "default", sample.kind = "default")
 
 > **Note:** The `group` column in `colData` must be a character vector,
 > and `pairwise_contrasts` can be used to specify the contrasts, such as
-> `Conc.1-Conc.2`.
+> `conditionF-conditionC`.
 
 ```{r run-limrots}
 # Define analysis parameters
-meta.info   <- c("concentration", "Software", "batch")
+meta.info   <- c("condition", "window")
 niter       <- 100   # bootstrap iterations (use >= 1000 for real analyses)
-K           <- 100   # top list size for reproducibility optimization
-formula.str <- "~ 0 + concentration + Software + batch"
+K           <- 50   # top list size for reproducibility optimization
+formula.str <- "~ 0 + condition + window"
 
 # Run LimROTS
-UPS1.Case4 <- LimROTS(
-  x           = UPS1.Case4,
+CF_HEof_DIA <- LimROTS(
+  x           = CF_HEof_DIA,
   niter       = niter,
   K           = K,
   meta.info   = meta.info,
-  group       = "concentration",
+  group       = "condition",
   formula.str = formula.str,
-  pairwise_contrasts = "concentrationConc.1-concentrationConc.2",
+  pairwise_contrasts = "conditionF-conditionC",
   trend       = TRUE,
-  strata = NULL,
+  strata = c("window"),
   correlation_block = NULL,
   model = "limma",
-  BPPARAM = SnowParam(workers = 10, progressbar = T)
+  BPPARAM = SnowParam(workers = 2, progressbar = T)
 )
 ```
 
 > **Note:** `niter = 100` and `K = 100` are used here to reduce vignette
-> build time. For production analyses, use `niter = 1000` or higher. We
-> also recommend at least 4 parallel workers.
+> build time. For real-world analyses, use `niter = 1000` or higher and
+> `k = 25% of the feature count`, which is the default if not explicitly
+> specified. We also recommend at least 4 parallel
 
 To increase the number of workers, pass a `BPPARAM` argument:
 
@@ -235,7 +289,105 @@ To increase the number of workers, pass a `BPPARAM` argument:
 The results are appended directly to the `rowData` and `metadata` slots
 of the input `SummarizedExperiment` object.
 
-## **How `strata` and `correlation_block` affect resampling in LimROTS**
+## Visualize differential-abundance results
+
+The volcano plot below shows corrected log-fold changes versus
+$-\log_{10}$(q-value). At a 5% q-value threshold, LimROTS recovers the
+majority of true UPS1 human proteins while flagging very few *E. coli*
+proteins or zero.
+
+```{r volcano-plot}
+# Extract results
+result_df <- data.frame(
+    rowData(CF_HEof_DIA)
+)
+
+result_df$label <- ifelse(
+  result_df$Organism == "UPS",
+  "UPS1 (TP)",
+  "E. coli (TN)"
+)
+
+result_df$significance <- ifelse(
+  result_df$qvalue < 0.05,
+  "FDR < 0.05",
+  "Not significant"
+)
+
+
+q_cutoff <- max(result_df$pvalue[result_df$qvalue < 0.05], na.rm = TRUE)
+
+ggplot(result_df, aes(
+  x = corrected.logfc,
+  y = -log10(pvalue),
+  color = label,
+  shape = label
+)) +
+  geom_point(size = 2, alpha = 0.8, stroke = 1) +
+  geom_hline(
+    yintercept = -log10(q_cutoff),
+    linetype = "dashed",
+    linewidth = 0.5,
+    color = "grey30"
+  ) +
+  annotate(
+    "text",
+    x = Inf,
+    y = -log10(q_cutoff),
+    label = "q-value = 0.05",
+    hjust = 1.1,
+    vjust = -0.6,
+    size = 3.5,
+    color = "grey30"
+  ) +
+  geom_vline(
+    xintercept = 0,
+    linetype = "dotted",
+    color = "grey60",
+    linewidth = 0.4
+  ) +
+  scale_color_manual(values = c(
+    "E. coli (TN)" = "#0072B2",
+    "UPS1 (TP)" = "#D55E00"
+  )) +
+  scale_shape_manual(values = c(
+    "E. coli (TN)" = 16,
+    "UPS1 (TP)" = 1
+  )) +
+  labs(
+    title = "LimROTS – C Vs. F HEof DIA dataset",
+    x = expression("Corrected log"[2] * " fold change"),
+    y = expression(-log[10](pvalue)),
+    color = NULL,
+    shape = NULL
+  ) +
+  theme_classic(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    axis.title = element_text(face = "bold"),
+    legend.position = "top",
+    axis.text = element_text(color = "black")
+  )
+```
+
+# Adjusted p-values and FDR estimates in LimROTS
+
+LimROTS reports four related but distinct measures in the feature-level
+`rowData`: empirical `pvalue`s, Benjamini–Hochberg adjusted
+`BH.pvalue`s, `qvalue`s estimated with the `qvalue` package @qvalue, and
+a permutation-based `FDR`. The empirical p-values are calculated by
+comparing each observed LimROTS statistic with the statistics from the
+permuted null fits. `BH.pvalue` applies the Benjamini–Hochberg procedure
+to these empirical p-values to adjust for testing many features.
+Separately, `qvalue` estimates q-values from the empirical p-values,
+estimating the proportion of true null hypotheses (`pi0`) with the
+bootstrap method. The `FDR` column is estimated directly from the
+permuted statistics. Thus, these columns are alternative summaries of
+evidence and false-discovery control, not interchangeable versions of
+the same adjusted p-value. Interpret the chosen measure consistently,
+and state which one you use when reporting significance.
+
+# How `strata` and `correlation_block` affect resampling in LimROTS
 
 In LimROTS, `strata` controls how bootstrap and permutation samples are
 grouped, while `correlation_block` identifies linked samples—usually
@@ -256,63 +408,6 @@ the formula models that effect, while the block setting controls
 resampling. 4. If both are supplied, the code follows the
 `correlation-block` branch, so `strata` is effectively ignored for
 sampling and permutation.
-
-## Volcano Plot
-
-The volcano plot below shows corrected log-fold changes versus
-$-\log_{10}$(q-value). At a 5% q-value threshold, LimROTS recovers the
-majority of true UPS1 human proteins while flagging very few *E. coli*
-proteins.
-
-```{r volcano-plot}
-# Extract results
-result_df <- data.frame(
-    rowData(UPS1.Case4)
-)
-
-# Annotate proteins
-result_df$label <- ifelse(
-    grepl("HUMAN", result_df[["GeneID"]]),
-    "UPS1 (true positive)",
-    "E. coli (true negative)"
-)
-
-ggplot(result_df, aes(
-    x     = corrected.logfc,
-    y     = -log10(qvalue),
-    color = label
-)) +
-    geom_point(alpha = 0.7, size = 1.2) +
-    geom_hline(
-        yintercept = -log10(0.05),
-        linetype   = "dashed",
-        color      = "steelblue"
-    ) +
-    scale_color_manual(values = c(
-        "E. coli (true negative)" = "grey60",
-        "UPS1 (true positive)"    = "firebrick"
-    )) +
-    labs(
-        title = "LimROTS \u2014 UPS1 Case Study",
-        x     = "Corrected Log Fold Change",
-        y     = expression(-log[10](q~value)),
-        color = NULL
-    ) +
-    theme_bw(base_size = 12) +
-    theme(legend.position = "top")
-```
-
-## Quality Control
-
-LimROTS produces permutation-derived p-values and q-values that can be
-inspected visually. These are the recommended primary inference
-statistics.
-
-```{r quality-control, results="hide", message=FALSE, warning=FALSE}
-plot(metadata(UPS1.Case4)[["q_values"]])
-hist(metadata(UPS1.Case4)[["q_values"]])
-print(summary(metadata(UPS1.Case4)[["q_values"]]))
-```
 
 ```{r session-info}
 sessionInfo()
