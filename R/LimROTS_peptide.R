@@ -229,7 +229,7 @@ LimROTS_peptide <- function(x,
   )
   cli_alert_success("Peptide bootstrap and permutation fits complete.")
 
-  row_length <- nrow(as.matrix(data))
+  row_length <- length(results_list[[1]][["ds"]][["d_result"]])
   col_length <- nrow(list_boot_perm[["boot_Samples"]])
   
   D <- matrix(nrow = row_length, ncol = col_length)

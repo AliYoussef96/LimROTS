@@ -1,0 +1,226 @@
+---
+title: "LimROTS peptide-level analysis"
+subtitle: "UPS1-spiked DIA data: condition C versus condition G"
+bibliography: references.bib
+output:
+    BiocStyle::html_document:
+        fig_height: 7
+        fig_width: 7
+        toc: true
+        toc_float: true
+        toc_depth: 3
+        number_sections: true
+vignette: >
+    %\VignetteIndexEntry{LimROTS peptide-level analysis: C versus G}
+    %\VignetteEncoding{UTF-8}
+    %\VignetteEngine{knitr::rmarkdown}
+editor_options:
+  markdown:
+    wrap: 72
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+    collapse = TRUE,
+    comment = "#>"
+)
+```
+
+# Overview
+
+`LimROTS_peptide()` analyzes peptide-level intensities with mixed models
+that account for peptides nested within proteins and repeated measurements
+within samples. The input features are peptides; the reported statistics
+are one result per protein.
+
+This vignette uses the peptide-level version of the UPS1-spiked DIA
+dataset, `HEof_DIA_peptide`, and compares concentration group C (1 fmol)
+with group G (25 fmol). The model includes DIA window as a covariate and
+resampling is stratified by window.
+
+# Load the data
+
+```{r load-packages, message=FALSE}
+library(LimROTS, quietly = TRUE)
+library(BiocParallel, quietly = TRUE)
+library(ggplot2, quietly = TRUE)
+library(SummarizedExperiment, quietly = TRUE)
+```
+
+The dataset includes log2 peptide intensities and a `peptide_metadata`
+table mapping each peptide ID to its protein ID.
+
+```{r load-dataset}
+data("HEof_DIA_peptide", package = "LimROTS")
+print(HEof_DIA_peptide)
+dim(assay(HEof_DIA_peptide, "log2_intensity"))
+```
+
+The peptide dataset contains 46 samples. Groups C and G each have three
+replicates in both DIA windows:
+
+```{r inspect-samples}
+table(
+  colData(HEof_DIA_peptide)$condition,
+  colData(HEof_DIA_peptide)$window
+)
+```
+
+# Explore sample patterns
+
+PCA gives an exploratory overview of sample-level variation in the
+peptide intensities. It is not a test of differential abundance.
+
+```{r pca}
+peptide_intensity <- assay(HEof_DIA_peptide, "log2_intensity")
+variable_peptides <- apply(peptide_intensity, 1, sd) > 0
+pca <- prcomp(
+  t(peptide_intensity[variable_peptides, , drop = FALSE]),
+  center = TRUE
+)
+
+scores <- data.frame(
+  PC1 = pca$x[, 1],
+  PC2 = pca$x[, 2],
+  as.data.frame(colData(HEof_DIA_peptide))
+)
+variance <- summary(pca)$importance[2, 1:2] * 100
+
+ggplot(scores, aes(PC1, PC2, color = condition, shape = window)) +
+  geom_point(size = 3, alpha = 0.9) +
+  scale_color_brewer(palette = "Dark2") +
+  labs(
+    title = "PCA of peptide-level DIA samples",
+    x = sprintf("PC1 (%.1f%%)", variance[1]),
+    y = sprintf("PC2 (%.1f%%)", variance[2]),
+    color = "Sample group",
+    shape = "DIA window"
+  ) +
+  theme_classic(base_size = 12)
+```
+
+# Compare groups C and G
+
+The comparison uses all C and G samples. Each condition has three
+replicates in each window.
+
+```{r select-groups}
+CG_HEof_DIA <- HEof_DIA_peptide[
+  ,
+  colData(HEof_DIA_peptide)$condition %in% c("C", "G")
+]
+table(colData(CG_HEof_DIA)$condition, colData(CG_HEof_DIA)$window)
+```
+
+The complete dataset contains many proteins, so the code below uses five
+UPS1 proteins and five *E. coli* proteins for a shorter vignette build.
+Each selected protein has at least two peptides. For a full analysis,
+omit this demonstration-only feature subset and increase `niter` as
+appropriate for the study.
+
+```{r select-peptides}
+peptide_metadata <- as.data.frame(peptide_metadata)
+protein_counts <- table(peptide_metadata$protein_id)
+
+ups1_proteins <- names(protein_counts)[
+  grepl("_HUMAN_UPS$", names(protein_counts)) & protein_counts >= 2
+]
+ecoli_proteins <- names(protein_counts)[
+  !grepl("_HUMAN_UPS$", names(protein_counts)) & protein_counts >= 2
+]
+proteins_for_demo <- c(ups1_proteins[seq_len(5)], ecoli_proteins[seq_len(5)])
+
+peptide_metadata_demo <- peptide_metadata[
+  peptide_metadata$protein_id %in% proteins_for_demo,
+  c("peptide_id", "protein_id")
+]
+CG_HEof_DIA_demo <- CG_HEof_DIA[
+  peptide_metadata_demo$peptide_id,
+  ,
+  drop = FALSE
+]
+```
+
+## Run `LimROTS_peptide`
+
+The contrast `conditionG-conditionC` estimates group G relative to group
+C. Positive corrected log-fold changes therefore indicate higher
+estimated abundance in group G. `K` is set to the ten proteins in this
+small demonstration.
+
+```{r set-seed}
+set.seed(1234, kind = "default", sample.kind = "default")
+```
+
+```{r run-limrots-peptide}
+meta.info <- c("condition", "window")
+
+CG_HEof_DIA_demo <- LimROTS_peptide(
+  x = CG_HEof_DIA_demo,
+  assay.type = "log2_intensity",
+  niter = 10,
+  K = 10,
+  meta.info = meta.info,
+  peptide_metadata = peptide_metadata_demo,
+  group = "condition",
+  formula.str = "~ 0 + condition + window",
+  pairwise_contrasts = "conditionG-conditionC",
+  strata = "window",
+  BPPARAM = SnowParam(workers = 2)
+)
+```
+
+`LimROTS_peptide()` stores its protein-level results in
+`metadata(CG_HEof_DIA_demo)$LimROTS_peptide`.
+
+## Visualize results
+
+```{r volcano-plot}
+result_df <- as.data.frame(
+  metadata(CG_HEof_DIA_demo)$LimROTS_peptide
+)
+result_df$protein_id <- rownames(result_df)
+result_df$source <- ifelse(
+  grepl("_HUMAN_UPS$", result_df$protein_id),
+  "UPS1 human spike-in",
+  "E. coli background"
+)
+
+ggplot(result_df, aes(
+  x = corrected.logfc,
+  y = -log10(pmax(pvalue, .Machine$double.xmin)),
+  color = source
+)) +
+  geom_point(size = 2, alpha = 0.8) +
+  geom_vline(
+    xintercept = 0,
+    linetype = "dotted",
+    color = "grey60",
+    linewidth = 0.4
+  ) +
+  scale_color_manual(values = c(
+    "E. coli background" = "#0072B2",
+    "UPS1 human spike-in" = "#D55E00"
+  )) +
+  labs(
+    title = "LimROTS_peptide: group C versus group G",
+    x = expression("Corrected log"[2] * " fold change (G - C)"),
+    y = expression(-log[10](pvalue)),
+    color = NULL
+  ) +
+  theme_classic(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    axis.title = element_text(face = "bold"),
+    legend.position = "top",
+    axis.text = element_text(color = "black")
+  )
+```
+
+This plot is based on a deliberately small feature subset and ten
+resampling iterations to keep vignette execution manageable. Use the
+complete peptide dataset and more iterations for inferential analyses.
+
+```{r session-info}
+sessionInfo()
+```
