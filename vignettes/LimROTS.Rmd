@@ -135,7 +135,7 @@ description of all parameters, refer to the function documentation:
 
 ## Dataset design and sample metadata
 
-This case study demonstrates LimROTS with a quantitative proteomics
+This case study demonstrates LimROTS with a quantitative DIA proteomics
 dataset in which known UPS1 proteins are spiked into an *E. coli*
 background @Gotti2021. Because the spike-in concentrations are known,
 the data provide a useful setting for examining concentration-associated

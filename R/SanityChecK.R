@@ -66,6 +66,10 @@ SanityChecK <- function(x,
     meta.info <- Check_SExp[["meta.info"]]
     K <- Check_SExp[["K"]]
     
+    if (anyNA(data)) {
+        cli_abort("The assay data contains missing values.")
+    }
+
     .Check_meta_info(
         meta.info = meta.info,
         data = data,
