@@ -65,7 +65,7 @@ object.
 The relevant `colData` columns are:
 
 | Column       | Description                                                |
-|-----------------|-------------------------------------------------------|
+|-------------------|-----------------------------------------------------|
 | `diagnosis`  | Group label (`"CD"` = Crohn's disease, `"Control"`)        |
 | `event`      | Binary event indicator (1 = Crohn's disease, 0 = censored) |
 | `event_time` | Time to event or censoring (unitless)                      |
@@ -160,15 +160,16 @@ crohn_cox <- LimROTS_survival(
 )
 ```
 
-> **Note:** `niter = 30`is used here to reduce build time. For
-> production analyses, use `niter = 1000` or higher and increase the
-> number of parallel workers via the `BPPARAM` argument:
+> > **Note:** `niter = 30` and `K = 10` are used here to reduce vignette
+> > build time. For real-world analyses, use `niter = 1000` or higher
+> > and `k = 25% of the feature count`, which is the default if not
+> > explicitly specified. We also recommend at least 4 parallel
 >
 > ``` r
 > # Windows
-> BPPARAM <- SnowParam(workers = 4)
+> # BPPARAM <- SnowParam(workers = 4)
 > # Linux / macOS
-> BPPARAM <- MulticoreParam(workers = 4)
+> # BPPARAM <- MulticoreParam(workers = 4)
 > # Pass to LimROTS_survival(..., BPPARAM = BPPARAM)
 > ```
 
@@ -189,30 +190,56 @@ Volcano plot of log hazard ratios versus $-\log_{10}$(q-value):
 
 ```{r volcano-cox}
 cox_res$significant <- cox_res$FDR < 0.05
+q_cutoff <- max(cox_res$pvalue[cox_res$FDR < 0.05], na.rm = TRUE)
+
 
 ggplot(cox_res, aes(
-    x     = log(exp_coef),
-    y     = -log10(pvalue),
-    color = significant
+  x     = log(exp_coef),
+  y     = -log10(pvalue),
+  color = significant
 )) +
-    geom_point(alpha = 0.7, size = 2) +
-    geom_hline(
-        yintercept = -log10(0.05),
-        linetype   = "dashed",
-        color      = "steelblue"
-    ) +
-    scale_color_manual(
-        values = c("FALSE" = "grey60", "TRUE" = "firebrick"),
-        labels = c("FALSE" = "FDR \u2265 0.05", "TRUE" = "FDR < 0.05")
-    ) +
-    labs(
-        title = "LimROTS Survival \u2014 Cox Model",
-        x     = "Log Hazard Ratio",
-        y     = expression(-log[10](pvalue)),
-        color = NULL
-    ) +
-    theme_bw(base_size = 12) +
-    theme(legend.position = "top")
+  geom_point(size = 2, alpha = 0.8, stroke = 1) +
+  geom_hline(
+    yintercept = -log10(q_cutoff),
+    linetype = "dashed",
+    linewidth = 0.5,
+    color = "grey30"
+  ) +
+  annotate(
+    "text",
+    x = Inf,
+    y = -log10(q_cutoff),
+    label = "FDR = 0.05",
+    hjust = 1.1,
+    vjust = -0.6,
+    size = 3.5,
+    color = "grey30"
+  ) +
+  geom_vline(
+    xintercept = 0,
+    linetype = "dotted",
+    color = "grey60",
+    linewidth = 0.4
+  ) +
+  scale_color_manual(values = c(
+    "#0072B2",
+     "#D55E00"
+  )) +
+  labs(
+    title = "LimROTS Survival analysis",
+    x = expression("Log Hazard Ratio"),
+    y = expression(-log[10](pvalue)),
+    color = NULL,
+    shape = NULL
+  ) +
+  theme_classic(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    axis.title = element_text(face = "bold"),
+    legend.position = "top",
+    axis.text = element_text(color = "black")
+  )
+
 ```
 
 # Competing Risks Analysis
@@ -249,10 +276,11 @@ colData(crohn_cr)$event <- event_vec
 table(colData(crohn_cr)$event)
 ```
 
-> **Note:** In a real study, the competing event column should reflect a
+> **Note:** In a real study, the competing event column must reflect a
 > genuine competing risk recorded in the original data (e.g., surgical
 > intervention, withdrawal). The recoding above is purely for
 > demonstration purposes.
+>
 
 ## Running `LimROTS_survival`
 
@@ -262,16 +290,28 @@ set.seed(1234, kind = "default", sample.kind = "default")
 
 ```{r run-competing}
 crohn_cr <- LimROTS_survival(
-    x           = crohn_cr,
+    x           = crohn_survival,
     assay.type  = "clr",
-    niter       = 30,
-    K           = 10,
+    niter       = 30,    # use >= 1000 for real analyses
+    K           = 10,     # number of top taxa
     meta.info   = c("time", "event"),
-    formula.str = "~ Surv(time, event)",
-    competing_risks   = TRUE,
-    verbose           = FALSE
+    formula.str = "Surv(time, event)~y",
+    competing_risks   = FALSE
 )
 ```
+
+> **Note:** `niter = 30` and `K = 10` are used here to reduce vignette
+> build time. For real-world analyses, use `niter = 1000` or higher and
+> `k = 25% of the feature count`, which is the default if not explicitly
+> specified. We also recommend at least 4 parallel
+>
+> ``` r
+> # Windows
+> # BPPARAM <- SnowParam(workers = 4)
+> # Linux / macOS
+> # BPPARAM <- MulticoreParam(workers = 4)
+> # Pass to LimROTS_survival(..., BPPARAM = BPPARAM)
+> ```
 
 ## Results
 
@@ -289,37 +329,58 @@ Volcano plot for the competing risks model:
 cr_res$significant <- cr_res$FDR < 0.05
 
 ggplot(cr_res, aes(
-    x     = log(exp_coef),
-    y     = -log10(pvalue),
-    color = significant
+  x     = log(exp_coef),
+  y     = -log10(pvalue),
+  color = significant
 )) +
-    geom_point(alpha = 0.7, size = 2) +
-    geom_hline(
-        yintercept = -log10(0.05),
-        linetype   = "dashed",
-        color      = "steelblue"
-    ) +
-    scale_color_manual(
-        values = c("FALSE" = "grey60", "TRUE" = "firebrick"),
-        labels = c("FALSE" = "FDR \u2265 0.05", "TRUE" = "FDR < 0.05")
-    ) +
-    labs(
-        title = "LimROTS Survival \u2014 Competing Risks Model",
-        x     = "Log Subdistribution Hazard Ratio",
-        y     = expression(-log[10](pvalue)),
-        color = NULL
-    ) +
-    theme_bw(base_size = 12) +
-    theme(legend.position = "top")
+  geom_point(size = 2, alpha = 0.8, stroke = 1) +
+  geom_hline(
+    yintercept = -log10(q_cutoff),
+    linetype = "dashed",
+    linewidth = 0.5,
+    color = "grey30"
+  ) +
+  annotate(
+    "text",
+    x = Inf,
+    y = -log10(q_cutoff),
+    label = "FDR = 0.05",
+    hjust = 1.1,
+    vjust = -0.6,
+    size = 3.5,
+    color = "grey30"
+  ) +
+  geom_vline(
+    xintercept = 0,
+    linetype = "dotted",
+    color = "grey60",
+    linewidth = 0.4
+  ) +
+  scale_color_manual(values = c(
+    "#0072B2",
+    "#D55E00"
+  )) +
+  labs(
+    title = "LimROTS Survival analysis",
+    x = expression("Log Hazard Ratio"),
+    y = expression(-log[10](pvalue)),
+    color = NULL,
+    shape = NULL
+  ) +
+  theme_classic(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    axis.title = element_text(face = "bold"),
+    legend.position = "top",
+    axis.text = element_text(color = "black")
+  )
 ```
 
-# Quality Control
+## LimROTS_survival Cox Model Formula Requirements
 
-```{r qc-cox, results="hide", message=FALSE, warning=FALSE}
-plot(metadata(crohn_cr)[["q_values"]])
-hist(metadata(crohn_cr)[["q_values"]])
-print(summary(metadata(crohn_cr)[["q_values"]]))
-```
+No `strata` or `correlation_block` can be specified for this analysis.
+The target group is always treated as the event group, and the formula
+must always start with `Surv(time, event) ~ y`.
 
 ```{r session-info}
 sessionInfo()
