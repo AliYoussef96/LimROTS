@@ -29,9 +29,9 @@ knitr::opts_chunk$set(
 # Overview
 
 `LimROTS_peptide()` analyzes peptide-level intensities with mixed models
-that account for peptides nested within proteins and repeated measurements
-within samples. The input features are peptides; the reported statistics
-are one result per protein.
+that account for peptides nested within proteins and repeated
+measurements within samples. The input features are peptides; the
+reported statistics are one result per protein.
 
 This vignette uses the peptide-level version of the UPS1-spiked DIA
 dataset, `HEof_DIA_peptide`, and compares concentration group C (1 fmol)
@@ -51,7 +51,7 @@ The dataset includes log2 peptide intensities and a `peptide_metadata`
 table mapping each peptide ID to its protein ID.
 
 ```{r load-dataset}
-data("HEof_DIA_peptide", package = "LimROTS")
+data("HEof_DIA_peptide")
 print(HEof_DIA_peptide)
 dim(assay(HEof_DIA_peptide, "log2_intensity"))
 ```
@@ -112,33 +112,21 @@ CG_HEof_DIA <- HEof_DIA_peptide[
 table(colData(CG_HEof_DIA)$condition, colData(CG_HEof_DIA)$window)
 ```
 
-The complete dataset contains many proteins, so the code below uses five
-UPS1 proteins and five *E. coli* proteins for a shorter vignette build.
-Each selected protein has at least two peptides. For a full analysis,
-omit this demonstration-only feature subset and increase `niter` as
-appropriate for the study.
+protein should have at least three different peptides mapped to it
 
 ```{r select-peptides}
 peptide_metadata <- as.data.frame(peptide_metadata)
-protein_counts <- table(peptide_metadata$protein_id)
 
-ups1_proteins <- names(protein_counts)[
-  grepl("_HUMAN_UPS$", names(protein_counts)) & protein_counts >= 2
-]
-ecoli_proteins <- names(protein_counts)[
-  !grepl("_HUMAN_UPS$", names(protein_counts)) & protein_counts >= 2
-]
-proteins_for_demo <- c(ups1_proteins[seq_len(5)], ecoli_proteins[seq_len(5)])
-
-peptide_metadata_demo <- peptide_metadata[
-  peptide_metadata$protein_id %in% proteins_for_demo,
+peptide_metadata <- peptide_metadata[,
   c("peptide_id", "protein_id")
 ]
-CG_HEof_DIA_demo <- CG_HEof_DIA[
-  peptide_metadata_demo$peptide_id,
-  ,
-  drop = FALSE
+
+peptide_metadata <- peptide_metadata[
+  ave(peptide_metadata$peptide_id, peptide_metadata$protein_id,
+      FUN = function(x) length(unique(x))) >= 3,
 ]
+
+CG_HEof_DIA <- CG_HEof_DIA[peptide_metadata$peptide_id, ]
 ```
 
 ## Run `LimROTS_peptide`
@@ -155,15 +143,15 @@ set.seed(1234, kind = "default", sample.kind = "default")
 ```{r run-limrots-peptide}
 meta.info <- c("condition", "window")
 
-CG_HEof_DIA_demo <- LimROTS_peptide(
-  x = CG_HEof_DIA_demo,
+CG_HEof_DIA <- LimROTS_peptide(
+  x = CG_HEof_DIA,
   assay.type = "log2_intensity",
-  niter = 10,
-  K = 10,
+  niter = 100,
+  K = 20,
   meta.info = meta.info,
-  peptide_metadata = peptide_metadata_demo,
+  peptide_metadata = peptide_metadata,
   group = "condition",
-  formula.str = "~ 0 + condition + window",
+  formula.str = "~ condition + window",
   pairwise_contrasts = "conditionG-conditionC",
   strata = "window",
   BPPARAM = SnowParam(workers = 2)
@@ -177,7 +165,7 @@ CG_HEof_DIA_demo <- LimROTS_peptide(
 
 ```{r volcano-plot}
 result_df <- as.data.frame(
-  metadata(CG_HEof_DIA_demo)$LimROTS_peptide
+  metadata(CG_HEof_DIA)$LimROTS_peptide
 )
 result_df$protein_id <- rownames(result_df)
 result_df$source <- ifelse(
@@ -185,6 +173,9 @@ result_df$source <- ifelse(
   "UPS1 human spike-in",
   "E. coli background"
 )
+
+q_cutoff <- max(result_df$pvalue[result_df$qvalue < 0.05], na.rm = TRUE)
+
 
 ggplot(result_df, aes(
   x = corrected.logfc,
@@ -198,6 +189,12 @@ ggplot(result_df, aes(
     color = "grey60",
     linewidth = 0.4
   ) +
+    geom_hline(
+    yintercept = -log10(q_cutoff),
+    linetype = "dashed",
+    linewidth = 0.5,
+    color = "grey30"
+  )+
   scale_color_manual(values = c(
     "E. coli background" = "#0072B2",
     "UPS1 human spike-in" = "#D55E00"

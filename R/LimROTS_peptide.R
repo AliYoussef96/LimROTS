@@ -101,6 +101,13 @@ LimROTS_peptide <- function(x,
   )
   
   model_formula <- as.formula(formula.str)
+
+  if (attr(terms(model_formula), "intercept") == 0) {
+    cli_abort(
+      "`formula.str` must include an intercept; 
+      formulas using `0 +` or `-1` to remove it are not supported."
+    )
+  }
   
   cli_alert_info("Using the following formula for the model: {formula.str}")
   

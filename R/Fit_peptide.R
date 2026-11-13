@@ -221,74 +221,139 @@ fit_original_peptide <- function(x, group, meta.info, model_formula,
   #============================================================
   # Fit one peptide-level mixed model per protein
   #============================================================
-  protein_names <- unique(long_data[["protein_id"]])
-  
-  coefficient <- setNames(
-    numeric(length(protein_names)),
-    protein_names
-  )
-  
-  standard_error <- setNames(
-    numeric(length(protein_names)),
-    protein_names
-  )
-  
-  for (current_protein in protein_names) {
-    
-    protein_data <- long_data[
-      protein_id == current_protein
-    ]
-    
-    protein_data[, (group) := factor(get(group))]
-    protein_data[, peptide_id := factor(peptide_id)]
-    protein_data[, sample_id := factor(sample_id)]
-    
-    model <- lmer(
-      model_formula,
+  #============================================================
+  # Prepare columns only once
+  #============================================================
+
+long_data[, (group) := factor(get(group))]
+long_data[, peptide_id := factor(peptide_id)]
+long_data[, sample_id := factor(sample_id)]
+
+# Avoid repeatedly scanning the complete long_data table
+data.table::setkey(long_data, protein_id)
+
+protein_names <- unique(long_data[["protein_id"]])
+
+# Cache contrasts because most proteins have the same group levels
+contrast_cache <- new.env(parent = emptyenv())
+
+get_contrast_weights <- function(group_levels) {
+
+  cache_key <- paste(group_levels, collapse = "\r")
+
+  if (!exists(cache_key, envir = contrast_cache, inherits = FALSE)) {
+
+    weights <- limma::makeContrasts(
+      contrasts = stringr::str_remove_all(
+        pairwise_contrasts,
+        stringr::fixed(group)
+      ),
+      levels = group_levels
+    )[, 1]
+
+    assign(cache_key, weights, envir = contrast_cache)
+  }
+
+  get(cache_key, envir = contrast_cache, inherits = FALSE)
+}
+
+fit_one_protein <- function(current_protein) {
+
+  protein_data <- long_data[.(current_protein)]
+
+  # Make failures explicit rather than silently corrupting the output
+  result <- tryCatch({
+
+    present_groups <- unique(as.character(protein_data[[group]]))
+
+    if (length(present_groups) < 2L) {
+      return(c(d = NA_real_, s = NA_real_))
+    }
+
+    # droplevels is important if some proteins are missing a group
+    protein_data[, (group) := droplevels(get(group))]
+    protein_data[, peptide_id := droplevels(peptide_id)]
+    protein_data[, sample_id := droplevels(sample_id)]
+
+    model <- lme4::lmer(
+      formula = model_formula,
       data = protein_data,
-      REML = TRUE
+      REML = TRUE,
+      control = lme4::lmerControl(
+        optimizer = "nloptwrap",
+        calc.derivs = FALSE
+      )
     )
-    
-    estimated_group_means <- emmeans(
+
+    estimated_group_means <- emmeans::emmeans(
       model,
       specs = group,
       lmer.df = "asymptotic"
     )
-    
-    group_levels <- as.character(
-      as.data.frame(estimated_group_means)[[group]]
-    )
-    
-    contrast_weights <- limma::makeContrasts(
-      contrasts = str_remove_all(pairwise_contrasts, fixed(group)),
-      levels = group_levels
-    )[, 1]
-    
-    
-    contrast_result <- contrast(
+
+    emm_table <- as.data.frame(estimated_group_means)
+    group_levels <- as.character(emm_table[[group]])
+
+    contrast_weights <- get_contrast_weights(group_levels)
+
+    contrast_result <- emmeans::contrast(
       estimated_group_means,
-      method = setNames(
+      method = stats::setNames(
         list(contrast_weights),
         pairwise_contrasts
       ),
       adjust = "none"
     )
-    
+
     contrast_summary <- as.data.frame(
       summary(contrast_result)
     )
-    
-    contrast_summary <- contrast_summary[contrast_summary[["contrast"]] == pairwise_contrasts,,drop=FALSE]
-    
-    coefficient[current_protein] <-
-      contrast_summary[["estimate"]]
-    
-    standard_error[current_protein] <-
-      contrast_summary[["SE"]]
-  }
-  
-  return(list(d = coefficient, s = standard_error))
-                                  }
+
+    wanted <- contrast_summary[
+      contrast_summary[["contrast"]] == pairwise_contrasts,
+      ,
+      drop = FALSE
+    ]
+
+    if (nrow(wanted) != 1L) {
+      return(c(d = NA_real_, s = NA_real_))
+    }
+
+    c(
+      d = wanted[["estimate"]][1L],
+      s = wanted[["SE"]][1L]
+    )
+
+  }, error = function(e) {
+
+    # Replace with a structured log if you need failure diagnostics
+    c(d = NA_real_, s = NA_real_)
+  })
+
+  result
+}
+
+# Sequential within a dataset.
+# Use this when datasets are already processed in parallel.
+fit_results <- lapply(protein_names, fit_one_protein)
+
+fit_matrix <- do.call(rbind, fit_results)
+
+coefficient <- stats::setNames(
+  fit_matrix[, "d"],
+  protein_names
+)
+
+standard_error <- stats::setNames(
+  fit_matrix[, "s"],
+  protein_names
+)
+
+return(list(
+  d = coefficient,
+  s = standard_error
+))
+}
 
 
 #' Fit Peptide Bootstrap Samples
@@ -411,74 +476,139 @@ fit_bootstrap_peptide <- function(x, group, meta.info, model_formula,
   #============================================================
   # Fit one peptide-level mixed model per protein
   #============================================================
-  protein_names <- unique(long_data[["protein_id"]])
-  
-  coefficient <- setNames(
-    numeric(length(protein_names)),
-    protein_names
-  )
-  
-  standard_error <- setNames(
-    numeric(length(protein_names)),
-    protein_names
-  )
-  
-  for (current_protein in protein_names) {
-    
-    protein_data <- long_data[
-      protein_id == current_protein
-    ]
-    
-    protein_data[, (group) := factor(get(group))]
-    protein_data[, peptide_id := factor(peptide_id)]
-    protein_data[, sample_id := factor(sample_id)]
-    
-    model <- lmer(
-      model_formula,
+  #============================================================
+# Prepare columns only once
+#============================================================
+
+long_data[, (group) := factor(get(group))]
+long_data[, peptide_id := factor(peptide_id)]
+long_data[, sample_id := factor(sample_id)]
+
+# Avoid repeatedly scanning the complete long_data table
+data.table::setkey(long_data, protein_id)
+
+protein_names <- unique(long_data[["protein_id"]])
+
+# Cache contrasts because most proteins have the same group levels
+contrast_cache <- new.env(parent = emptyenv())
+
+get_contrast_weights <- function(group_levels) {
+
+  cache_key <- paste(group_levels, collapse = "\r")
+
+  if (!exists(cache_key, envir = contrast_cache, inherits = FALSE)) {
+
+    weights <- limma::makeContrasts(
+      contrasts = stringr::str_remove_all(
+        pairwise_contrasts,
+        stringr::fixed(group)
+      ),
+      levels = group_levels
+    )[, 1]
+
+    assign(cache_key, weights, envir = contrast_cache)
+  }
+
+  get(cache_key, envir = contrast_cache, inherits = FALSE)
+}
+
+fit_one_protein <- function(current_protein) {
+
+  protein_data <- long_data[.(current_protein)]
+
+  # Make failures explicit rather than silently corrupting the output
+  result <- tryCatch({
+
+    present_groups <- unique(as.character(protein_data[[group]]))
+
+    if (length(present_groups) < 2L) {
+      return(c(d = NA_real_, s = NA_real_))
+    }
+
+    # droplevels is important if some proteins are missing a group
+    protein_data[, (group) := droplevels(get(group))]
+    protein_data[, peptide_id := droplevels(peptide_id)]
+    protein_data[, sample_id := droplevels(sample_id)]
+
+    model <- lme4::lmer(
+      formula = model_formula,
       data = protein_data,
-      REML = TRUE
+      REML = TRUE,
+      control = lme4::lmerControl(
+        optimizer = "nloptwrap",
+        calc.derivs = FALSE
+      )
     )
-    
-    estimated_group_means <- emmeans(
+
+    estimated_group_means <- emmeans::emmeans(
       model,
       specs = group,
       lmer.df = "asymptotic"
     )
-    
-    group_levels <- as.character(
-      as.data.frame(estimated_group_means)[[group]]
-    )
-    
-    contrast_weights <- limma::makeContrasts(
-      contrasts = str_remove_all(pairwise_contrasts, fixed(group)),
-      levels = group_levels
-    )[, 1]
-    
-    
-    contrast_result <- contrast(
+
+    emm_table <- as.data.frame(estimated_group_means)
+    group_levels <- as.character(emm_table[[group]])
+
+    contrast_weights <- get_contrast_weights(group_levels)
+
+    contrast_result <- emmeans::contrast(
       estimated_group_means,
-      method = setNames(
+      method = stats::setNames(
         list(contrast_weights),
         pairwise_contrasts
       ),
       adjust = "none"
     )
-    
+
     contrast_summary <- as.data.frame(
       summary(contrast_result)
     )
-    
-    contrast_summary <- contrast_summary[contrast_summary[["contrast"]] == pairwise_contrasts,,drop=FALSE]
-    
-    coefficient[current_protein] <-
-      abs(contrast_summary[["estimate"]])
-    
-    standard_error[current_protein] <-
-      contrast_summary[["SE"]]
-  }
-  
-  return(list(d = coefficient, s = standard_error))
-  
+
+    wanted <- contrast_summary[
+      contrast_summary[["contrast"]] == pairwise_contrasts,
+      ,
+      drop = FALSE
+    ]
+
+    if (nrow(wanted) != 1L) {
+      return(c(d = NA_real_, s = NA_real_))
+    }
+
+    c(
+      d = abs(wanted[["estimate"]][1L]),
+      s = wanted[["SE"]][1L]
+    )
+
+  }, error = function(e) {
+
+    # Replace with a structured log if you need failure diagnostics
+    c(d = NA_real_, s = NA_real_)
+  })
+
+  result
+}
+
+# Sequential within a dataset.
+# Use this when datasets are already processed in parallel.
+fit_results <- lapply(protein_names, fit_one_protein)
+
+fit_matrix <- do.call(rbind, fit_results)
+
+coefficient <- stats::setNames(
+  fit_matrix[, "d"],
+  protein_names
+)
+
+standard_error <- stats::setNames(
+  fit_matrix[, "s"],
+  protein_names
+)
+
+return(list(
+  d = coefficient,
+  s = standard_error
+))
+
 }
 
 #' Fit Peptide Models with Permuted Metadata
@@ -600,74 +730,139 @@ fit_permutation_peptide <- function(x, group, meta.info, model_formula,
   #============================================================
   # Fit one peptide-level mixed model per protein
   #============================================================
-  protein_names <- unique(long_data[["protein_id"]])
-  
-  coefficient <- setNames(
-    numeric(length(protein_names)),
-    protein_names
-  )
-  
-  standard_error <- setNames(
-    numeric(length(protein_names)),
-    protein_names
-  )
-  
-  for (current_protein in protein_names) {
-    
-    protein_data <- long_data[
-      protein_id == current_protein
-    ]
-    
-    protein_data[, (group) := factor(get(group))]
-    protein_data[, peptide_id := factor(peptide_id)]
-    protein_data[, sample_id := factor(sample_id)]
-    
-    model <- lmer(
-      model_formula,
+  #============================================================
+# Prepare columns only once
+#============================================================
+
+long_data[, (group) := factor(get(group))]
+long_data[, peptide_id := factor(peptide_id)]
+long_data[, sample_id := factor(sample_id)]
+
+# Avoid repeatedly scanning the complete long_data table
+data.table::setkey(long_data, protein_id)
+
+protein_names <- unique(long_data[["protein_id"]])
+
+# Cache contrasts because most proteins have the same group levels
+contrast_cache <- new.env(parent = emptyenv())
+
+get_contrast_weights <- function(group_levels) {
+
+  cache_key <- paste(group_levels, collapse = "\r")
+
+  if (!exists(cache_key, envir = contrast_cache, inherits = FALSE)) {
+
+    weights <- limma::makeContrasts(
+      contrasts = stringr::str_remove_all(
+        pairwise_contrasts,
+        stringr::fixed(group)
+      ),
+      levels = group_levels
+    )[, 1]
+
+    assign(cache_key, weights, envir = contrast_cache)
+  }
+
+  get(cache_key, envir = contrast_cache, inherits = FALSE)
+}
+
+fit_one_protein <- function(current_protein) {
+
+  protein_data <- long_data[.(current_protein)]
+
+  # Make failures explicit rather than silently corrupting the output
+  result <- tryCatch({
+
+    present_groups <- unique(as.character(protein_data[[group]]))
+
+    if (length(present_groups) < 2L) {
+      return(c(d = NA_real_, s = NA_real_))
+    }
+
+    # droplevels is important if some proteins are missing a group
+    protein_data[, (group) := droplevels(get(group))]
+    protein_data[, peptide_id := droplevels(peptide_id)]
+    protein_data[, sample_id := droplevels(sample_id)]
+
+    model <- lme4::lmer(
+      formula = model_formula,
       data = protein_data,
-      REML = TRUE
+      REML = TRUE,
+      control = lme4::lmerControl(
+        optimizer = "nloptwrap",
+        calc.derivs = FALSE
+      )
     )
-    
-    estimated_group_means <- emmeans(
+
+    estimated_group_means <- emmeans::emmeans(
       model,
       specs = group,
       lmer.df = "asymptotic"
     )
-    
-    group_levels <- as.character(
-      as.data.frame(estimated_group_means)[[group]]
-    )
-    
-    contrast_weights <- limma::makeContrasts(
-      contrasts = str_remove_all(pairwise_contrasts, fixed(group)),
-      levels = group_levels
-    )[, 1]
-    
-    
-    contrast_result <- contrast(
+
+    emm_table <- as.data.frame(estimated_group_means)
+    group_levels <- as.character(emm_table[[group]])
+
+    contrast_weights <- get_contrast_weights(group_levels)
+
+    contrast_result <- emmeans::contrast(
       estimated_group_means,
-      method = setNames(
+      method = stats::setNames(
         list(contrast_weights),
         pairwise_contrasts
       ),
       adjust = "none"
     )
-    
+
     contrast_summary <- as.data.frame(
       summary(contrast_result)
     )
-    
-    contrast_summary <- contrast_summary[contrast_summary[["contrast"]] == pairwise_contrasts,,drop=FALSE]
-    
-    coefficient[current_protein] <-
-      abs(contrast_summary[["estimate"]])
-    
-    standard_error[current_protein] <-
-      contrast_summary[["SE"]]
-  }
-  
-  return(list(d = coefficient, s = standard_error))
-  
+
+    wanted <- contrast_summary[
+      contrast_summary[["contrast"]] == pairwise_contrasts,
+      ,
+      drop = FALSE
+    ]
+
+    if (nrow(wanted) != 1L) {
+      return(c(d = NA_real_, s = NA_real_))
+    }
+
+    c(
+      d = abs(wanted[["estimate"]][1L]),
+      s = wanted[["SE"]][1L]
+    )
+
+  }, error = function(e) {
+
+    # Replace with a structured log if you need failure diagnostics
+    c(d = NA_real_, s = NA_real_)
+  })
+
+  result
+}
+
+# Sequential within a dataset.
+# Use this when datasets are already processed in parallel.
+fit_results <- lapply(protein_names, fit_one_protein)
+
+fit_matrix <- do.call(rbind, fit_results)
+
+coefficient <- stats::setNames(
+  fit_matrix[, "d"],
+  protein_names
+)
+
+standard_error <- stats::setNames(
+  fit_matrix[, "s"],
+  protein_names
+)
+
+return(list(
+  d = coefficient,
+  s = standard_error
+))
+
   
 }
 
