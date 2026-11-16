@@ -415,7 +415,7 @@ parallel_peptide <- function(BPPARAM = NULL,
   n_rep <- nrow(samples)
   results_list <- vector("list", n_rep)
   pb <- progress::progress_bar$new(format = "Optimizing [:bar] :percent | ETA: :eta", 
-            total = length(ssq) + 1, clear = FALSE)
+            total = n_rep + 1, clear = FALSE)
 
   for (i in seq_len(n_rep)) {
 
