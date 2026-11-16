@@ -54,7 +54,6 @@
     ))
   }
 
-
   ## Private Julia environment for LimROTS
   env_dir <- file.path(tools::R_user_dir("LimROTS", which = "data"),
                        "julia_env")
@@ -414,7 +413,7 @@ parallel_peptide <- function(BPPARAM = NULL,
 
   n_rep <- nrow(samples)
   results_list <- vector("list", n_rep)
-  pb <- progress::progress_bar$new(format = "Optimizing [:bar] :percent | ETA: :eta", 
+  pb <- progress::progress_bar$new(format = "Fitting [:bar] :percent | ETA: :eta", 
             total = n_rep + 1, clear = FALSE)
 
   for (i in seq_len(n_rep)) {
