@@ -61,7 +61,7 @@ LimROTS_peptide <- function(x,
                             formula.str,
                             pairwise_contrasts,
                             strata,
-                            n_threads = "auto"){
+                            n_threads = 2){
   
   ### Perform sanity checks on the input parameters and data.
   cli_alert_info("Validating peptide analysis inputs.")

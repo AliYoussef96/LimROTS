@@ -30,7 +30,7 @@
 #' @param n_threads Number of Julia threads: a number or `"auto"`. Only effective
 #' if Julia has not been started yet in this R session.
 #' @return `TRUE` invisibly.
-.setup_julia_peptide <- function(n_threads = "auto") {
+.setup_julia_peptide <- function(n_threads) {
 
   ## Threads must be requested BEFORE Julia starts.
   Sys.setenv(JULIA_NUM_THREADS = as.character(n_threads))
@@ -401,7 +401,7 @@ parallel_peptide <- function(BPPARAM = NULL,
                                    peptide_metadata,
                                    pSamples,
                                    pairwise_contrasts,
-                                   n_threads = "auto") {
+                                   n_threads) {
 
   ## Cheap checks first, before any fitting
   .check_peptides_per_protein(peptide_metadata)
