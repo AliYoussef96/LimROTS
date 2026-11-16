@@ -46,6 +46,7 @@
 #' @importFrom qvalue empPvals qvalue
 #' @importFrom stats as.formula p.adjust setNames
 #' @importFrom stringr fixed str_remove_all str_split_fixed
+#' @importFrom progress progress_bar
 #' 
 #' @export 
 #' 

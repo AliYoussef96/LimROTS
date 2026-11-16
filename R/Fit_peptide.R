@@ -414,7 +414,8 @@ parallel_peptide <- function(BPPARAM = NULL,
 
   n_rep <- nrow(samples)
   results_list <- vector("list", n_rep)
-  cli_progress_bar("Fitting replicates in Julia", total = n_rep)
+  pb <- progress::progress_bar$new(format = "Optimizing [:bar] :percent | ETA: :eta", 
+            total = length(ssq) + 1, clear = FALSE)
 
   for (i in seq_len(n_rep)) {
 
@@ -449,11 +450,11 @@ parallel_peptide <- function(BPPARAM = NULL,
     df2 <- data.frame(pd_result = pFit$d, ps_result = pFit$s)
 
     results_list[[i]] <- list(ds = df1, pdps = df2)
-    cli_progress_update()
+    pb$tick()
   }
-  cli_progress_done()
+  pb$tick()
 
-  results_list
+  return(results_list)
 }
 
 
