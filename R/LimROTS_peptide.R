@@ -16,9 +16,8 @@
 #' in `colData(x)` required by the model.
 #' @param peptide_metadata Data frame mapping each `peptide_id` to a
 #' `protein_id`. Peptide IDs must match the row names of the intensity matrix.
-#' @param BPPARAM A `BiocParallelParam` object specifying the parallel backend.
-#' If `NULL`, the parallel helper selects a two-worker backend appropriate to
-#' the operating system.
+#' @param BPPARAM Deprecated and ignored: fitting uses Julia threads
+#' (see `n_threads`). Kept so existing calls keep working.
 #' @param group Character string naming the column in `meta.info` that
 #' identifies each sample's group.
 #' @param formula.str Character string containing the fixed-effects portion of
@@ -28,6 +27,12 @@
 #' `"group1 - group2"`, to fit.
 #' @param strata Character vector or `NULL`. Names of character or factor
 #' metadata columns used to define strata for resampling and permutation.
+#' @param n_threads Number of Julia threads (a number or `"auto"`). Only
+#' effective if Julia has not already been started in the R session.
+#'
+#' @details
+#' Model fitting is done in Julia (MixedModels.jl), so Julia and the R package
+#' JuliaConnectoR are required when this function is called.
 #'
 #' @return The input `SummarizedExperiment` with protein-level statistics,
 #' empirical p-values, q-values, FDR estimates, corrected log-fold changes,
@@ -54,7 +59,8 @@ LimROTS_peptide <- function(x,
                             group,
                             formula.str,
                             pairwise_contrasts,
-                            strata){
+                            strata,
+                            n_threads = "auto"){
   
   ### Perform sanity checks on the input parameters and data.
   cli_alert_info("Validating peptide analysis inputs.")
@@ -232,7 +238,8 @@ LimROTS_peptide <- function(x,
     meta.info = meta.info,
     pSamples = list_boot_perm[["perm_Samples"]],
     pairwise_contrasts = pairwise_contrasts,
-    peptide_metadata = peptide_metadata
+    peptide_metadata = peptide_metadata,
+    n_threads = n_threads
   )
   cli_alert_success("Peptide bootstrap and permutation fits complete.")
 

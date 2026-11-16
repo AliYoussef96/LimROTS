@@ -15,7 +15,8 @@ LimROTS_peptide(
   group,
   formula.str,
   pairwise_contrasts,
-  strata
+  strata,
+  n_threads = "auto"
 )
 }
 \arguments{
@@ -37,9 +38,8 @@ in \code{colData(x)} required by the model.}
 \item{peptide_metadata}{Data frame mapping each \code{peptide_id} to a
 \code{protein_id}. Peptide IDs must match the row names of the intensity matrix.}
 
-\item{BPPARAM}{A \code{BiocParallelParam} object specifying the parallel backend.
-If \code{NULL}, the parallel helper selects a two-worker backend appropriate to
-the operating system.}
+\item{BPPARAM}{Deprecated and ignored: fitting uses Julia threads
+(see \code{n_threads}). Kept so existing calls keep working.}
 
 \item{group}{Character string naming the column in \code{meta.info} that
 identifies each sample's group.}
@@ -53,6 +53,9 @@ peptide and sample are added internally.}
 
 \item{strata}{Character vector or \code{NULL}. Names of character or factor
 metadata columns used to define strata for resampling and permutation.}
+
+\item{n_threads}{Number of Julia threads (a number or \code{"auto"}). Only
+effective if Julia has not already been started in the R session.}
 }
 \value{
 The input \code{SummarizedExperiment} with protein-level statistics,
@@ -64,4 +67,8 @@ null statistics are added to \code{metadata()}.
 Analyze peptide intensity data using protein-level mixed models,
 reproducibility-optimized bootstrap statistics, and permutation-based
 inference.
+}
+\details{
+Model fitting is done in Julia (MixedModels.jl), so Julia and the R package
+JuliaConnectoR are required when this function is called.
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/Fit_peptide.R
 \name{fit_original_peptide}
 \alias{fit_original_peptide}
-\title{Fit the Original Peptide Data}
+\title{Fit the original data in Julia (drop-in for fit_original_peptide)}
 \usage{
 fit_original_peptide(
   x,
@@ -14,28 +14,21 @@ fit_original_peptide(
 )
 }
 \arguments{
-\item{x}{Feature-by-sample matrix with sample names as column names and
-peptide IDs as row names.}
+\item{x}{Peptide x sample matrix (sample names as column names).}
 
-\item{group}{Character string naming the column in \code{meta.info} that
-identifies each sample's group.}
+\item{group}{Name of the group column.}
 
-\item{meta.info}{Data frame of sample-level metadata, with sample names as
-row names.}
+\item{meta.info}{Sample metadata, sample names as row names.}
 
-\item{model_formula}{Formula for the peptide-level mixed model.}
+\item{model_formula}{Full model formula.}
 
-\item{pairwise_contrasts}{Character vector of contrast expressions, such as
-\code{"group1 - group2"}, to fit.}
+\item{pairwise_contrasts}{Single contrast string.}
 
-\item{peptide_metadata}{Data frame mapping each \code{peptide_id} to a
-\code{protein_id}.}
+\item{peptide_metadata}{Data frame mapping \code{peptide_id} to \code{protein_id}.}
 }
 \value{
-A list containing signed protein-level contrast estimates \code{d} and
-their standard errors \code{s}.
+List with signed \code{d} and \code{s}.
 }
 \description{
-Fit a peptide-level linear mixed model for each protein using the original
-expression matrix, sample metadata, and peptide-to-protein mapping.
+Fit the original data in Julia (drop-in for fit_original_peptide)
 }

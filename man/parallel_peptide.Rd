@@ -2,7 +2,7 @@
 % Please edit documentation in R/Fit_peptide.R
 \name{parallel_peptide}
 \alias{parallel_peptide}
-\title{Fit Peptide Bootstrap and Permutation Replicates in Parallel}
+\title{Julia version of parallel_peptide()}
 \usage{
 parallel_peptide(
   BPPARAM = NULL,
@@ -13,42 +13,37 @@ parallel_peptide(
   meta.info,
   peptide_metadata,
   pSamples,
-  pairwise_contrasts
+  pairwise_contrasts,
+  n_threads = "auto"
 )
 }
 \arguments{
-\item{BPPARAM}{A \code{BiocParallelParam} object specifying the parallel backend.
-If \code{NULL}, the function selects a two-worker backend appropriate to the
-operating system.}
+\item{BPPARAM}{Ignored (kept for a compatible signature): Julia threads
+replace BiocParallel workers (forking R workers would also fork Julia).}
 
-\item{samples}{Matrix of bootstrap replicates, with one row per replicate
-and resampled sample names in its columns.}
+\item{samples}{Matrix of bootstrap replicates (one row per replicate).}
 
-\item{data}{Feature-by-sample matrix with sample names as column names.}
+\item{data}{Peptide x sample matrix.}
 
-\item{model_formula}{Formula for the peptide-level mixed model.}
+\item{model_formula}{Full model formula.}
 
-\item{group}{Character string naming the column in \code{meta.info} that
-identifies each sample's group.}
+\item{group}{Name of the group column.}
 
-\item{meta.info}{Data frame of sample-level metadata, with sample names as
-row names.}
+\item{meta.info}{Sample metadata, sample names as row names.}
 
-\item{peptide_metadata}{Data frame mapping each \code{peptide_id} to a
-\code{protein_id}.}
+\item{peptide_metadata}{Data frame mapping \code{peptide_id} to \code{protein_id}.}
 
-\item{pSamples}{List of permuted sample-level metadata data frames, one per
-bootstrap replicate.}
+\item{pSamples}{List of permuted metadata data frames.}
 
-\item{pairwise_contrasts}{Character vector of contrast expressions, such as
-\code{"group1 - group2"}, to fit.}
+\item{pairwise_contrasts}{Single contrast string.}
+
+\item{n_threads}{Number of Julia threads or \code{"auto"}.}
 }
 \value{
-A list with one element per replicate. Each element contains \code{ds}
-(bootstrap statistics and standard errors) and \code{pdps} (permutation
-statistics and standard errors).
+List with one element per replicate, each with \code{ds} and \code{pdps}.
 }
 \description{
-Fit the peptide-level mixed model for each bootstrap replicate and its
-corresponding permuted metadata using a \code{BiocParallel} backend.
+Loops over the replicates in R (sequentially) and fits every replicate in
+Julia, where the proteins are fitted in parallel threads. Returns exactly
+the same structure as \code{parallel_peptide()}.
 }

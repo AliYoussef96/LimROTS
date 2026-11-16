@@ -2,7 +2,7 @@
 % Please edit documentation in R/Fit_peptide.R
 \name{fit_permutation_peptide}
 \alias{fit_permutation_peptide}
-\title{Fit Peptide Models with Permuted Metadata}
+\title{Fit one permutation in Julia (drop-in for fit_permutation_peptide)}
 \usage{
 fit_permutation_peptide(
   x,
@@ -14,28 +14,21 @@ fit_permutation_peptide(
 )
 }
 \arguments{
-\item{x}{Feature-by-sample matrix with sample names as column names and
-peptide IDs as row names.}
+\item{x}{Peptide x sample matrix (sample names as column names).}
 
-\item{group}{Character string naming the column in \code{meta.info} that
-identifies each sample's group.}
+\item{group}{Name of the group column.}
 
-\item{meta.info}{Data frame of permuted sample-level metadata, with sample
-names as row names.}
+\item{meta.info}{Permuted sample metadata, sample names as row names.}
 
-\item{model_formula}{Formula for the peptide-level mixed model.}
+\item{model_formula}{Full model formula.}
 
-\item{pairwise_contrasts}{Character vector of contrast expressions, such as
-\code{"group1 - group2"}, to fit.}
+\item{pairwise_contrasts}{Single contrast string.}
 
-\item{peptide_metadata}{Data frame mapping each \code{peptide_id} to a
-\code{protein_id}.}
+\item{peptide_metadata}{Data frame mapping \code{peptide_id} to \code{protein_id}.}
 }
 \value{
-A list containing absolute protein-level null statistics \code{d} and
-their standard errors \code{s}.
+List with absolute \code{d} and \code{s}.
 }
 \description{
-Fit peptide-level mixed models to the original expression matrix using
-permuted sample metadata to obtain null statistics.
+Fit one permutation in Julia (drop-in for fit_permutation_peptide)
 }

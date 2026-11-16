@@ -1,674 +1,459 @@
-#' Fit Peptide Bootstrap and Permutation Replicates in Parallel
+# ----------------------------------------------------------------------------
+# Peptide-level fits (Julia backend)
+#
+# Same statistical model as Fit_peptide.R:
+#     y ~ <fixed part> + (1 | peptide_id) + (1 | sample_id), REML,
+#     group contrast from the pairwise_contrasts string (asymptotic SE).
+#
+# Division of work
+#   R     : all sampling, all data preparation, all checks, the design matrix
+#           X and the contrast vector L (so direction/coding are decided here).
+#   Julia : fits the models of ONE replicate, all proteins in parallel threads.
+#
+# Julia is only needed when LimROTS_peptide() is called: nothing here runs
+# at package build/check time. The
+# JuliaConnectoR package is only listed under Suggests and is only used
+# (via `::`) when a Julia function is actually called.
+# ----------------------------------------------------------------------------
+
+## Session-level state (the Julia process and the loaded Julia function)
+.limrots_julia <- new.env(parent = emptyenv())
+
+
+#' Start Julia, install the Julia packages if needed, load limrots_peptide.jl
 #'
-#' Fit the peptide-level mixed model for each bootstrap replicate and its
-#' corresponding permuted metadata using a `BiocParallel` backend.
+#' Runs once per R session. Julia packages are installed in a private
+#' environment under `tools::R_user_dir("LimROTS", "data")`, never in the
+#' user's global Julia environment, and only after consent (interactive prompt
+#' or `options(LimROTS.julia_install = TRUE)`).
 #'
-#' @param BPPARAM A `BiocParallelParam` object specifying the parallel backend.
-#' If `NULL`, the function selects a two-worker backend appropriate to the
-#' operating system.
-#' @param samples Matrix of bootstrap replicates, with one row per replicate
-#' and resampled sample names in its columns.
-#' @param data Feature-by-sample matrix with sample names as column names.
-#' @param model_formula Formula for the peptide-level mixed model.
-#' @param group Character string naming the column in `meta.info` that
-#' identifies each sample's group.
-#' @param meta.info Data frame of sample-level metadata, with sample names as
-#' row names.
-#' @param peptide_metadata Data frame mapping each `peptide_id` to a
-#' `protein_id`.
-#' @param pSamples List of permuted sample-level metadata data frames, one per
-#' bootstrap replicate.
-#' @param pairwise_contrasts Character vector of contrast expressions, such as
-#' `"group1 - group2"`, to fit.
-#'
-#' @return A list with one element per replicate. Each element contains `ds`
-#' (bootstrap statistics and standard errors) and `pdps` (permutation
-#' statistics and standard errors).
-#'
-parallel_peptide <- function(BPPARAM = NULL,
-                             samples,
-                             data,
-                             model_formula,
-                             group,
-                             meta.info,
-                             peptide_metadata,
-                             pSamples,
-                             pairwise_contrasts) {
-  if (is.null(BPPARAM)) {
-    if (.Platform$OS.type == "windows") {
-      BPPARAM <- SnowParam(workers = 2)
-      cli_alert_info("Using SnowParam (Windows) with two workers.")
-    } else {
-      BPPARAM <- MulticoreParam(workers = 2)
-      cli_alert_info("Using MulticoreParam (Unix-like OS) with two workers.")
+#' @param n_threads Number of Julia threads: a number or `"auto"`. Only effective
+#' if Julia has not been started yet in this R session.
+#' @return `TRUE` invisibly.
+.setup_julia_peptide <- function(n_threads = "auto") {
+
+  ## Threads must be requested BEFORE Julia starts.
+  Sys.setenv(JULIA_NUM_THREADS = as.character(n_threads))
+
+  if (isTRUE(.limrots_julia$ready)) {
+    return(invisible(TRUE))
+  }
+
+  if (!requireNamespace("JuliaConnectoR", quietly = TRUE)) {
+    cli_abort(c(
+      "The Julia backend needs the {.pkg JuliaConnectoR} R package.",
+      "i" = "Install it with {.code install.packages(\"JuliaConnectoR\")}."
+    ))
+  }
+
+  if (!JuliaConnectoR::juliaSetupOk()) {
+    cli_abort(c(
+      "Julia was not found or could not be started.",
+      "i" = "Install a recent Julia from https://julialang.org and make sure
+             `julia` is on your PATH (or set the JULIA_BINDIR variable)."
+    ))
+  }
+
+
+  ## Private Julia environment for LimROTS
+  env_dir <- file.path(tools::R_user_dir("LimROTS", which = "data"),
+                       "julia_env")
+  dir.create(env_dir, recursive = TRUE, showWarnings = FALSE)
+  env_dir <- normalizePath(env_dir, winslash = "/")
+
+  missing_pkgs <- JuliaConnectoR::juliaEval(sprintf('begin
+    import Pkg
+    Pkg.activate("%s"; io = devnull)
+    [p for p in ["MixedModels", "DataFrames"]
+       if !(p in keys(Pkg.project().dependencies))]
+  end', env_dir))
+
+  if (length(missing_pkgs) > 0) {
+    missing_pkgs <- as.character(unlist(missing_pkgs))
+    allowed <- isTRUE(getOption("LimROTS.julia_install", FALSE)) ||
+      (interactive() && isTRUE(utils::askYesNo(
+        paste0("LimROTS needs the Julia packages ",
+               paste(missing_pkgs, collapse = ", "),
+               ". Install them now (one time only)?"))))
+    if (!allowed) {
+      cli_abort(c(
+        "Missing Julia packages: {.val {missing_pkgs}}.",
+        "i" = "Run interactively to be asked, or set
+               {.code options(LimROTS.julia_install = TRUE)}."
+      ))
     }
-  } else {
-    cli_alert_info("Using the provided parallel backend.")
+    cli_alert_info("Installing Julia packages (one time only)...")
+    JuliaConnectoR::juliaCall("Pkg.add", missing_pkgs)
   }
-  if (inherits(BPPARAM, "SnowParam")) {
-    BPPARAM$exportglobals <- FALSE
+
+  ## Load the Julia file that ships with the package
+  julia_file <- system.file("julia", "limrots_peptide.jl", package = "LimROTS")
+  if (!nzchar(julia_file)) {
+    cli_abort("Could not find {.file inst/julia/limrots_peptide.jl}.")
   }
-  export_vars <- list(
-    samples = samples,
-    data = data,
-    model_formula = model_formula,
-    group = group,
-    meta.info = meta.info,
-    peptide_metadata = peptide_metadata,
-    pSamples = pSamples,
-    pairwise_contrasts = pairwise_contrasts
+  JuliaConnectoR::juliaCall("include", julia_file)
+  .limrots_julia$fit <- JuliaConnectoR::juliaFun("limrots_fit_proteins")
+
+  n_active <- JuliaConnectoR::juliaEval("Threads.nthreads()")
+  cli_alert_info("Julia backend ready, using {n_active} thread{?s}.")
+  if (is.numeric(n_threads) && n_active != n_threads) {
+    cli_alert_warning(
+      "Requested {n_threads} thread{?s} but Julia has {n_active}
+       (Julia was probably already running in this session)."
+    )
+  }
+
+  .limrots_julia$ready <- TRUE
+  invisible(TRUE)
+}
+
+
+#' Abort if any protein has fewer than two peptides
+#'
+#' With a single peptide, the number of `sample_id` levels equals the number
+#' of observations and the model cannot be fitted.
+#'
+#' @param peptide_metadata Data frame with `peptide_id` and `protein_id`.
+#' @return `TRUE` invisibly; errors otherwise.
+.check_peptides_per_protein <- function(peptide_metadata) {
+  n_peptides <- table(peptide_metadata[["protein_id"]])
+  single <- names(n_peptides)[n_peptides < 2]
+  if (length(single) > 0) {
+    cli_abort(c(
+      "{length(single)} protein{?s} ha{?s/ve} only one peptide.",
+      "x" = "First: {.val {utils::head(single, 10)}}",
+      "i" = "Remove these proteins (or add peptides) before running
+             LimROTS_peptide()."
+    ))
+  }
+  invisible(TRUE)
+}
+
+
+#' Build the fixed-effect design matrix and the contrast vector in R
+#'
+#' This reproduces what `lmer()` + `emmeans(specs = group)` + `contrast()` use:
+#' treatment coding, numeric covariates at their mean, factor covariates
+#' averaged with equal weights, contrast weights from `limma::makeContrasts`.
+#'
+#' @param covariates Sample-level data frame (rows in the same order as the
+#' columns of the intensity matrix; for bootstrap it contains the duplicated
+#' resampled rows).
+#' @param group Name of the group column.
+#' @param model_formula Full model formula (random terms are removed here).
+#' @param pairwise_contrasts Single contrast string such as `"groupA - groupB"`.
+#'
+#' @return A list with `X` (samples x k, intercept column removed, unnamed) and
+#' `L` (length k + 1, intercept first).
+.peptide_design <- function(covariates, group, model_formula,
+                            pairwise_contrasts) {
+
+  if (length(pairwise_contrasts) != 1L) {
+    cli_abort("Exactly one contrast string is supported in `pairwise_contrasts`.")
+  }
+
+  ## Fixed part of the formula, one-sided: ~ group + covariates
+  fixed <- stats::formula(
+    stats::delete.response(stats::terms(lme4::nobars(model_formula)))
   )
-  for (name in names(export_vars)) {
-    assign(name, export_vars[[name]])
+
+  ## --- Formula limitations (only simple terms are supported) ---------------
+  vars <- all.vars(fixed)
+  allowed_symbols <- c("~", "+", "*", ":", vars)
+  unsupported <- setdiff(all.names(fixed), allowed_symbols)
+  if (length(unsupported) > 0) {
+    cli_abort(c(
+      "The formula contains unsupported elements: {.val {unsupported}}.",
+      "i" = "The Julia backend supports variables combined with
+             {.code +}, {.code *} and {.code :} only (no poly(), I(), log(),
+             {.code -}, {.code ^}, {.code /}, {.code %in%}, ...)."
+    ))
   }
-  
-  
-  results_list <- bplapply(seq_len(nrow(samples)), function(i) {
-    
+  reserved <- intersect(vars, c("y", "peptide_id", "sample_id", "protein_id"))
+  if (length(reserved) > 0) {
+    cli_abort("Reserved names used as covariates: {.val {reserved}}.")
+  }
+  if (!group %in% vars) {
+    cli_abort("The group variable {.val {group}} must be in the formula.")
+  }
+
+  ## --- Covariates: characters -> factors, reject unsupported types ---------
+  cov <- as.data.frame(covariates)[, vars, drop = FALSE]
+  for (v in vars) {
+    x <- cov[[v]]
+    if (is.ordered(x) || is.logical(x)) {
+      cli_abort("Covariate {.val {v}} is ordered/logical, which is not supported.")
+    } else if (is.character(x)) {
+      cov[[v]] <- factor(x)
+    } else if (is.factor(x)) {
+      cov[[v]] <- droplevels(x)
+    } else if (!is.numeric(x)) {
+      cli_abort("Covariate {.val {v}} must be numeric, character or factor.")
+    }
+  }
+  if (!is.factor(cov[[group]])) {
+    cli_abort("The group column {.val {group}} must be character or factor.")
+  }
+  group_levels <- levels(cov[[group]])
+
+  ## --- Design matrix of the samples ---------------------------------------
+  X_full <- stats::model.matrix(fixed, cov)
+  if (colnames(X_full)[1] != "(Intercept)") {
+    cli_abort("The model must contain an intercept.")
+  }
+  if (qr(X_full)$rank < ncol(X_full)) {
+    cli_abort(c(
+      "The fixed-effect design matrix is rank deficient.",
+      "i" = "A covariate is constant, collinear, or a factor level is missing
+             in this replicate."
+    ))
+  }
+
+  ## --- Reference grid (same idea as emmeans) -------------------------------
+  grid_values <- lapply(cov, function(v) {
+    if (is.factor(v)) levels(v) else mean(v)
+  })
+  ref_grid <- expand.grid(grid_values, KEEP.OUT.ATTRS = FALSE,
+                          stringsAsFactors = FALSE)
+  for (v in vars) {
+    if (is.factor(cov[[v]])) {
+      ref_grid[[v]] <- factor(ref_grid[[v]], levels = levels(cov[[v]]))
+    }
+  }
+  X_ref <- stats::model.matrix(fixed, ref_grid)
+
+  ## Mean design row of each group level (r x n_levels)
+  group_rows <- vapply(
+    group_levels,
+    function(g) colMeans(X_ref[ref_grid[[group]] == g, , drop = FALSE]),
+    numeric(ncol(X_ref))
+  )
+
+  ## --- Contrast weights: identical call as in Fit_peptide.R ----------------
+  weights <- limma::makeContrasts(
+    contrasts = stringr::str_remove_all(pairwise_contrasts,
+                                        stringr::fixed(group)),
+    levels = group_levels
+  )[, 1]
+
+  L <- drop(group_rows %*% weights)
+
+  list(X = unname(X_full[, -1, drop = FALSE]), L = unname(L))
+}
+
+
+#' Fit all proteins of one replicate in Julia (shared by the three fit types)
+#'
+#' @param combined_data Peptide x sample numeric matrix.
+#' @param covariates.p Sample-level data frame, row names equal to the columns
+#' of `combined_data`.
+#' @param group Name of the group column.
+#' @param model_formula Full model formula.
+#' @param pairwise_contrasts Single contrast string, e.g. `"groupA - groupB"`.
+#' @param peptide_metadata Data frame mapping `peptide_id` to `protein_id`.
+#'
+#' @return A list with the SIGNED contrast estimates `d` and standard errors
+#' `s`, named by protein in order of first appearance in `peptide_metadata`.
+.fit_peptide_julia_core <- function(combined_data, covariates.p, group,
+                                    model_formula, pairwise_contrasts,
+                                    peptide_metadata) {
+
+  ## Same alignment checks as the R implementation
+  stopifnot(identical(colnames(combined_data), row.names(covariates.p)))
+  stopifnot(identical(row.names(combined_data), peptide_metadata[["peptide_id"]]))
+  if (anyDuplicated(peptide_metadata[["peptide_id"]])) {
+    cli_abort("peptide_metadata contains duplicated peptide_id values.")
+  }
+  if (anyNA(combined_data)) {
+    cli_abort("The Julia backend does not support missing values yet.")
+  }
+
+  design <- .peptide_design(covariates.p, group, model_formula,
+                            pairwise_contrasts)
+
+  ## Proteins in order of first appearance (same as unique(long_data$protein_id))
+  protein_names <- unique(as.character(peptide_metadata[["protein_id"]]))
+  protein_index <- match(as.character(peptide_metadata[["protein_id"]]),
+                         protein_names)
+
+  Y <- unname(as.matrix(combined_data))
+  storage.mode(Y) <- "double"
+
+  res <- .limrots_julia$fit(
+    Y,
+    as.integer(protein_index),
+    design$X,
+    as.numeric(design$L),
+    protein_names
+  )
+  if (is.null(names(res))) {
+    names(res) <- c("protein", "estimate", "se")
+  }
+
+  ## Julia must return exactly the proteins we sent, in the same order
+  if (!identical(as.character(unlist(res$protein)), protein_names)) {
+    cli_abort("Protein names/order returned by Julia do not match the input.")
+  }
+  estimate <- as.numeric(res$estimate)
+  se <- as.numeric(res$se)
+  if (length(estimate) != length(protein_names) ||
+      length(se) != length(protein_names)) {
+    cli_abort("Julia returned results of the wrong length.")
+  }
+
+  list(d = setNames(estimate, protein_names),
+       s = setNames(se, protein_names))
+}
+
+
+#' Fit the original data in Julia (drop-in for fit_original_peptide)
+#'
+#' @param x Peptide x sample matrix (sample names as column names).
+#' @param group Name of the group column.
+#' @param meta.info Sample metadata, sample names as row names.
+#' @param model_formula Full model formula.
+#' @param pairwise_contrasts Single contrast string.
+#' @param peptide_metadata Data frame mapping `peptide_id` to `protein_id`.
+#' @return List with signed `d` and `s`.
+fit_original_peptide <- function(x, group, meta.info, model_formula,
+                                       pairwise_contrasts, peptide_metadata) {
+  stopifnot(identical(colnames(x), row.names(meta.info)))
+  .setup_julia_peptide()
+  .fit_peptide_julia_core(
+    combined_data = x, covariates.p = meta.info, group = group,
+    model_formula = model_formula, pairwise_contrasts = pairwise_contrasts,
+    peptide_metadata = peptide_metadata
+  )
+}
+
+
+#' Fit one bootstrap sample in Julia (drop-in for fit_bootstrap_peptide)
+#'
+#' Uses `.generate_data_for_fit_peptide()` unchanged.
+#'
+#' @param x List of peptide x sample matrices, one per group.
+#' @param group Name of the group column.
+#' @param meta.info Sample metadata, sample names as row names.
+#' @param model_formula Full model formula.
+#' @param pairwise_contrasts Single contrast string.
+#' @param peptide_metadata Data frame mapping `peptide_id` to `protein_id`.
+#' @return List with absolute `d` and `s`.
+fit_bootstrap_peptide <- function(x, group, meta.info, model_formula,
+                                        pairwise_contrasts, peptide_metadata) {
+  data_for_fit <- .generate_data_for_fit_peptide(x = x, meta.info = meta.info)
+  fit <- .fit_peptide_julia_core(
+    combined_data = data_for_fit$combined_data,
+    covariates.p = data_for_fit$covariates.p,
+    group = group, model_formula = model_formula,
+    pairwise_contrasts = pairwise_contrasts,
+    peptide_metadata = peptide_metadata
+  )
+  list(d = abs(fit$d), s = fit$s)
+}
+
+
+#' Fit one permutation in Julia (drop-in for fit_permutation_peptide)
+#'
+#' @param x Peptide x sample matrix (sample names as column names).
+#' @param group Name of the group column.
+#' @param meta.info Permuted sample metadata, sample names as row names.
+#' @param model_formula Full model formula.
+#' @param pairwise_contrasts Single contrast string.
+#' @param peptide_metadata Data frame mapping `peptide_id` to `protein_id`.
+#' @return List with absolute `d` and `s`.
+fit_permutation_peptide <- function(x, group, meta.info, model_formula,
+                                          pairwise_contrasts, peptide_metadata) {
+  stopifnot(identical(colnames(x), row.names(meta.info)))
+  fit <- .fit_peptide_julia_core(
+    combined_data = x, covariates.p = meta.info, group = group,
+    model_formula = model_formula, pairwise_contrasts = pairwise_contrasts,
+    peptide_metadata = peptide_metadata
+  )
+  list(d = abs(fit$d), s = fit$s)
+}
+
+
+#' Julia version of parallel_peptide()
+#'
+#' Loops over the replicates in R (sequentially) and fits every replicate in
+#' Julia, where the proteins are fitted in parallel threads. Returns exactly
+#' the same structure as `parallel_peptide()`.
+#'
+#' @param samples Matrix of bootstrap replicates (one row per replicate).
+#' @param data Peptide x sample matrix.
+#' @param model_formula Full model formula.
+#' @param group Name of the group column.
+#' @param meta.info Sample metadata, sample names as row names.
+#' @param peptide_metadata Data frame mapping `peptide_id` to `protein_id`.
+#' @param pSamples List of permuted metadata data frames.
+#' @param pairwise_contrasts Single contrast string.
+#' @param n_threads Number of Julia threads or `"auto"`.
+#' @param BPPARAM Ignored (kept for a compatible signature): Julia threads
+#' replace BiocParallel workers (forking R workers would also fork Julia).
+#'
+#' @return List with one element per replicate, each with `ds` and `pdps`.
+parallel_peptide <- function(BPPARAM = NULL,
+                                   samples,
+                                   data,
+                                   model_formula,
+                                   group,
+                                   meta.info,
+                                   peptide_metadata,
+                                   pSamples,
+                                   pairwise_contrasts,
+                                   n_threads = "auto") {
+
+  ## Cheap checks first, before any fitting
+  .check_peptides_per_protein(peptide_metadata)
+  if (!is.null(BPPARAM)) {
+    cli_alert_warning(
+      "BPPARAM is ignored by the Julia backend; Julia threads are used instead."
+    )
+  }
+  .setup_julia_peptide(n_threads)
+
+  n_rep <- nrow(samples)
+  results_list <- vector("list", n_rep)
+  cli_progress_bar("Fitting replicates in Julia", total = n_rep)
+
+  for (i in seq_len(n_rep)) {
+
     samples.R <- split(samples[i, ], meta.info[samples[i, ], group])
     pSamples_i <- pSamples[[i]]
-    d_result <- NULL
-    s_result <- NULL
-    pd_result <- NULL
-    ps_result <- NULL
-    fit <- fit_bootstrap_peptide(
-      x = lapply(samples.R, function(x)
-        data[, x]
-      ),
-      group = group,
-      meta.info = meta.info,
-      model_formula = model_formula,
-      pairwise_contrasts = pairwise_contrasts,
-      peptide_metadata = peptide_metadata
-    )
-    d_result <- fit$d
-    s_result <- fit$s
-    df1 <- data.frame(d_result = d_result, s_result = s_result)
-    pFit <- fit_permutation_peptide(
-      x = data,
-      group = group,
-      meta.info = pSamples_i,
-      model_formula = model_formula,
-      pairwise_contrasts = pairwise_contrasts,
-      peptide_metadata = peptide_metadata
-    )
-    pd_result <- pFit$d
-    ps_result <- pFit$s
-    df2 <- data.frame(pd_result = pd_result, ps_result = ps_result)
-    list(ds = df1, pdps = df2)
-  }, BPPARAM = BPPARAM, 
-  BPOPTIONS = bpoptions(packages = c("utils", 
-                                     "stringr", "stats", 
-                                     "data.table", "lme4", "emmeans")))
-  return(results_list)
-}
 
-#' Fit the Original Peptide Data
-#'
-#' Fit a peptide-level linear mixed model for each protein using the original
-#' expression matrix, sample metadata, and peptide-to-protein mapping.
-#'
-#' @param x Feature-by-sample matrix with sample names as column names and
-#' peptide IDs as row names.
-#' @param group Character string naming the column in `meta.info` that
-#' identifies each sample's group.
-#' @param meta.info Data frame of sample-level metadata, with sample names as
-#' row names.
-#' @param model_formula Formula for the peptide-level mixed model.
-#' @param pairwise_contrasts Character vector of contrast expressions, such as
-#' `"group1 - group2"`, to fit.
-#' @param peptide_metadata Data frame mapping each `peptide_id` to a
-#' `protein_id`.
-#'
-#' @return A list containing signed protein-level contrast estimates `d` and
-#' their standard errors `s`.
-#'
-fit_original_peptide <- function(x, group, meta.info, model_formula,
-                                  pairwise_contrasts, peptide_metadata){
-  ### Generate combined data and covariates for model fitting
-  combined_data <- x
-  covariates.p <- meta.info
-  
-  stopifnot(identical(colnames(combined_data) , 
-                      row.names(covariates.p)))
-  
-  covariates.p[["sample_id"]] <- row.names(covariates.p)
-  
-  row.names(covariates.p) <- NULL
-  
-  stopifnot(identical(colnames(combined_data) , 
-                      covariates.p[["sample_id"]]))
-  
-  stopifnot(identical(row.names(combined_data) , 
-                      peptide_metadata[["peptide_id"]]))
-  
-  
-  #============================================================
-  # Fast conversion from matrix to long format
-  #============================================================
-  
-  combined_data <- as.data.table(
-    combined_data,
-    keep.rownames = "peptide_id"
-  )
-  
-  long_data <- melt(
-    combined_data,
-    id.vars = "peptide_id",
-    variable.name = "sample_id",
-    value.name = "y",
-    variable.factor = FALSE,
-    na.rm = TRUE
-  )
-  
-  #============================================================
-  # Add peptide metadata
-  #============================================================
-  
-  peptide_metadata <- as.data.table(peptide_metadata)
-  
-  if (anyDuplicated(peptide_metadata$peptide_id)) {
-    cli_abort("peptide_metadata contains duplicated peptide_id values.")
-  }
-  
-  long_data[
-    peptide_metadata,
-    protein_id := i.protein_id,
-    on = "peptide_id"
-  ]
-  
-  #============================================================
-  # Add all columns from covariates.p
-  #============================================================
-  
-  covariates.p <- as.data.table(covariates.p)
-  
-  if (anyDuplicated(covariates.p[["sample_id"]])) {
-    cli_abort("covariates.p contains duplicated sample_id values.")
-  }
-  
-  if (!all(long_data[["sample_id"]] %in% covariates.p[["sample_id"]])) {
-    cli_abort("Some sample IDs in long_data are missing from covariates.p.")
-  }
-  
-  covariate_columns <- setdiff(
-    colnames(covariates.p),
-    "sample_id"
-  )
-  
-  duplicated_columns <- intersect(
-    covariate_columns,
-    colnames(long_data)
-  )
-  
-  if (length(duplicated_columns) > 0) {
-    cli_abort(
-      paste0(
-        "These columns already exist in long_data: ",
-        paste(duplicated_columns, collapse = ", ")
-      )
-    )
-  }
-  
-  long_data[
-    covariates.p,
-    (covariate_columns) := mget(
-      paste0("i.", covariate_columns)
-    ),
-    on = "sample_id"
-  ]
-  
-  #============================================================
-  # Fit one peptide-level mixed model per protein
-  #============================================================
-  protein_names <- unique(long_data[["protein_id"]])
-  
-  coefficient <- setNames(
-    numeric(length(protein_names)),
-    protein_names
-  )
-  
-  standard_error <- setNames(
-    numeric(length(protein_names)),
-    protein_names
-  )
-  
-  for (current_protein in protein_names) {
-    
-    protein_data <- long_data[
-      protein_id == current_protein
-    ]
-    
-    protein_data[, (group) := factor(get(group))]
-    protein_data[, peptide_id := factor(peptide_id)]
-    protein_data[, sample_id := factor(sample_id)]
-    
-    model <- lmer(
-      model_formula,
-      data = protein_data,
-      REML = TRUE
-    )
-    
-    estimated_group_means <- emmeans(
-      model,
-      specs = group,
-      lmer.df = "asymptotic"
-    )
-    
-    group_levels <- as.character(
-      as.data.frame(estimated_group_means)[[group]]
-    )
-    
-    contrast_weights <- limma::makeContrasts(
-      contrasts = str_remove_all(pairwise_contrasts, fixed(group)),
-      levels = group_levels
-    )[, 1]
-    
-    
-    contrast_result <- contrast(
-      estimated_group_means,
-      method = setNames(
-        list(contrast_weights),
-        pairwise_contrasts
+    fit <- tryCatch(
+      fit_bootstrap_peptide(
+        x = lapply(samples.R, function(x) data[, x]),
+        group = group, meta.info = meta.info,
+        model_formula = model_formula,
+        pairwise_contrasts = pairwise_contrasts,
+        peptide_metadata = peptide_metadata
       ),
-      adjust = "none"
+      error = function(e) {
+        cli_abort("Bootstrap replicate {i} failed.", parent = e)
+      }
     )
-    
-    contrast_summary <- as.data.frame(
-      summary(contrast_result)
-    )
-    
-    contrast_summary <- contrast_summary[contrast_summary[["contrast"]] == pairwise_contrasts,,drop=FALSE]
-    
-    coefficient[current_protein] <-
-      contrast_summary[["estimate"]]
-    
-    standard_error[current_protein] <-
-      contrast_summary[["SE"]]
-  }
-  
-  return(list(d = coefficient, s = standard_error))
-                                  }
+    df1 <- data.frame(d_result = fit$d, s_result = fit$s)
 
-
-#' Fit Peptide Bootstrap Samples
-#'
-#' Combine group-specific bootstrap matrices and fit peptide-level mixed
-#' models, returning a statistic and standard error for each protein.
-#'
-#' @param x List of feature-by-sample matrices, one per group in the bootstrap
-#' replicate. Matrices must have matching peptide IDs as row names.
-#' @param group Character string naming the column in `meta.info` that
-#' identifies each sample's group.
-#' @param meta.info Data frame of sample-level metadata, with sample names as
-#' row names.
-#' @param model_formula Formula for the peptide-level mixed model.
-#' @param pairwise_contrasts Character vector of contrast expressions, such as
-#' `"group1 - group2"`, to fit.
-#' @param peptide_metadata Data frame mapping each `peptide_id` to a
-#' `protein_id`.
-#'
-#' @return A list containing absolute protein-level statistics `d` and their
-#' standard errors `s`.
-#'
-fit_bootstrap_peptide <- function(x, group, meta.info, model_formula,
-                                  pairwise_contrasts, peptide_metadata) {
-  
-  ### Generate combined data and covariates for model fitting
-  data_for_fit <- .generate_data_for_fit_peptide(x = x, meta.info = meta.info)
-  combined_data <- data_for_fit$combined_data
-  covariates.p <- data_for_fit$covariates.p
-  
-  stopifnot(identical(colnames(combined_data) , 
-                      row.names(covariates.p)))
-  
-  covariates.p[["sample_id"]] <- row.names(covariates.p)
-  
-  row.names(covariates.p) <- NULL
-  
-  stopifnot(identical(colnames(combined_data) , 
-                      covariates.p[["sample_id"]]))
-  
-  stopifnot(identical(row.names(combined_data) , 
-                      peptide_metadata[["peptide_id"]]))
-  
-  
-  #============================================================
-  # Fast conversion from matrix to long format
-  #============================================================
-  
-  combined_data <- as.data.table(
-    combined_data,
-    keep.rownames = "peptide_id"
-  )
-  
-  long_data <- melt(
-    combined_data,
-    id.vars = "peptide_id",
-    variable.name = "sample_id",
-    value.name = "y",
-    variable.factor = FALSE,
-    na.rm = TRUE
-  )
-  
-  #============================================================
-  # Add peptide metadata
-  #============================================================
-  
-  peptide_metadata <- as.data.table(peptide_metadata)
-  
-  if (anyDuplicated(peptide_metadata$peptide_id)) {
-    cli_abort("peptide_metadata contains duplicated peptide_id values.")
-  }
-  
-  long_data[
-    peptide_metadata,
-    protein_id := i.protein_id,
-    on = "peptide_id"
-  ]
-  
-  #============================================================
-  # Add all columns from covariates.p
-  #============================================================
-  
-  covariates.p <- as.data.table(covariates.p)
-  
-  if (anyDuplicated(covariates.p[["sample_id"]])) {
-    cli_abort("covariates.p contains duplicated sample_id values.")
-  }
-  
-  if (!all(long_data[["sample_id"]] %in% covariates.p[["sample_id"]])) {
-    cli_abort("Some sample IDs in long_data are missing from covariates.p.")
-  }
-  
-  covariate_columns <- setdiff(
-    colnames(covariates.p),
-    "sample_id"
-  )
-  
-  duplicated_columns <- intersect(
-    covariate_columns,
-    colnames(long_data)
-  )
-  
-  if (length(duplicated_columns) > 0) {
-    cli_abort(
-      paste0(
-        "These columns already exist in long_data: ",
-        paste(duplicated_columns, collapse = ", ")
-      )
-    )
-  }
-  
-  long_data[
-    covariates.p,
-    (covariate_columns) := mget(
-      paste0("i.", covariate_columns)
-    ),
-    on = "sample_id"
-  ]
-  
-  #============================================================
-  # Fit one peptide-level mixed model per protein
-  #============================================================
-  protein_names <- unique(long_data[["protein_id"]])
-  
-  coefficient <- setNames(
-    numeric(length(protein_names)),
-    protein_names
-  )
-  
-  standard_error <- setNames(
-    numeric(length(protein_names)),
-    protein_names
-  )
-  
-  for (current_protein in protein_names) {
-    
-    protein_data <- long_data[
-      protein_id == current_protein
-    ]
-    
-    protein_data[, (group) := factor(get(group))]
-    protein_data[, peptide_id := factor(peptide_id)]
-    protein_data[, sample_id := factor(sample_id)]
-    
-    model <- lmer(
-      model_formula,
-      data = protein_data,
-      REML = TRUE
-    )
-    
-    estimated_group_means <- emmeans(
-      model,
-      specs = group,
-      lmer.df = "asymptotic"
-    )
-    
-    group_levels <- as.character(
-      as.data.frame(estimated_group_means)[[group]]
-    )
-    
-    contrast_weights <- limma::makeContrasts(
-      contrasts = str_remove_all(pairwise_contrasts, fixed(group)),
-      levels = group_levels
-    )[, 1]
-    
-    
-    contrast_result <- contrast(
-      estimated_group_means,
-      method = setNames(
-        list(contrast_weights),
-        pairwise_contrasts
+    pFit <- tryCatch(
+      fit_permutation_peptide(
+        x = data, group = group, meta.info = pSamples_i,
+        model_formula = model_formula,
+        pairwise_contrasts = pairwise_contrasts,
+        peptide_metadata = peptide_metadata
       ),
-      adjust = "none"
+      error = function(e) {
+        cli_abort("Permutation replicate {i} failed.", parent = e)
+      }
     )
-    
-    contrast_summary <- as.data.frame(
-      summary(contrast_result)
-    )
-    
-    contrast_summary <- contrast_summary[contrast_summary[["contrast"]] == pairwise_contrasts,,drop=FALSE]
-    
-    coefficient[current_protein] <-
-      abs(contrast_summary[["estimate"]])
-    
-    standard_error[current_protein] <-
-      contrast_summary[["SE"]]
-  }
-  
-  return(list(d = coefficient, s = standard_error))
-  
-}
+    df2 <- data.frame(pd_result = pFit$d, ps_result = pFit$s)
 
-#' Fit Peptide Models with Permuted Metadata
-#'
-#' Fit peptide-level mixed models to the original expression matrix using
-#' permuted sample metadata to obtain null statistics.
-#'
-#' @param x Feature-by-sample matrix with sample names as column names and
-#' peptide IDs as row names.
-#' @param group Character string naming the column in `meta.info` that
-#' identifies each sample's group.
-#' @param meta.info Data frame of permuted sample-level metadata, with sample
-#' names as row names.
-#' @param model_formula Formula for the peptide-level mixed model.
-#' @param pairwise_contrasts Character vector of contrast expressions, such as
-#' `"group1 - group2"`, to fit.
-#' @param peptide_metadata Data frame mapping each `peptide_id` to a
-#' `protein_id`.
-#'
-#' @return A list containing absolute protein-level null statistics `d` and
-#' their standard errors `s`.
-#'
-fit_permutation_peptide <- function(x, group, meta.info, model_formula,
-                                    pairwise_contrasts, peptide_metadata) {
-  
-  ### Generate combined data and covariates for model fitting
-  combined_data <- x
-  covariates.p <- meta.info
-  
-  stopifnot(identical(colnames(combined_data) , 
-                      row.names(covariates.p)))
-  
-  covariates.p[["sample_id"]] <- row.names(covariates.p)
-  
-  row.names(covariates.p) <- NULL
-  
-  stopifnot(identical(colnames(combined_data) , 
-                      covariates.p[["sample_id"]]))
-  
-  stopifnot(identical(row.names(combined_data) , 
-                      peptide_metadata[["peptide_id"]]))
-  
-  
-  #============================================================
-  # Fast conversion from matrix to long format
-  #============================================================
-  
-  combined_data <- as.data.table(
-    combined_data,
-    keep.rownames = "peptide_id"
-  )
-  
-  long_data <- melt(
-    combined_data,
-    id.vars = "peptide_id",
-    variable.name = "sample_id",
-    value.name = "y",
-    variable.factor = FALSE,
-    na.rm = TRUE
-  )
-  
-  #============================================================
-  # Add peptide metadata
-  #============================================================
-  
-  peptide_metadata <- as.data.table(peptide_metadata)
-  
-  if (anyDuplicated(peptide_metadata$peptide_id)) {
-    cli_abort("peptide_metadata contains duplicated peptide_id values.")
+    results_list[[i]] <- list(ds = df1, pdps = df2)
+    cli_progress_update()
   }
-  
-  long_data[
-    peptide_metadata,
-    protein_id := i.protein_id,
-    on = "peptide_id"
-  ]
-  
-  #============================================================
-  # Add all columns from covariates.p
-  #============================================================
-  
-  covariates.p <- as.data.table(covariates.p)
-  
-  if (anyDuplicated(covariates.p[["sample_id"]])) {
-    cli_abort("covariates.p contains duplicated sample_id values.")
-  }
-  
-  if (!all(long_data[["sample_id"]] %in% covariates.p[["sample_id"]])) {
-    cli_abort("Some sample IDs in long_data are missing from covariates.p.")
-  }
-  
-  covariate_columns <- setdiff(
-    colnames(covariates.p),
-    "sample_id"
-  )
-  
-  duplicated_columns <- intersect(
-    covariate_columns,
-    colnames(long_data)
-  )
-  
-  if (length(duplicated_columns) > 0) {
-    cli_abort(
-      paste0(
-        "These columns already exist in long_data: ",
-        paste(duplicated_columns, collapse = ", ")
-      )
-    )
-  }
-  
-  long_data[
-    covariates.p,
-    (covariate_columns) := mget(
-      paste0("i.", covariate_columns)
-    ),
-    on = "sample_id"
-  ]
-  
-  #============================================================
-  # Fit one peptide-level mixed model per protein
-  #============================================================
-  protein_names <- unique(long_data[["protein_id"]])
-  
-  coefficient <- setNames(
-    numeric(length(protein_names)),
-    protein_names
-  )
-  
-  standard_error <- setNames(
-    numeric(length(protein_names)),
-    protein_names
-  )
-  
-  for (current_protein in protein_names) {
-    
-    protein_data <- long_data[
-      protein_id == current_protein
-    ]
-    
-    protein_data[, (group) := factor(get(group))]
-    protein_data[, peptide_id := factor(peptide_id)]
-    protein_data[, sample_id := factor(sample_id)]
-    
-    model <- lmer(
-      model_formula,
-      data = protein_data,
-      REML = TRUE
-    )
-    
-    estimated_group_means <- emmeans(
-      model,
-      specs = group,
-      lmer.df = "asymptotic"
-    )
-    
-    group_levels <- as.character(
-      as.data.frame(estimated_group_means)[[group]]
-    )
-    
-    contrast_weights <- limma::makeContrasts(
-      contrasts = str_remove_all(pairwise_contrasts, fixed(group)),
-      levels = group_levels
-    )[, 1]
-    
-    
-    contrast_result <- contrast(
-      estimated_group_means,
-      method = setNames(
-        list(contrast_weights),
-        pairwise_contrasts
-      ),
-      adjust = "none"
-    )
-    
-    contrast_summary <- as.data.frame(
-      summary(contrast_result)
-    )
-    
-    contrast_summary <- contrast_summary[contrast_summary[["contrast"]] == pairwise_contrasts,,drop=FALSE]
-    
-    coefficient[current_protein] <-
-      abs(contrast_summary[["estimate"]])
-    
-    standard_error[current_protein] <-
-      contrast_summary[["SE"]]
-  }
-  
-  return(list(d = coefficient, s = standard_error))
-  
-  
+  cli_progress_done()
+
+  results_list
 }
 
 

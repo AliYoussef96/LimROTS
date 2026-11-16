@@ -2,7 +2,7 @@
 % Please edit documentation in R/Fit_peptide.R
 \name{fit_bootstrap_peptide}
 \alias{fit_bootstrap_peptide}
-\title{Fit Peptide Bootstrap Samples}
+\title{Fit one bootstrap sample in Julia (drop-in for fit_bootstrap_peptide)}
 \usage{
 fit_bootstrap_peptide(
   x,
@@ -14,28 +14,21 @@ fit_bootstrap_peptide(
 )
 }
 \arguments{
-\item{x}{List of feature-by-sample matrices, one per group in the bootstrap
-replicate. Matrices must have matching peptide IDs as row names.}
+\item{x}{List of peptide x sample matrices, one per group.}
 
-\item{group}{Character string naming the column in \code{meta.info} that
-identifies each sample's group.}
+\item{group}{Name of the group column.}
 
-\item{meta.info}{Data frame of sample-level metadata, with sample names as
-row names.}
+\item{meta.info}{Sample metadata, sample names as row names.}
 
-\item{model_formula}{Formula for the peptide-level mixed model.}
+\item{model_formula}{Full model formula.}
 
-\item{pairwise_contrasts}{Character vector of contrast expressions, such as
-\code{"group1 - group2"}, to fit.}
+\item{pairwise_contrasts}{Single contrast string.}
 
-\item{peptide_metadata}{Data frame mapping each \code{peptide_id} to a
-\code{protein_id}.}
+\item{peptide_metadata}{Data frame mapping \code{peptide_id} to \code{protein_id}.}
 }
 \value{
-A list containing absolute protein-level statistics \code{d} and their
-standard errors \code{s}.
+List with absolute \code{d} and \code{s}.
 }
 \description{
-Combine group-specific bootstrap matrices and fit peptide-level mixed
-models, returning a statistic and standard error for each protein.
+Uses \code{.generate_data_for_fit_peptide()} unchanged.
 }
