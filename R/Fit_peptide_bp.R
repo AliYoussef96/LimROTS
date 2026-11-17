@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------------
-# Peptide-level fits (Julia backend): R workers x Julia threads
+# Peptide-level fits (Julia backend), ONE Julia thread, original BPPARAM handling
 #
-# n_threads is split between BiocParallel workers and Julia threads per worker.
+# Parallelism comes only from BiocParallel (as in the original code).
 # The contrast vector L is built with emmeans (see .peptide_design).
 #
 # Same statistical model as Fit_peptide.R:
@@ -30,13 +30,18 @@
 #' user's global Julia environment, and only after consent (interactive prompt
 #' or `options(LimROTS.julia_install = TRUE)`).
 #'
-#' @param n_threads Number of Julia threads: a number or `"auto"`. Only effective
-#' if Julia has not been started yet in this R session.
+#' @param n_threads Number of Julia threads (a positive whole number, default 2).
+#' Only effective if Julia has not been started yet in this R process.
 #' @return `TRUE` invisibly.
-.setup_julia_peptide <- function(n_threads = "auto") {
+.setup_julia_peptide <- function(n_threads = 2L) {
 
   if (isTRUE(.limrots_julia$ready)) {
     return(invisible(TRUE))
+  }
+
+  n_threads <- suppressWarnings(as.integer(n_threads))
+  if (length(n_threads) != 1L || is.na(n_threads) || n_threads < 1L) {
+    cli_abort("`n_threads` must be a positive whole number.")
   }
 
   if (!requireNamespace("JuliaConnectoR", quietly = TRUE)) {
@@ -107,6 +112,36 @@
 
   .limrots_julia$ready <- TRUE
   invisible(TRUE)
+}
+
+
+#' Stop the Julia process of this R process (if LimROTS started one)
+#'
+#' Frees the memory and the threads. The next call that needs Julia simply
+#' starts a new Julia process (which pays the start-up and compile time again).
+#' Set `options(LimROTS.julia_keep_alive = TRUE)` to keep Julia running after
+#' `fit_original_peptide()`, e.g. when testing repeatedly.
+#'
+#' @return `TRUE` invisibly if Julia was stopped, `FALSE` otherwise.
+.stop_julia_peptide <- function() {
+  if (!isTRUE(.limrots_julia$ready)) {
+    return(invisible(FALSE))
+  }
+  stopped <- tryCatch({
+    JuliaConnectoR::stopJulia()
+    TRUE
+  }, error = function(e) {
+    cli_alert_warning("Could not stop Julia: {conditionMessage(e)}")
+    FALSE
+  })
+  if (stopped) {
+    ## Forget everything tied to the old process
+    .limrots_julia$ready <- FALSE
+    .limrots_julia$faster_ready <- FALSE
+    .limrots_julia$fit <- NULL
+    .limrots_julia$fit_all <- NULL
+  }
+  invisible(stopped)
 }
 
 
@@ -332,11 +367,22 @@
 #' @param model_formula Full model formula.
 #' @param pairwise_contrasts Single contrast string.
 #' @param peptide_metadata Data frame mapping `peptide_id` to `protein_id`.
+#' @param n_threads Julia threads for this fit. `NULL` (default) uses the
+#' thread count stored by `parallel_peptide()` (hybrid: the whole thread
+#' budget; bp: the number of BiocParallel workers), or 2 if none is stored.
+#' Only effective if Julia has not been started yet in this R session.
 #' @return List with signed `d` and `s`.
 fit_original_peptide <- function(x, group, meta.info, model_formula,
-                                       pairwise_contrasts, peptide_metadata) {
+                                 pairwise_contrasts, peptide_metadata,
+                                 n_threads = NULL) {
   stopifnot(identical(colnames(x), row.names(meta.info)))
-  .setup_julia_peptide()
+  ## This is the last Julia use of a LimROTS_peptide() run: stop Julia afterwards
+  if (!isTRUE(getOption("LimROTS.julia_keep_alive", FALSE))) {
+    on.exit(.stop_julia_peptide(), add = TRUE)
+  }
+  if (is.null(n_threads)) n_threads <- .limrots_julia$n_threads
+  if (is.null(n_threads)) n_threads <- 2L
+  .setup_julia_peptide(n_threads)
   .fit_peptide_julia_core(
     combined_data = x, covariates.p = meta.info, group = group,
     model_formula = model_formula, pairwise_contrasts = pairwise_contrasts,
@@ -391,88 +437,22 @@ fit_permutation_peptide <- function(x, group, meta.info, model_formula,
 }
 
 
-#' Fit a chunk of replicates (runs in the main session or on ONE worker)
+#' Julia version of parallel_peptide(): BPPARAM as in the original code
 #'
-#' Starts Julia in this R process if needed (a fresh worker has no Julia yet),
-#' then fits the bootstrap and permutation of every replicate in `idx`.
+#' The replicates are distributed by `bplapply()` exactly as before, with the
+#' same default backend and the same `BPPARAM` handling. Julia runs with ONE
+#' thread in every worker: the parallelism comes from BiocParallel. The Julia of
+#' the main session (used afterwards by `fit_original_peptide()`) gets as many
+#' threads as there are BiocParallel workers.
 #'
-#' @param idx Integer vector: the (global) replicate numbers of this chunk.
-#' @param samples,data,model_formula,group,meta.info,peptide_metadata,pSamples,pairwise_contrasts
-#' As in `parallel_peptide()`.
-#' @param julia_threads Julia threads of THIS process.
-#' @param progress Show a progress bar (main session only).
+#' Julia is started inside each worker, so with `MulticoreParam` (forked
+#' workers) Julia must NOT have been started in the main session before. The
+#' Julia packages must be installed beforehand (a worker cannot ask for
+#' consent): run `LimROTS:::.setup_julia_peptide()` once in an interactive
+#' session.
 #'
-#' @return List with `idx` and `results` (one element per replicate in `idx`,
-#' same order).
-.fit_peptide_chunk <- function(idx, samples, data, model_formula, group,
-                               meta.info, peptide_metadata, pSamples,
-                               pairwise_contrasts, julia_threads = 1L,
-                               progress = FALSE) {
-
-  .setup_julia_peptide(julia_threads)
-
-  results <- vector("list", length(idx))
-  if (progress) {
-    cli_progress_bar("Fitting replicates in Julia", total = length(idx))
-  }
-
-  for (j in seq_along(idx)) {
-    i <- idx[j]                                  # global replicate number
-
-    samples.R <- split(samples[i, ], meta.info[samples[i, ], group])
-    pSamples_i <- pSamples[[i]]
-
-    fit <- tryCatch(
-      fit_bootstrap_peptide(
-        x = lapply(samples.R, function(x) data[, x]),
-        group = group, meta.info = meta.info,
-        model_formula = model_formula,
-        pairwise_contrasts = pairwise_contrasts,
-        peptide_metadata = peptide_metadata
-      ),
-      error = function(e) {
-        cli_abort("Bootstrap replicate {i} failed.", parent = e)
-      }
-    )
-    df1 <- data.frame(d_result = fit$d, s_result = fit$s)
-
-    pFit <- tryCatch(
-      fit_permutation_peptide(
-        x = data, group = group, meta.info = pSamples_i,
-        model_formula = model_formula,
-        pairwise_contrasts = pairwise_contrasts,
-        peptide_metadata = peptide_metadata
-      ),
-      error = function(e) {
-        cli_abort("Permutation replicate {i} failed.", parent = e)
-      }
-    )
-    df2 <- data.frame(pd_result = pFit$d, ps_result = pFit$s)
-
-    results[[j]] <- list(ds = df1, pdps = df2)
-    if (progress) cli_progress_update()
-  }
-  if (progress) cli_progress_done()
-
-  list(idx = idx, results = results)
-}
-
-
-#' Julia version of parallel_peptide(): R workers x Julia threads
-#'
-#' The thread budget `n_threads` is split between R workers (BiocParallel) and
-#' Julia threads inside each worker:
-#' `n_workers = max(1, n_threads %/% 2)` (never more than the number of
-#' replicates) and `julia_threads = n_threads %/% n_workers`, so
-#' `n_workers * julia_threads <= n_threads`. Examples: 4 -> 2 x 2, 5 -> 2 x 2,
-#' 10 -> 5 x 2, 3 -> 1 x 3 (no cluster, runs in this session).
-#'
-#' The replicates are cut into exactly `n_workers` contiguous chunks, one per
-#' worker, and the chunk results are put back in the original replicate order.
-#'
-#' @param BPPARAM `NULL` (a `SnowParam` is created) or a `SnowParam` /
-#' `SerialParam`. Its number of workers is overridden by the thread budget.
-#' `MulticoreParam` is rejected: forking an R process that runs Julia is unsafe.
+#' @param BPPARAM A `BiocParallelParam` object. If `NULL`, a two-worker
+#' backend appropriate to the operating system is used.
 #' @param samples Matrix of bootstrap replicates (one row per replicate).
 #' @param data Peptide x sample matrix.
 #' @param model_formula Full model formula.
@@ -481,12 +461,10 @@ fit_permutation_peptide <- function(x, group, meta.info, model_formula,
 #' @param peptide_metadata Data frame mapping `peptide_id` to `protein_id`.
 #' @param pSamples List of permuted metadata data frames.
 #' @param pairwise_contrasts Single contrast string.
-#' @param n_threads Total thread budget (a number) or `"auto"`
-#' (`BiocParallel::multicoreWorkers()`).
 #'
 #' @return List with one element per replicate, each with `ds`
 #' (`d_result`, `s_result`) and `pdps` (`pd_result`, `ps_result`), row names =
-#' proteins, in the original replicate order.
+#' proteins.
 parallel_peptide <- function(BPPARAM = NULL,
                              samples,
                              data,
@@ -495,103 +473,109 @@ parallel_peptide <- function(BPPARAM = NULL,
                              meta.info,
                              peptide_metadata,
                              pSamples,
-                             pairwise_contrasts,
-                             n_threads = "auto") {
+                             pairwise_contrasts) {
 
-  ## ---- cheap checks first ---------------------------------------------------
   .check_peptides_per_protein(peptide_metadata)
-  n_rep <- nrow(samples)
-  if (length(pSamples) != n_rep) {
-    cli_abort("`samples` and `pSamples` must have the same number of replicates.")
+
+  if (is.null(BPPARAM)) {
+    if (.Platform$OS.type == "windows") {
+      BPPARAM <- SnowParam(workers = 2)
+      cli_alert_info("Using SnowParam (Windows) with two workers.")
+    } else {
+      BPPARAM <- MulticoreParam(workers = 2)
+      cli_alert_info("Using MulticoreParam (Unix-like OS) with two workers.")
+    }
+  } else {
+    cli_alert_info("Using the provided parallel backend.")
+  }
+  if (inherits(BPPARAM, "SnowParam")) {
+    BPPARAM$exportglobals <- FALSE
   }
 
-  ## ---- 1. Thread budget -> workers x Julia threads --------------------------
-  if (identical(n_threads, "auto")) {
-    n_threads <- BiocParallel::multicoreWorkers()
-  }
-  n_threads <- suppressWarnings(as.integer(n_threads))
-  if (length(n_threads) != 1L || is.na(n_threads) || n_threads < 1L) {
-    cli_abort("`n_threads` must be a positive number or \"auto\".")
-  }
+  ## Julia threads of the MAIN session (used by fit_original_peptide()):
+  ## as many as there are BiocParallel workers. Workers themselves use 1.
+  n_bp_workers <- max(1L, as.integer(BiocParallel::bpnworkers(BPPARAM)))
+  .limrots_julia$n_threads <- n_bp_workers
 
-  if (!is.null(BPPARAM)) {
-    if (inherits(BPPARAM, "MulticoreParam")) {
+  ## Julia in the main session? Forked workers must not inherit a running Julia.
+  if (inherits(BPPARAM, "MulticoreParam")) {
+    if (isTRUE(.limrots_julia$ready)) {
       cli_abort(c(
-        "{.cls MulticoreParam} cannot be used with the Julia backend.",
-        "i" = "Forking an R process that runs Julia is unsafe. Use
-               {.fn BiocParallel::SnowParam} or leave `BPPARAM = NULL`."
+        "Julia is already running in this R session, so forked workers cannot use it.",
+        "i" = "Restart R, or use {.fn BiocParallel::SnowParam}."
       ))
     }
-    if (!inherits(BPPARAM, c("SnowParam", "SerialParam"))) {
-      cli_abort("`BPPARAM` must be NULL, a SnowParam or a SerialParam.")
-    }
-  }
-
-  n_workers <- min(max(1L, n_threads %/% 2L), n_rep)
-  if (inherits(BPPARAM, "SerialParam")) n_workers <- 1L
-  julia_threads <- max(1L, n_threads %/% n_workers)
-  cli_alert_info(
-    "Thread budget {n_threads}: R workers = {n_workers}, Julia threads per worker = {julia_threads}."
-  )
-
-  ## ---- 2. Julia in THIS session first (package check / consent) -------------
-  .setup_julia_peptide(julia_threads)
-
-  ## ---- 3. Run ---------------------------------------------------------------
-  if (n_workers == 1L) {
-    ## No cluster: everything runs here
-    out <- list(.fit_peptide_chunk(
-      idx = seq_len(n_rep), samples = samples, data = data,
-      model_formula = model_formula, group = group, meta.info = meta.info,
-      peptide_metadata = peptide_metadata, pSamples = pSamples,
-      pairwise_contrasts = pairwise_contrasts,
-      julia_threads = julia_threads, progress = TRUE
-    ))
   } else {
-    if (is.null(BPPARAM)) {
-      BPPARAM <- BiocParallel::SnowParam(workers = n_workers,
-                                         exportglobals = FALSE)
-      cli_alert_info("Using SnowParam with {n_workers} workers.")
-    } else {
-      BiocParallel::bpworkers(BPPARAM) <- n_workers
-      BPPARAM$exportglobals <- FALSE
-      cli_alert_info("Using the provided SnowParam with {n_workers} workers.")
-    }
+    .setup_julia_peptide(n_bp_workers)  # package check / consent, main session
+  }
 
-    ## Exactly n_workers contiguous chunks of near-equal size
-    chunks <- unname(split(
-      seq_len(n_rep),
-      cut(seq_len(n_rep), breaks = n_workers, labels = FALSE)
-    ))
-    cli_alert_info(
-      "Fitting {n_rep} replicates in {length(chunks)} chunks (one per worker)."
+  export_vars <- list(
+    samples = samples,
+    data = data,
+    model_formula = model_formula,
+    group = group,
+    meta.info = meta.info,
+    peptide_metadata = peptide_metadata,
+    pSamples = pSamples,
+    pairwise_contrasts = pairwise_contrasts
+  )
+  for (name in names(export_vars)) {
+    assign(name, export_vars[[name]])
+  }
+
+
+  results_list <- bplapply(seq_len(nrow(samples)), function(i) {
+
+    ## Once per R process (no-op afterwards): start Julia with ONE thread
+    .setup_julia_peptide(1L)
+
+    samples.R <- split(samples[i, ], meta.info[samples[i, ], group])
+    pSamples_i <- pSamples[[i]]
+    d_result <- NULL
+    s_result <- NULL
+    pd_result <- NULL
+    ps_result <- NULL
+    fit <- tryCatch(
+      fit_bootstrap_peptide(
+        x = lapply(samples.R, function(x)
+          data[, x]
+        ),
+        group = group,
+        meta.info = meta.info,
+        model_formula = model_formula,
+        pairwise_contrasts = pairwise_contrasts,
+        peptide_metadata = peptide_metadata
+      ),
+      error = function(e) {
+        cli_abort("Bootstrap replicate {i} failed.", parent = e)
+      }
     )
-
-    out <- BiocParallel::bplapply(
-      chunks, .fit_peptide_chunk,
-      samples = samples, data = data, model_formula = model_formula,
-      group = group, meta.info = meta.info,
-      peptide_metadata = peptide_metadata, pSamples = pSamples,
-      pairwise_contrasts = pairwise_contrasts,
-      julia_threads = julia_threads,
-      BPPARAM = BPPARAM,
-      BPOPTIONS = BiocParallel::bpoptions(
-        packages = c("utils", "stringr", "stats", "data.table",
-                     "lme4", "emmeans", "limma")
-      )
+    d_result <- fit$d
+    s_result <- fit$s
+    df1 <- data.frame(d_result = d_result, s_result = s_result)
+    pFit <- tryCatch(
+      fit_permutation_peptide(
+        x = data,
+        group = group,
+        meta.info = pSamples_i,
+        model_formula = model_formula,
+        pairwise_contrasts = pairwise_contrasts,
+        peptide_metadata = peptide_metadata
+      ),
+      error = function(e) {
+        cli_abort("Permutation replicate {i} failed.", parent = e)
+      }
     )
-  }
-
-  ## ---- 4. Put the chunks back in the original replicate order ---------------
-  got_idx <- unlist(lapply(out, `[[`, "idx"), use.names = FALSE)
-  if (!identical(as.integer(got_idx), seq_len(n_rep))) {
-    cli_abort("Chunk results are not in the original replicate order.")
-  }
-  results_list <- do.call(c, lapply(out, `[[`, "results"))
-  if (length(results_list) != n_rep) {
-    cli_abort("Expected {n_rep} replicate results but got {length(results_list)}.")
-  }
-  results_list
+    pd_result <- pFit$d
+    ps_result <- pFit$s
+    df2 <- data.frame(pd_result = pd_result, ps_result = ps_result)
+    list(ds = df1, pdps = df2)
+  }, BPPARAM = BPPARAM,
+  BPOPTIONS = bpoptions(packages = c("utils",
+                                     "stringr", "stats",
+                                     "data.table", "lme4", "emmeans",
+                                     "limma")))
+  return(results_list)
 }
 
 
