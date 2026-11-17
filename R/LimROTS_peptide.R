@@ -239,8 +239,7 @@ LimROTS_peptide <- function(x,
     meta.info = meta.info,
     pSamples = list_boot_perm[["perm_Samples"]],
     pairwise_contrasts = pairwise_contrasts,
-    peptide_metadata = peptide_metadata,
-    n_threads = n_threads
+    peptide_metadata = peptide_metadata
   )
   cli_alert_success("Peptide bootstrap and permutation fits complete.")
 
