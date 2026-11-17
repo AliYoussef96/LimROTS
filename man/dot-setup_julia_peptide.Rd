@@ -4,11 +4,21 @@
 \alias{.setup_julia_peptide}
 \title{Start Julia, install the Julia packages if needed, load limrots_peptide.jl}
 \usage{
-.setup_julia_peptide(n_threads = "auto")
+.setup_julia_peptide(
+  n_threads,
+  allow_install = FALSE,
+  allow_prompt = interactive()
+)
 }
 \arguments{
-\item{n_threads}{Number of Julia threads: a number or \code{"auto"}. Only effective
-if Julia has not been started yet in this R session.}
+\item{n_threads}{Requested Julia thread allocation, as a positive integer
+or \code{"auto"}. An already-running Julia instance cannot exceed this allocation.}
+
+\item{allow_install}{Whether a worker may install missing Julia packages
+without prompting.}
+
+\item{allow_prompt}{Whether to allow an interactive Julia package-install
+prompt.}
 }
 \value{
 \code{TRUE} invisibly.

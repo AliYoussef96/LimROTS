@@ -2,7 +2,7 @@
 % Please edit documentation in R/Fit_peptide.R
 \name{parallel_peptide}
 \alias{parallel_peptide}
-\title{Julia version of parallel_peptide()}
+\title{Parallel peptide fitting with bounded R and Julia workers}
 \usage{
 parallel_peptide(
   BPPARAM = NULL,
@@ -14,12 +14,13 @@ parallel_peptide(
   peptide_metadata,
   pSamples,
   pairwise_contrasts,
-  n_threads = "auto"
+  n_threads
 )
 }
 \arguments{
-\item{BPPARAM}{Ignored (kept for a compatible signature): Julia threads
-replace BiocParallel workers (forking R workers would also fork Julia).}
+\item{BPPARAM}{A \code{BiocParallelParam} backend for replicate-level work.
+If \code{NULL}, a platform-appropriate backend is created. Its workers are
+capped by the thread budget and the number of replicates.}
 
 \item{samples}{Matrix of bootstrap replicates (one row per replicate).}
 
@@ -37,13 +38,15 @@ replace BiocParallel workers (forking R workers would also fork Julia).}
 
 \item{pairwise_contrasts}{Single contrast string.}
 
-\item{n_threads}{Number of Julia threads or \code{"auto"}.}
+\item{n_threads}{Overall compute-thread budget: a positive integer or
+\code{"auto"}. R uses at most five workers and Julia uses
+\code{floor(n_threads / active R workers)} threads per worker.}
 }
 \value{
 List with one element per replicate, each with \code{ds} and \code{pdps}.
 }
 \description{
-Loops over the replicates in R (sequentially) and fits every replicate in
-Julia, where the proteins are fitted in parallel threads. Returns exactly
-the same structure as \code{parallel_peptide()}.
+Splits replicate indices into at most five chunks and fits them with
+BiocParallel. Julia fits the proteins within each replicate using a share of
+the overall thread budget. Results are returned in replicate order.
 }

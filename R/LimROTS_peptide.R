@@ -295,7 +295,8 @@ LimROTS_peptide <- function(x,
         model_formula = model_formula,
         a1 = a1, a2 = a2,
         pairwise_contrasts = pairwise_contrasts,
-        pD = pD, pS = pS, peptide_metadata = peptide_metadata
+        pD = pD, pS = pS, peptide_metadata = peptide_metadata,
+        n_threads = n_threads
     )
     cli_alert_success("Final peptide inference complete.")
 
@@ -413,7 +414,7 @@ LimROTS_peptide <- function(x,
 #' BH-adjusted p-values `BH.pvalue`.
 #'
 .fit_final_peptide <- function(data, meta.info, group, model_formula,
-        a1, a2, pairwise_contrasts, pD , pS, peptide_metadata) {
+        a1, a2, pairwise_contrasts, pD , pS, peptide_metadata , n_threads) {
         # Fit the limma model on the original data and compute statistics, p-values, and FDR.
         fit <- fit_original_peptide(
             x = data,
@@ -421,7 +422,8 @@ LimROTS_peptide <- function(x,
             meta.info = meta.info,
             model_formula = model_formula,
             pairwise_contrasts = pairwise_contrasts,
-            peptide_metadata = peptide_metadata
+            peptide_metadata = peptide_metadata,
+            n_threads = n_threads
         )
         d <- abs(fit$d) / (a1 + a2 * fit$s)
         pD <- pD / (a1 + a2 * pS)

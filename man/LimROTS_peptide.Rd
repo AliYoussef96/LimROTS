@@ -16,7 +16,7 @@ LimROTS_peptide(
   formula.str,
   pairwise_contrasts,
   strata,
-  n_threads = "auto"
+  n_threads = 2
 )
 }
 \arguments{
@@ -38,8 +38,9 @@ in \code{colData(x)} required by the model.}
 \item{peptide_metadata}{Data frame mapping each \code{peptide_id} to a
 \code{protein_id}. Peptide IDs must match the row names of the intensity matrix.}
 
-\item{BPPARAM}{Deprecated and ignored: fitting uses Julia threads
-(see \code{n_threads}). Kept so existing calls keep working.}
+\item{BPPARAM}{A \code{BiocParallelParam} backend for fitting replicates in R.
+If \code{NULL}, a platform-appropriate backend is created. Its workers are
+capped by the thread budget and the number of replicates.}
 
 \item{group}{Character string naming the column in \code{meta.info} that
 identifies each sample's group.}
@@ -54,8 +55,10 @@ peptide and sample are added internally.}
 \item{strata}{Character vector or \code{NULL}. Names of character or factor
 metadata columns used to define strata for resampling and permutation.}
 
-\item{n_threads}{Number of Julia threads (a number or \code{"auto"}). Only
-effective if Julia has not already been started in the R session.}
+\item{n_threads}{Overall compute-thread budget for R and Julia: a positive
+integer or \code{"auto"}. R uses at most five workers; each active R worker gets
+\code{floor(n_threads / active R workers)} Julia threads. \code{"auto"} uses the
+available-core count.}
 }
 \value{
 The input \code{SummarizedExperiment} with protein-level statistics,
@@ -71,4 +74,13 @@ inference.
 \details{
 Model fitting is done in Julia (MixedModels.jl), so Julia and the R package
 JuliaConnectoR are required when this function is called.
+Bootstrap and permutation replicates are split into at most five R chunks,
+and the returned results remain in replicate order. A supplied
+\code{BPPARAM} backend is preserved, but its worker count is capped; a backend
+configured with fewer workers uses those workers. For an odd thread budget,
+one thread may be left unused to keep total concurrency within the budget.
+When Julia packages need installation from parallel workers, set
+\code{options(LimROTS.julia_install = TRUE)} before calling this function.
+\code{MulticoreParam} cannot be used after Julia has already been started in the
+manager R session; use \code{SnowParam} or restart R in that case.
 }
