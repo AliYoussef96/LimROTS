@@ -1,48 +1,72 @@
 # ----------------------------------------------------------------------------
-# Peptide-level fits (Julia backend), ONE Julia thread, original BPPARAM handling
+# Peptide-level fits with Julia (MixedModels.jl): BiocParallel only
 #
-# Parallelism comes only from BiocParallel (as in the original code).
-# The contrast vector L is built with emmeans (see .peptide_design).
-#
-# Same statistical model as Fit_peptide.R:
+# Same statistical model as the original code:
 #     y ~ <fixed part> + (1 | peptide_id) + (1 | sample_id), REML,
 #     group contrast from the pairwise_contrasts string (asymptotic SE).
 #
 # Division of work
-#   R     : all sampling, all data preparation, all checks, the design matrix
-#           X and the contrast vector L (so direction/coding are decided here).
-#   Julia : fits the models of ONE replicate, all proteins in parallel threads.
+#   R     : sampling, data preparation, all checks, the design matrix X and the
+#           contrast vector L (built with emmeans, see .peptide_design).
+#   Julia : fits the models of ONE replicate (one model per protein, one
+#           thread). There are NO thread settings: all parallelism comes from
+#           BiocParallel (BPPARAM handled as in the original code).
+#
+# Where Julia runs
+#   Julia is NEVER started in the main R session before the workers. Every
+#   BiocParallel worker (SnowParam or MulticoreParam) starts its own,
+#   independent Julia process the first time it needs it. In the main session
+#   Julia is only started afterwards, by fit_original_peptide(), and stopped
+#   when that fit is done.
 #
 # Julia is only needed when LimROTS_peptide() is called: nothing here runs
-# at package build/check time. The
-# JuliaConnectoR package is only listed under Suggests and is only used
-# (via `::`) when a Julia function is actually called.
+# at package build/check time. The JuliaConnectoR package is only listed under
+# Suggests and is only used (via `::`) when a Julia function is actually called.
 # ----------------------------------------------------------------------------
 
 ## Session-level state (the Julia process and the loaded Julia function)
 .limrots_julia <- new.env(parent = emptyenv())
 
 
-#' Start Julia, install the Julia packages if needed, load limrots_peptide.jl
+#' Folder of the private Julia environment of LimROTS
 #'
-#' Runs once per R session. Julia packages are installed in a private
-#' environment under `tools::R_user_dir("LimROTS", "data")`, never in the
-#' user's global Julia environment, and only after consent (interactive prompt
-#' or `options(LimROTS.julia_install = TRUE)`).
+#' @return Path (created lazily by Julia's package manager).
+.julia_env_dir <- function() {
+  normalizePath(
+    file.path(tools::R_user_dir("LimROTS", which = "data"), "julia_env"),
+    winslash = "/", mustWork = FALSE
+  )
+}
+
+
+#' Are the Julia packages already installed? (does NOT start Julia)
 #'
-#' @param n_threads Number of Julia threads (a positive whole number, default 2).
-#' Only effective if Julia has not been started yet in this R process.
+#' Reads `Project.toml` of the private LimROTS Julia environment, so the main R
+#' session can check this without starting a Julia process.
+#'
+#' @return `TRUE` or `FALSE`.
+.julia_packages_installed <- function() {
+  project_file <- file.path(.julia_env_dir(), "Project.toml")
+  if (!file.exists(project_file)) {
+    return(FALSE)
+  }
+  lines <- readLines(project_file, warn = FALSE)
+  all(vapply(c("MixedModels", "DataFrames"), function(p) {
+    any(grepl(paste0("^", p, "[[:space:]]*="), lines))
+  }, logical(1)))
+}
+
+
+#' Install the Julia packages (run ONCE, interactively)
+#'
+#' Installs MixedModels.jl and DataFrames.jl in a private environment under
+#' `tools::R_user_dir("LimROTS", "data")`, never in the user's global Julia
+#' environment, and only after consent (interactive prompt or
+#' `options(LimROTS.julia_install = TRUE)`). It starts a temporary Julia
+#' process and stops it again when done.
+#'
 #' @return `TRUE` invisibly.
-.setup_julia_peptide <- function(n_threads = 2L) {
-
-  if (isTRUE(.limrots_julia$ready)) {
-    return(invisible(TRUE))
-  }
-
-  n_threads <- suppressWarnings(as.integer(n_threads))
-  if (length(n_threads) != 1L || is.na(n_threads) || n_threads < 1L) {
-    cli_abort("`n_threads` must be a positive whole number.")
-  }
+.install_julia_peptide <- function() {
 
   if (!requireNamespace("JuliaConnectoR", quietly = TRUE)) {
     cli_abort(c(
@@ -50,7 +74,6 @@
       "i" = "Install it with {.code install.packages(\"JuliaConnectoR\")}."
     ))
   }
-
   if (!JuliaConnectoR::juliaSetupOk()) {
     cli_abort(c(
       "Julia was not found or could not be started.",
@@ -59,24 +82,21 @@
     ))
   }
 
-  ## Threads must be requested BEFORE Julia starts.
-  Sys.setenv(JULIA_NUM_THREADS = as.character(n_threads))
-
-  ## Private Julia environment for LimROTS
-  env_dir <- file.path(tools::R_user_dir("LimROTS", which = "data"),
-                       "julia_env")
+  env_dir <- .julia_env_dir()
   dir.create(env_dir, recursive = TRUE, showWarnings = FALSE)
-  env_dir <- normalizePath(env_dir, winslash = "/")
 
+  Sys.setenv(JULIA_NUM_THREADS = "1")
   missing_pkgs <- JuliaConnectoR::juliaEval(sprintf('begin
     import Pkg
     Pkg.activate("%s"; io = devnull)
     [p for p in ["MixedModels", "DataFrames"]
        if !(p in keys(Pkg.project().dependencies))]
   end', env_dir))
+  missing_pkgs <- as.character(unlist(missing_pkgs))
 
-  if (length(missing_pkgs) > 0) {
-    missing_pkgs <- as.character(unlist(missing_pkgs))
+  if (length(missing_pkgs) == 0) {
+    cli_alert_success("The Julia packages are already installed.")
+  } else {
     allowed <- isTRUE(getOption("LimROTS.julia_install", FALSE)) ||
       (interactive() && isTRUE(utils::askYesNo(
         paste0("LimROTS needs the Julia packages ",
@@ -91,24 +111,73 @@
     }
     cli_alert_info("Installing Julia packages (one time only)...")
     JuliaConnectoR::juliaCall("Pkg.add", missing_pkgs)
+    cli_alert_success("Julia packages installed.")
+  }
+
+  ## Leave no Julia process behind
+  tryCatch(JuliaConnectoR::stopJulia(), error = function(e) NULL)
+  .limrots_julia$ready <- FALSE
+  invisible(TRUE)
+}
+
+
+#' Start Julia in THIS R process and load limrots_peptide_final.jl
+#'
+#' Runs once per R process (a no-op afterwards). It is called by every
+#' BiocParallel worker, so each worker gets its own independent Julia process,
+#' and by `fit_original_peptide()` in the main session. It never installs
+#' anything: if the Julia packages are missing it aborts and points to
+#' `.install_julia_peptide()`.
+#'
+#' @return `TRUE` invisibly.
+.setup_julia_peptide <- function() {
+
+  if (isTRUE(.limrots_julia$ready)) {
+    return(invisible(TRUE))
+  }
+
+  if (!requireNamespace("JuliaConnectoR", quietly = TRUE)) {
+    cli_abort(c(
+      "The Julia backend needs the {.pkg JuliaConnectoR} R package.",
+      "i" = "Install it with {.code install.packages(\"JuliaConnectoR\")}."
+    ))
+  }
+  if (!JuliaConnectoR::juliaSetupOk()) {
+    cli_abort(c(
+      "Julia was not found or could not be started.",
+      "i" = "Install a recent Julia from https://julialang.org and make sure
+             `julia` is on your PATH (or set the JULIA_BINDIR variable)."
+    ))
+  }
+
+  ## One Julia thread per process (the code is single-threaded; this also
+  ## overrides a global JULIA_NUM_THREADS so idle threads are not created).
+  Sys.setenv(JULIA_NUM_THREADS = "1")
+
+  ## Private Julia environment of LimROTS
+  env_dir <- .julia_env_dir()
+  missing_pkgs <- JuliaConnectoR::juliaEval(sprintf('begin
+    import Pkg
+    Pkg.activate("%s"; io = devnull)
+    [p for p in ["MixedModels", "DataFrames"]
+       if !(p in keys(Pkg.project().dependencies))]
+  end', env_dir))
+  if (length(missing_pkgs) > 0) {
+    cli_abort(c(
+      "The Julia packages (MixedModels, DataFrames) are not installed.",
+      "i" = "Run {.code LimROTS:::.install_julia_peptide()} once in an
+             interactive session."
+    ))
   }
 
   ## Load the Julia file that ships with the package
-  julia_file <- system.file("julia", "limrots_peptide.jl", package = "LimROTS")
+  julia_file <- system.file("julia", "limrots_peptide_final.jl",
+                            package = "LimROTS")
   if (!nzchar(julia_file)) {
-    cli_abort("Could not find {.file inst/julia/limrots_peptide.jl}.")
+    cli_abort("Could not find {.file inst/julia/limrots_peptide_final.jl}.")
   }
   JuliaConnectoR::juliaCall("include", julia_file)
   .limrots_julia$fit <- JuliaConnectoR::juliaFun("limrots_fit_proteins")
-
-  n_active <- JuliaConnectoR::juliaEval("Threads.nthreads()")
-  cli_alert_info("Julia backend ready, using {n_active} thread{?s}.")
-  if (is.numeric(n_threads) && n_active != n_threads) {
-    cli_alert_warning(
-      "Requested {n_threads} thread{?s} but Julia has {n_active}
-       (Julia was probably already running in this session)."
-    )
-  }
 
   .limrots_julia$ready <- TRUE
   invisible(TRUE)
@@ -361,28 +430,25 @@
 
 #' Fit the original data in Julia (drop-in for fit_original_peptide)
 #'
+#' Runs in the main R session, AFTER the workers are done. Starts a Julia
+#' process here and stops it again at the end (the last Julia use of a
+#' `LimROTS_peptide()` run). Set `options(LimROTS.julia_keep_alive = TRUE)` to
+#' keep Julia running, e.g. when testing repeatedly.
+#'
 #' @param x Peptide x sample matrix (sample names as column names).
 #' @param group Name of the group column.
 #' @param meta.info Sample metadata, sample names as row names.
 #' @param model_formula Full model formula.
 #' @param pairwise_contrasts Single contrast string.
 #' @param peptide_metadata Data frame mapping `peptide_id` to `protein_id`.
-#' @param n_threads Julia threads for this fit. `NULL` (default) uses the
-#' thread count stored by `parallel_peptide()` (hybrid: the whole thread
-#' budget; bp: the number of BiocParallel workers), or 2 if none is stored.
-#' Only effective if Julia has not been started yet in this R session.
 #' @return List with signed `d` and `s`.
 fit_original_peptide <- function(x, group, meta.info, model_formula,
-                                 pairwise_contrasts, peptide_metadata,
-                                 n_threads = NULL) {
+                                 pairwise_contrasts, peptide_metadata) {
   stopifnot(identical(colnames(x), row.names(meta.info)))
-  ## This is the last Julia use of a LimROTS_peptide() run: stop Julia afterwards
   if (!isTRUE(getOption("LimROTS.julia_keep_alive", FALSE))) {
     on.exit(.stop_julia_peptide(), add = TRUE)
   }
-  if (is.null(n_threads)) n_threads <- .limrots_julia$n_threads
-  if (is.null(n_threads)) n_threads <- 2L
-  .setup_julia_peptide(n_threads)
+  .setup_julia_peptide()
   .fit_peptide_julia_core(
     combined_data = x, covariates.p = meta.info, group = group,
     model_formula = model_formula, pairwise_contrasts = pairwise_contrasts,
@@ -440,16 +506,21 @@ fit_permutation_peptide <- function(x, group, meta.info, model_formula,
 #' Julia version of parallel_peptide(): BPPARAM as in the original code
 #'
 #' The replicates are distributed by `bplapply()` exactly as before, with the
-#' same default backend and the same `BPPARAM` handling. Julia runs with ONE
-#' thread in every worker: the parallelism comes from BiocParallel. The Julia of
-#' the main session (used afterwards by `fit_original_peptide()`) gets as many
-#' threads as there are BiocParallel workers.
+#' same default backend and the same `BPPARAM` handling. There are no thread
+#' settings: Julia runs single-threaded in every process.
 #'
-#' Julia is started inside each worker, so with `MulticoreParam` (forked
-#' workers) Julia must NOT have been started in the main session before. The
-#' Julia packages must be installed beforehand (a worker cannot ask for
-#' consent): run `LimROTS:::.setup_julia_peptide()` once in an interactive
-#' session.
+#' Julia is NOT started in the main session. Every worker (`SnowParam` or
+#' `MulticoreParam`) starts its own independent Julia process on its first
+#' replicate. Therefore:
+#' * the Julia packages must be installed beforehand (a worker cannot ask for
+#'   consent): run `LimROTS:::.install_julia_peptide()` once, interactively;
+#' * with `MulticoreParam` (forked workers), Julia must not be running in the
+#'   main session, otherwise the forks would inherit its connection.
+#'   (`fit_original_peptide()` stops Julia when it is done, so a second run in
+#'   the same session is fine.)
+#'
+#' With `SerialParam` the "worker" is the main session, so Julia starts there
+#' and is stopped by `fit_original_peptide()` at the end.
 #'
 #' @param BPPARAM A `BiocParallelParam` object. If `NULL`, a two-worker
 #' backend appropriate to the operating system is used.
@@ -492,21 +563,22 @@ parallel_peptide <- function(BPPARAM = NULL,
     BPPARAM$exportglobals <- FALSE
   }
 
-  ## Julia threads of the MAIN session (used by fit_original_peptide()):
-  ## as many as there are BiocParallel workers. Workers themselves use 1.
-  n_bp_workers <- max(1L, as.integer(BiocParallel::bpnworkers(BPPARAM)))
-  .limrots_julia$n_threads <- n_bp_workers
-
-  ## Julia in the main session? Forked workers must not inherit a running Julia.
-  if (inherits(BPPARAM, "MulticoreParam")) {
-    if (isTRUE(.limrots_julia$ready)) {
-      cli_abort(c(
-        "Julia is already running in this R session, so forked workers cannot use it.",
-        "i" = "Restart R, or use {.fn BiocParallel::SnowParam}."
-      ))
-    }
-  } else {
-    .setup_julia_peptide(n_bp_workers)  # package check / consent, main session
+  ## ---- Julia is NOT started here; only checks that do not start it ----------
+  if (!requireNamespace("JuliaConnectoR", quietly = TRUE)) {
+    cli_abort("The Julia backend needs the {.pkg JuliaConnectoR} R package.")
+  }
+  if (!.julia_packages_installed()) {
+    cli_abort(c(
+      "The Julia packages (MixedModels, DataFrames) are not installed yet.",
+      "i" = "Run {.code LimROTS:::.install_julia_peptide()} once in an
+             interactive session."
+    ))
+  }
+  if (inherits(BPPARAM, "MulticoreParam") && isTRUE(.limrots_julia$ready)) {
+    cli_abort(c(
+      "Julia is already running in this R session, so forked workers would inherit it.",
+      "i" = "Restart R, or use {.fn BiocParallel::SnowParam}."
+    ))
   }
 
   export_vars <- list(
@@ -526,8 +598,8 @@ parallel_peptide <- function(BPPARAM = NULL,
 
   results_list <- bplapply(seq_len(nrow(samples)), function(i) {
 
-    ## Once per R process (no-op afterwards): start Julia with ONE thread
-    .setup_julia_peptide(1L)
+    ## Once per R process (a no-op afterwards): starts THIS worker's own Julia
+    .setup_julia_peptide()
 
     samples.R <- split(samples[i, ], meta.info[samples[i, ], group])
     pSamples_i <- pSamples[[i]]

@@ -2,7 +2,7 @@
 % Please edit documentation in R/Fit_peptide.R
 \name{parallel_peptide}
 \alias{parallel_peptide}
-\title{Parallel peptide fitting with bounded R and Julia workers}
+\title{Julia version of parallel_peptide(): BPPARAM as in the original code}
 \usage{
 parallel_peptide(
   BPPARAM = NULL,
@@ -13,14 +13,12 @@ parallel_peptide(
   meta.info,
   peptide_metadata,
   pSamples,
-  pairwise_contrasts,
-  n_threads
+  pairwise_contrasts
 )
 }
 \arguments{
-\item{BPPARAM}{A \code{BiocParallelParam} backend for replicate-level work.
-If \code{NULL}, a platform-appropriate backend is created. Its workers are
-capped by the thread budget and the number of replicates.}
+\item{BPPARAM}{A \code{BiocParallelParam} object. If \code{NULL}, a two-worker
+backend appropriate to the operating system is used.}
 
 \item{samples}{Matrix of bootstrap replicates (one row per replicate).}
 
@@ -37,16 +35,30 @@ capped by the thread budget and the number of replicates.}
 \item{pSamples}{List of permuted metadata data frames.}
 
 \item{pairwise_contrasts}{Single contrast string.}
-
-\item{n_threads}{Overall compute-thread budget: a positive integer or
-\code{"auto"}. R uses at most five workers and Julia uses
-\code{floor(n_threads / active R workers)} threads per worker.}
 }
 \value{
-List with one element per replicate, each with \code{ds} and \code{pdps}.
+List with one element per replicate, each with \code{ds}
+(\code{d_result}, \code{s_result}) and \code{pdps} (\code{pd_result}, \code{ps_result}), row names =
+proteins.
 }
 \description{
-Splits replicate indices into at most five chunks and fits them with
-BiocParallel. Julia fits the proteins within each replicate using a share of
-the overall thread budget. Results are returned in replicate order.
+The replicates are distributed by \code{bplapply()} exactly as before, with the
+same default backend and the same \code{BPPARAM} handling. There are no thread
+settings: Julia runs single-threaded in every process.
+}
+\details{
+Julia is NOT started in the main session. Every worker (\code{SnowParam} or
+\code{MulticoreParam}) starts its own independent Julia process on its first
+replicate. Therefore:
+\itemize{
+\item the Julia packages must be installed beforehand (a worker cannot ask for
+consent): run \code{LimROTS:::.install_julia_peptide()} once, interactively;
+\item with \code{MulticoreParam} (forked workers), Julia must not be running in the
+main session, otherwise the forks would inherit its connection.
+(\code{fit_original_peptide()} stops Julia when it is done, so a second run in
+the same session is fine.)
+}
+
+With \code{SerialParam} the "worker" is the main session, so Julia starts there
+and is stopped by \code{fit_original_peptide()} at the end.
 }

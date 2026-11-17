@@ -1,7 +1,7 @@
 # ==============================================================================
-# limrots_peptide.jl
+# limrots_peptide_final.jl
 #
-# Julia helper for LimROTS_peptide(backend = "julia").
+# Julia helper for the peptide fits of LimROTS (single-threaded).
 #
 # WHAT THIS FILE DOES
 #   For ONE replicate (the original data, one bootstrap sample, or one
@@ -28,10 +28,10 @@
 
 using MixedModels      # fits the mixed models
 using DataFrames       # small per-protein tables
-using LinearAlgebra    # BLAS threading control
+using LinearAlgebra    # dot product, BLAS setting
 
-# Every model is tiny, so it is faster to run MANY models at the same time
-# (one per Julia thread) than to let each model use several BLAS threads.
+# This code is single-threaded. Several R workers each start their OWN Julia
+# process, so every process uses one BLAS thread to avoid oversubscribing the CPU.
 BLAS.set_num_threads(1)
 
 
@@ -93,13 +93,13 @@ function limrots_fit_proteins(Y, protein_index, X, L, protein_names)
     # ---- 4. Which rows of Y belong to which protein ------------------------
     rows_of_protein = [findall(==(p), protein_index) for p in 1:n_proteins]
 
-    # ---- 5. Result containers (one slot per protein, so threads never clash)
+    # ---- 5. Result containers (one slot per protein) -----------------------
     estimate = fill(NaN, n_proteins)
     se       = fill(NaN, n_proteins)
     errors   = fill("", n_proteins)        # error message per protein, if any
 
-    # ---- 6. Fit all proteins, one protein per thread at a time -------------
-    Threads.@threads for p in 1:n_proteins
+    # ---- 6. Fit the proteins one after the other (no threads) -------------
+    for p in 1:n_proteins
         try
             rows = rows_of_protein[p]      # the peptides of this protein
             m    = length(rows)            # number of peptides

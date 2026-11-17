@@ -2,7 +2,7 @@
 % Please edit documentation in R/Fit_peptide.R
 \name{.peptide_design}
 \alias{.peptide_design}
-\title{Build the fixed-effect design matrix and the contrast vector in R}
+\title{Build the fixed-effect design matrix and the contrast vector}
 \usage{
 .peptide_design(covariates, group, model_formula, pairwise_contrasts)
 }
@@ -22,7 +22,11 @@ A list with \code{X} (samples x k, intercept column removed, unnamed) and
 \code{L} (length k + 1, intercept first).
 }
 \description{
-This reproduces what \code{lmer()} + \code{emmeans(specs = group)} + \code{contrast()} use:
-treatment coding, numeric covariates at their mean, factor covariates
-averaged with equal weights, contrast weights from \code{limma::makeContrasts}.
+The design matrix comes from \code{model.matrix()}. The contrast vector \code{L} comes
+from the emmeans package: a fixed-effects-only \code{lm()} with the same fixed
+formula is used as a carrier, and \code{emmeans::emmeans()} followed by
+\code{emmeans::contrast()} give the linear function of the coefficients (the
+response of the carrier \code{lm()} is irrelevant: \code{L} depends only on the
+design). The contrast weights come from \code{limma::makeContrasts}, as in the
+original code. Julia then only applies \code{L} to the coefficients it estimates.
 }

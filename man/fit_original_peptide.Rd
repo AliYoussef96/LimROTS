@@ -30,5 +30,8 @@ fit_original_peptide(
 List with signed \code{d} and \code{s}.
 }
 \description{
-Fit the original data in Julia (drop-in for fit_original_peptide)
+Runs in the main R session, AFTER the workers are done. Starts a Julia
+process here and stops it again at the end (the last Julia use of a
+\code{LimROTS_peptide()} run). Set \code{options(LimROTS.julia_keep_alive = TRUE)} to
+keep Julia running, e.g. when testing repeatedly.
 }

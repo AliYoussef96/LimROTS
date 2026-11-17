@@ -16,8 +16,8 @@
 #' in `colData(x)` required by the model.
 #' @param peptide_metadata Data frame mapping each `peptide_id` to a
 #' `protein_id`. Peptide IDs must match the row names of the intensity matrix.
-#' @param BPPARAM Deprecated and ignored: fitting uses Julia threads
-#' (see `n_threads`). Kept so existing calls keep working.
+#' @param BPPARAM A `BiocParallelParam` object specifying the parallelization strategy for
+#' bootstrap and permutation fits. If `NULL`, defaults to `bpparam()`.
 #' @param group Character string naming the column in `meta.info` that
 #' identifies each sample's group.
 #' @param formula.str Character string containing the fixed-effects portion of
@@ -27,8 +27,6 @@
 #' `"group1 - group2"`, to fit.
 #' @param strata Character vector or `NULL`. Names of character or factor
 #' metadata columns used to define strata for resampling and permutation.
-#' @param n_threads Number of Julia threads (a number or `"auto"`). Only
-#' effective if Julia has not already been started in the R session.
 #'
 #' @details
 #' Model fitting is done in Julia (MixedModels.jl), so Julia and the R package
@@ -60,8 +58,7 @@ LimROTS_peptide <- function(x,
                             group,
                             formula.str,
                             pairwise_contrasts,
-                            strata,
-                            n_threads = 2){
+                            strata){
   
   ### Perform sanity checks on the input parameters and data.
   cli_alert_info("Validating peptide analysis inputs.")
@@ -294,8 +291,7 @@ LimROTS_peptide <- function(x,
         model_formula = model_formula,
         a1 = a1, a2 = a2,
         pairwise_contrasts = pairwise_contrasts,
-        pD = pD, pS = pS, peptide_metadata = peptide_metadata,
-        n_threads = n_threads
+        pD = pD, pS = pS, peptide_metadata = peptide_metadata
     )
     cli_alert_success("Final peptide inference complete.")
 
@@ -413,7 +409,7 @@ LimROTS_peptide <- function(x,
 #' BH-adjusted p-values `BH.pvalue`.
 #'
 .fit_final_peptide <- function(data, meta.info, group, model_formula,
-        a1, a2, pairwise_contrasts, pD , pS, peptide_metadata , n_threads) {
+        a1, a2, pairwise_contrasts, pD , pS, peptide_metadata) {
         # Fit the limma model on the original data and compute statistics, p-values, and FDR.
         fit <- fit_original_peptide(
             x = data,
@@ -421,8 +417,7 @@ LimROTS_peptide <- function(x,
             meta.info = meta.info,
             model_formula = model_formula,
             pairwise_contrasts = pairwise_contrasts,
-            peptide_metadata = peptide_metadata,
-            n_threads = n_threads
+            peptide_metadata = peptide_metadata
         )
         d <- abs(fit$d) / (a1 + a2 * fit$s)
         pD <- pD / (a1 + a2 * pS)

@@ -2,30 +2,17 @@
 % Please edit documentation in R/Fit_peptide.R
 \name{.setup_julia_peptide}
 \alias{.setup_julia_peptide}
-\title{Start Julia, install the Julia packages if needed, load limrots_peptide.jl}
+\title{Start Julia in THIS R process and load limrots_peptide_final.jl}
 \usage{
-.setup_julia_peptide(
-  n_threads,
-  allow_install = FALSE,
-  allow_prompt = interactive()
-)
-}
-\arguments{
-\item{n_threads}{Requested Julia thread allocation, as a positive integer
-or \code{"auto"}. An already-running Julia instance cannot exceed this allocation.}
-
-\item{allow_install}{Whether a worker may install missing Julia packages
-without prompting.}
-
-\item{allow_prompt}{Whether to allow an interactive Julia package-install
-prompt.}
+.setup_julia_peptide()
 }
 \value{
 \code{TRUE} invisibly.
 }
 \description{
-Runs once per R session. Julia packages are installed in a private
-environment under \code{tools::R_user_dir("LimROTS", "data")}, never in the
-user's global Julia environment, and only after consent (interactive prompt
-or \code{options(LimROTS.julia_install = TRUE)}).
+Runs once per R process (a no-op afterwards). It is called by every
+BiocParallel worker, so each worker gets its own independent Julia process,
+and by \code{fit_original_peptide()} in the main session. It never installs
+anything: if the Julia packages are missing it aborts and points to
+\code{.install_julia_peptide()}.
 }
